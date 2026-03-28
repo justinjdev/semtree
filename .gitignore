@@ -16,3 +16,4 @@ results*.tsv
 *.log
 *.out
 *.synctex.gz
+cli/target/
