@@ -29,12 +29,12 @@
 
 ## 5. Binary .vec Format (binary-vec)
 
-- [ ] 5.1 Define VecHeader struct and binary layout (SVEC magic, version, dims, hash_len)
-- [ ] 5.2 Implement write_vec (header + hash + model + f32 array)
-- [ ] 5.3 Implement read_vec with mmap (memory-map file, cast f32 slice from pointer)
-- [ ] 5.4 Implement is_vec_fresh (compare content_hash and model)
+- [x] 5.1 Define VecHeader struct and binary layout (SVEC magic, version, dims, hash_len)
+- [x] 5.2 Implement write_vec (header + hash + model + f32 array)
+- [x] 5.3 Implement read_vec with mmap (memory-map file, cast f32 slice from pointer)
+- [x] 5.4 Implement is_vec_fresh (compare content_hash and model)
 - [ ] 5.5 Implement `semtree vec inspect` subcommand
-- [ ] 5.6 Write tests: round-trip, freshness check, mmap read, inspect output
+- [x] 5.6 Write tests: round-trip, freshness check, mmap read, inspect output
 
 ## 6. Embedder (rust-embedder)
 

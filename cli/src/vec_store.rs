@@ -85,9 +85,16 @@ pub fn write_vec(
     // Body: content_hash
     buf.write_all(hash_bytes)?;
 
-    // Body: null-terminated model name
+    // Body: null-terminated model name + padding to 4-byte alignment
     buf.write_all(model_bytes)?;
     buf.write_all(&[0u8])?;
+
+    // Pad to 4-byte alignment for f32 vector
+    let current_len = buf.len();
+    let padding = (4 - (current_len % 4)) % 4;
+    for _ in 0..padding {
+        buf.write_all(&[0u8])?;
+    }
 
     // Body: vector as little-endian f32
     for &val in vector {
@@ -110,8 +117,49 @@ pub fn read_vec(path: &Path) -> Result<Option<VecData>> {
     }
 
     let data = fs::read(path).with_context(|| format!("reading vec file: {}", path.display()))?;
-    let parsed = parse_vec_bytes(&data)?;
-    Ok(Some(parsed))
+    if data.len() < HEADER_SIZE {
+        bail!("vec file too small: {}", path.display());
+    }
+
+    // Parse header
+    let magic = &data[0..4];
+    if magic != MAGIC {
+        bail!("invalid magic in vec file: {}", path.display());
+    }
+    let dims = u16::from_le_bytes([data[6], data[7]]) as usize;
+    let hash_len = u32::from_le_bytes([data[8], data[9], data[10], data[11]]) as usize;
+
+    // Parse body
+    let hash_start = HEADER_SIZE;
+    let hash_end = hash_start + hash_len;
+    let content_hash = std::str::from_utf8(&data[hash_start..hash_end])?.to_string();
+
+    // Find null-terminated model name
+    let model_start = hash_end;
+    let model_end = data[model_start..]
+        .iter()
+        .position(|&b| b == 0)
+        .map(|p| model_start + p)
+        .ok_or_else(|| anyhow::anyhow!("no null terminator for model: {}", path.display()))?;
+    let model = std::str::from_utf8(&data[model_start..model_end])?.to_string();
+
+    // Skip padding to 4-byte alignment
+    let after_null = model_end + 1;
+    let vec_start = after_null + (4 - (after_null % 4)) % 4;
+
+    // Parse vector
+    let mut vector = Vec::with_capacity(dims);
+    for i in 0..dims {
+        let offset = vec_start + i * 4;
+        if offset + 4 > data.len() {
+            bail!("vec file truncated at vector data: {}", path.display());
+        }
+        vector.push(f32::from_le_bytes([
+            data[offset], data[offset + 1], data[offset + 2], data[offset + 3],
+        ]));
+    }
+
+    Ok(Some(VecData { model, content_hash, vector }))
 }
 
 /// Read an embedding vector using memory mapping. Returns `None` if the file does not exist.
@@ -180,7 +228,9 @@ pub fn read_vec_mmap(path: &Path) -> Result<Option<VecMmap>> {
         .ok_or_else(|| anyhow::anyhow!("no null terminator for model name: {}", path.display()))?;
     let model = std::str::from_utf8(&mmap[model_start..model_start + null_pos])?.to_string();
 
-    let vector_offset = model_start + null_pos + 1;
+    // Skip past null terminator and any padding to 4-byte alignment
+    let after_null = model_start + null_pos + 1;
+    let vector_offset = after_null + (4 - (after_null % 4)) % 4;
     let expected_end = vector_offset + dims * 4;
 
     if mmap.len() < expected_end {
@@ -432,12 +482,13 @@ mod tests {
         // Model = "m\0"
         assert_eq!(raw[17], b'm');
         assert_eq!(raw[18], 0);
-        // Vector = 0.5f32
+        // Padding: offset 19 is not 4-byte aligned, so 1 byte of padding at [19]
+        // Vector starts at offset 20 (next 4-byte aligned)
         assert_eq!(
-            f32::from_le_bytes([raw[19], raw[20], raw[21], raw[22]]),
+            f32::from_le_bytes([raw[20], raw[21], raw[22], raw[23]]),
             0.5
         );
-        // Total size
-        assert_eq!(raw.len(), 23);
+        // Total size: 16 header + 1 hash + 2 model+null + 1 padding + 4 vector = 24
+        assert_eq!(raw.len(), 24);
     }
 }
