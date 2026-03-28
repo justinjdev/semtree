@@ -24,7 +24,7 @@ from semtree.walker import walk
 def build(config: BuildConfig) -> None:
     """Run the full SRT build pipeline."""
     summarizer = ClaudeCLISummarizer(model=config.model)
-    nodes = walk(config.target_path)
+    nodes = walk(config.target_path, exclude=config.exclude)
 
     # Track hashes and summaries for directory aggregation
     node_hashes: dict[str, str] = {}   # repo_relative_path -> content_hash

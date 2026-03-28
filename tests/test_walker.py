@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from semtree.walker import Node, walk, _is_binary, _should_skip_entry
+from semtree.walker import Node, walk, _is_binary
 
 
 # ---------------------------------------------------------------------------

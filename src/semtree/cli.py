@@ -39,6 +39,12 @@ def main() -> None:
         action="store_true",
         help="Rebuild all records, ignoring hash freshness checks",
     )
+    build_parser.add_argument(
+        "--exclude",
+        action="append",
+        default=[],
+        help="Glob pattern to exclude (can be repeated, e.g. --exclude 'static/_app/*')",
+    )
 
     args = parser.parse_args()
 
@@ -65,5 +71,6 @@ def main() -> None:
             model=args.model,
             max_tokens=args.max_tokens,
             force=args.force,
+            exclude=tuple(args.exclude),
         )
         build(config)

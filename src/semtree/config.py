@@ -10,3 +10,4 @@ class BuildConfig:
     model: str = "claude-sonnet-4-20250514"
     max_tokens: int = 100_000
     force: bool = False
+    exclude: tuple[str, ...] = ()
