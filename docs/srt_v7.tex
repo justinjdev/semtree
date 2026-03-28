@@ -1,0 +1,985 @@
+\documentclass[11pt,a4paper]{article}
+
+% --- Core packages ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{times}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{multirow}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{placeins}
+\usepackage{subcaption}
+\usepackage{tikz}
+\usetikzlibrary{trees,positioning,arrows.meta,shapes.geometric,calc,fit}
+
+% --- Theorem environments ---
+\newtheorem{definition}{Definition}
+\newtheorem{proposition}{Proposition}
+\newtheorem{theorem}{Theorem}
+
+% --- Custom commands ---
+\newcommand{\srt}{\textsc{SRT}}
+\newcommand{\rel}{\mathrm{rel}}
+\newcommand{\summ}{\sigma}
+\newcommand{\embed}{\varepsilon}
+\newcommand{\tbudget}{B}
+\newcommand{\query}{\mathcal{Q}}
+\newcommand{\context}{\mathcal{C}}
+\newcommand{\tree}{\mathcal{T}}
+\newcommand{\nodes}{\mathcal{V}}
+\newcommand{\bigO}{\mathcal{O}}
+
+\algrenewcommand\algorithmicrequire{\textbf{Input:}}
+\algrenewcommand\algorithmicensure{\textbf{Output:}}
+
+\title{\textbf{Semantic Resolution Trees: Multi-Scale Context Management\\for AI Coding Agents}}
+
+\author{
+  Anonymous Authors\\
+  \textit{Preprint --- March 2026}
+}
+
+\date{}
+
+\begin{document}
+\maketitle
+
+% ============================================================
+% ABSTRACT
+% ============================================================
+\begin{abstract}
+We propose treating semantic understanding of a codebase as a \emph{first-class, version-controlled artifact}---on the same footing as the source code it describes.
+The \textbf{Semantic Resolution Tree} (\srt{}) is a deterministic summary hierarchy that mirrors the repository's filesystem: files are leaves, directories are internal nodes, and each node stores a natural-language summary generated bottom-up from its children.
+Summaries are stored as colocated Markdown records inside the repository and tracked by git alongside the code they describe.
+
+This single design decision---plain text in git---produces a cascade of architectural properties that no retrieval system offers.
+The semantic layer inherits ACID-like transactional guarantees from git.
+Multiple developers and agents share semantic state through ordinary push, pull, and merge workflows.
+Summary changes appear in diffs and pull requests, making AI-generated understanding subject to the same code-review process as source.
+The artifact requires zero external infrastructure: no vector database, no embedding service, no dedicated server.
+Any agent that can read files can consume it, making the index tool- and model-agnostic.
+And because every summary is version-controlled, the history of the codebase's semantic understanding is fully auditable.
+
+At query time, an agent consults the summary hierarchy to decide where to read raw code, descending through summaries and opening source files only in promising branches.
+The \srt{} thereby amortizes expensive comprehension work offline and reuses it cheaply across queries, sessions, and collaborators.
+We formalize the data structure, its offline construction, and a query-time routing protocol, and present an evaluation framework comparing \srt{}-guided navigation against existing repository-search tools and against ordinary agentic exploration without a persistent semantic index.
+\end{abstract}
+
+\noindent\textbf{Keywords:} semantic layer, version-controlled documentation, hierarchical retrieval, code search, coding agents, git-native artifacts
+
+% ============================================================
+% 1. INTRODUCTION
+% ============================================================
+\section{Introduction}\label{sec:intro}
+
+Codebases are understood many times over.
+Every developer who joins a team rebuilds a mental model of the repository.
+Every AI coding agent that opens a session rediscovers the same package boundaries, the same entry points, the same subsystem responsibilities.
+That understanding is expensive to produce and almost never externalized.
+A developer's mental model stays in their head; an agent's repository comprehension stays in a transient context window.
+Neither survives across sessions, neither is reviewable, and neither is available to the next person---or agent---who asks the same question.
+
+The root cause is not that understanding is hard to generate.
+Modern LLMs produce serviceable natural-language descriptions of code.
+The problem is that there is no standard \emph{artifact} for storing, maintaining, and sharing that understanding as a durable part of the repository.
+Documentation tries to fill this role but rots because there is no mechanical coupling between code changes and documentation updates.
+Retrieval indexes (vector stores, BM25 indexes, symbol databases) capture some structure but live outside the repository, require dedicated infrastructure, and are opaque to human review.
+
+\paragraph{Thesis.}
+We propose treating semantic understanding of a codebase as a \emph{first-class, version-controlled artifact}, stored inside the repository and maintained by the same workflows that govern source code.
+The \textbf{Semantic Resolution Tree} (\srt{}) is a concrete realization of this idea: a deterministic summary hierarchy that mirrors the filesystem, stored as colocated Markdown records, and tracked by git alongside the code it describes.
+
+The design centers on a single architectural decision: summaries are plain text files living inside the repository.
+This choice is deliberate, because git-native storage produces a cascade of emergent properties:
+
+\begin{itemize}[nosep]
+    \item \textbf{Transactional semantics.} The semantic layer inherits git's ACID-like guarantees. A commit that updates code and summaries together lands atomically or not at all. Hash-based invalidation ensures consistency between summaries and the code they describe.
+    \item \textbf{Collaboration via ordinary workflows.} Multiple developers and multiple agents share semantic state through push, pull, and merge. Branch-specific semantic states diverge and reunify through the same mechanisms as source code.
+    \item \textbf{Code review of AI-generated understanding.} Summary changes appear in diffs and pull requests. Reviewers can inspect, correct, and approve the AI's description of what the code does---subjecting the semantic layer to the same oversight process as source.
+    \item \textbf{Zero infrastructure.} No vector database, no embedding service, no dedicated server. The artifact is consumed by reading files, which every coding agent already knows how to do.
+    \item \textbf{Tool and model agnosticism.} Any LLM can generate the summaries. Any agent can consume them. Any human can read them. Switching models or tools requires no migration.
+    \item \textbf{Auditability.} The full history of the codebase's semantic understanding is available through \texttt{git log} and \texttt{git blame}. One can answer ``what did the agent think this module did six months ago?''
+    \item \textbf{Living documentation.} The \srt{} is simultaneously a routing index for agents and human-readable documentation of the codebase. Unlike conventional docs, staleness is mechanically detectable via hash mismatch and the rebuild is automated.
+\end{itemize}
+
+\paragraph{The routing layer.}
+The intended use of these summaries is equally important: they are \emph{not} the final answer.
+They are a routing layer that helps an agent decide where to read raw code.
+At query time, the agent starts from high-level summaries, descends only into promising branches, opens a small number of candidate files, and answers from source code.
+This makes the \srt{} a complement to live agentic search, not a replacement for it.
+The offline build amortizes expensive comprehension work; the online query reuses it cheaply---analogous to how a compiler amortizes parsing and optimization ahead of runtime.
+
+\paragraph{Relationship to existing work.}
+Existing tools largely approach repository understanding through \emph{flat retrieval}.
+Given a natural-language query, they search an index and return a ranked list of code chunks or symbols.
+Claude Context~\cite{claudecontext} uses hybrid lexical and vector retrieval over chunked code.
+Shire~\cite{shire} builds a structural package and symbol index with text search.
+MCP Context Manager~\cite{mcpcontext} uses BM25-style ranking with heuristic parsing.
+These tools are useful, but they require external infrastructure, are opaque to code review, and do not participate in the repository's version-control lifecycle.
+The \srt{} is not a better ranking algorithm; it is a different kind of artifact.
+
+\paragraph{Contributions.}
+\begin{itemize}[nosep]
+    \item A precise definition of the Semantic Resolution Tree as a deterministic, filesystem-aligned summary hierarchy whose nodes are keyed by repo-relative path and git-style content hashes, together with an analysis of the architectural properties that follow from git-native storage (\S\ref{sec:building}).
+    \item A query-time routing protocol in which an LLM reads child summaries, selects promising branches, and hands off to raw file reads once a small candidate set has been identified (\S\ref{sec:querying}).
+    \item An evaluation framework that compares \srt{} not only with existing repository-search tools, but also with ordinary agentic search without a persistent summary tree (\S\ref{sec:evaluation}).
+    \item A concrete reference implementation: a Python indexer that stores colocated Markdown records in the repository and a usage protocol for external coding agents (\Cref{app:impl}).
+\end{itemize}
+
+% ============================================================
+% 2. RELATED WORK
+% ============================================================
+\section{Related Work}\label{sec:related}
+
+\subsection{Hierarchical Code Summarization}
+
+Bottom-up code summarization has become a standard way to make large repositories more legible to language models. Code-Craft~\cite{codecraft2025}, Dhulshette et al.~\cite{dhulshette2025}, Sun et al.~\cite{sun2025}, Oskooei et al.~\cite{oskooei2025}, RepoUnderstander~\cite{repounderstand2025}, RepoGraph~\cite{repograph2025}, and GraphCoder~\cite{graphcoder2024} all show that repository understanding benefits from multi-level summaries or structural code graphs rather than raw flat chunking alone. Our work is aligned with this literature, but its emphasis is different: we are not primarily proposing a better summarization strategy. We are proposing a durable repository artifact that lives inside the repository, is version-controlled alongside the code it describes, and can be shared across agents and developers through ordinary git workflows.
+
+\subsection{Tree-Organized Retrieval}
+
+RAPTOR~\cite{raptor2024}, HIRO~\cite{hiro2024}, LATTICE~\cite{lattice2025}, HiRAG~\cite{hirag2025}, and A-RAG~\cite{arag2025} validate the general idea that hierarchical retrieval can outperform one-shot flat retrieval. The main distinction in our setting is that repositories already come with a deterministic containment hierarchy. We therefore avoid learned clustering and instead summarize the explicit filesystem tree. This makes node identity, incremental rebuilds, and on-disk storage significantly simpler.
+
+\subsection{Adaptive Retrieval and Agentic Search}
+
+Self-RAG~\cite{selfrag2024}, FLARE~\cite{flare2023}, MCTS-RAG~\cite{mctsrag2025}, and TALE~\cite{tale2025} all support the broader point that retrieval should be adaptive and budget-aware. Modern coding agents likewise navigate repositories interactively rather than by consuming a single giant context. The \srt{} fits into this line of work as a persistent guide for that exploration: it externalizes intermediate repository understanding into a reusable artifact that the agent can inspect before reading raw code. Anthropic's context engineering guide~\cite{anthropic2025context} makes a similar architectural point, advocating for persistent external context that agents can consult across turns. MemGPT~\cite{memgpt2023} takes a complementary approach, managing LLM memory through an operating-system--inspired paging mechanism rather than an external summary artifact, but shares the premise that context management should be an explicit architectural layer rather than an emergent property of prompt engineering. A distinguishing feature of the \srt{} relative to all of these systems is that the externalized artifact lives inside the repository and participates in its version-control lifecycle, making it shareable across agents and developers through ordinary git workflows rather than through a dedicated coordination protocol.
+
+\subsection{Production-Scale Offline Summarization}
+
+LinkedIn's production semantic search work~\cite{linkedin2026,mixlm2025} illustrates the value of offline summarization for repeated downstream use. Our setting is smaller in scale and more structured, so our reference implementation uses plain prompted summaries rather than task-specific training. The relevant lesson is architectural: expensive semantic compression can be performed ahead of time and reused across many future queries.
+
+% ============================================================
+% 3. BUILDING THE SEMANTIC RESOLUTION TREE
+% ============================================================
+\section{Building the Semantic Resolution Tree}\label{sec:building}
+
+This section defines the \srt{} data structure and its offline construction.
+The tree is a static artifact, built once per codebase version and incrementally maintained across commits.
+Query-time use of the tree is deferred to \S\ref{sec:querying}.
+
+\subsection{Data Structure}\label{sec:definitions}
+
+\begin{definition}[Semantic Resolution Tree]\label{def:srt}
+A Semantic Resolution Tree is a rooted tree $\tree = (\nodes, E, \summ, H, L)$ where:
+\begin{itemize}[nosep]
+    \item $\nodes$ is a set of nodes, each corresponding to a filesystem object in the codebase: either a directory or a file.
+    \item $E \subseteq \nodes \times \nodes$ is the parent-child edge set, mirroring the repository's containment hierarchy.
+    \item $\summ: \nodes \to \texttt{String}$ maps each node to a natural-language summary stored on disk. For leaf nodes, $\summ(v)$ is an LLM-generated summary of the file at $v$. For internal nodes, $\summ(v)$ is an LLM-generated summary of its children's summaries.
+    \item $H: \nodes \to \texttt{Hash}$ maps each node to a git-style content hash. For files, the hash is over raw file contents; for directories, it is over the sorted list of immediate $(\text{child path}, \text{child hash})$ pairs.
+    \item $L: \nodes \to \mathbb{N}$ is a level function: $L(\text{root}) = 0$, incrementing by~1 at each depth.
+\end{itemize}
+\end{definition}
+
+\begin{definition}[Resolution Levels]\label{def:levels}
+The canonical resolution levels for a code \srt{} are directory depths in the repository tree, with files as leaves.
+A typical branch looks like:
+\begin{center}
+\begin{tabular}{cll}
+\toprule
+\textbf{Level} & \textbf{Structural Unit} & \textbf{Summary Target} \\
+\midrule
+0 & Repository root & High-level repository summary \\
+1 & Top-level directory & Summary of immediate files and subdirectories \\
+2 & Nested directory & Summary of immediate files and subdirectories \\
+$\vdots$ & $\vdots$ & $\vdots$ \\
+$h$ & File (leaf) & Summary of the full file contents \\
+\bottomrule
+\end{tabular}
+\end{center}
+Not all branches have the same depth. The important invariant is structural, not semantic: directories are internal nodes and files are leaves.
+\end{definition}
+
+% ----- 3.2 Tree Construction -----
+\subsection{Construction}\label{sec:construction}
+
+Construction is an offline process that runs once per codebase version and incrementally on changes.
+It proceeds in four phases: deterministic structural parsing, file summarization, bottom-up summary aggregation, and storage.
+
+\begin{algorithm}[t]
+\caption{\textsc{BuildSRT}: Offline Tree Construction}\label{alg:build}
+\begin{algorithmic}[1]
+\Require Repository root path $R$, LLM $\mathcal{M}$
+\Ensure Semantic Resolution Tree $\tree$
+\Statex
+\State $\nodes, E \gets \Call{ParseStructure}{R}$ \Comment{Deterministic post-order DFS over directories and files}
+\Statex
+\For{each file leaf $v \in \nodes$ \textbf{in parallel}} \Comment{Phase 1: File summaries}
+    \If{$\Call{IsHiddenOrSymlinkOrBinary}{v}$}
+        \State \textbf{continue}
+    \EndIf
+    \State $p(v) \gets \Call{RepoRelativePath}{v}$
+    \State $H(v) \gets \Call{GitStyleHashFile}{v}$
+    \If{$\Call{FitsContextWindow}{v}$}
+        \State $\summ(v) \gets \mathcal{M}\!\bigl(\texttt{summarize this file},\; p(v),\; \Call{ReadSource}{v}\bigr)$
+    \Else
+        \State $\summ(v) \gets \texttt{"summary unavailable: oversized file"}$
+    \EndIf
+\EndFor
+\Statex
+\For{$\ell = \ell_{\max}-1$ \textbf{down to} $0$} \Comment{Phase 2: Bottom-up aggregation}
+    \For{each directory node $v$ at level $\ell$ \textbf{in parallel}}
+        \State $C_v \gets \{(p(c),\;\summ(c)) \mid c \in \text{children}(v)\}$
+        \State $\summ(v) \gets \mathcal{M}\!\bigl(\texttt{summarize these children},\; C_v\bigr)$
+        \State $H(v) \gets \Call{GitStyleHashDirectory}{\{(p(c), H(c)) : c \in \text{children}(v)\}}$
+    \EndFor
+\EndFor
+\Statex
+\State \Call{StorePersistently}{$\tree$} \Comment{On-disk format described in \Cref{app:impl}}
+\State \Return $\tree$
+\end{algorithmic}
+\end{algorithm}
+
+\paragraph{Summarization prompts.}
+The summarization prompts are intentionally minimal: for file leaves, the input is the repo-relative path and full file contents; for directory nodes, the input is the list of immediate child (path, summary) pairs.
+The structure of the \srt{} comes from deterministic traversal, not prompt specialization.
+Exact prompt templates are given in \Cref{app:impl}.
+
+\paragraph{Incremental updates.}
+The hashing scheme provides automatic change propagation.
+When a file's contents change, its SHA-256 hash changes.
+Because each directory hash is computed from the sorted list of its children's $(\text{path}, \text{hash})$ pairs, a change to any descendant file causes every ancestor directory's hash to change as well.
+On re-run, the indexer compares each node's stored \texttt{content\_hash} (from the YAML frontmatter in its \texttt{.srt/} record) against the freshly computed hash.
+Nodes whose hashes match are skipped; nodes whose hashes differ are re-summarized.
+The bottom-up build order guarantees that child summaries are current before any parent summary is regenerated.
+
+This design also provides crash resumability: because each record is written independently, a build that is interrupted partway through can simply be re-run.
+Nodes that were successfully written before the crash will pass the freshness check and be skipped.
+
+A simpler alternative---full rebuild on each commit---is also viable when codebase size and LLM cost permit it.
+
+\paragraph{Complexity.}
+For a codebase with $N$ file leaves and maximum tree depth $h$:
+\begin{itemize}[nosep]
+    \item Full build: $\bigO(N)$ LLM calls for file summaries plus one LLM call per directory node for aggregation.
+    \item Incremental update: $\bigO(h \cdot \Delta)$ LLM calls where $\Delta$ is the number of changed files.
+    \item Storage: $\bigO(N \cdot \bar{s})$ for summaries where $\bar{s}$ is average summary length.
+\end{itemize}
+
+
+% ============================================================
+% 4. QUERYING THE SEMANTIC RESOLUTION TREE
+% ============================================================
+\section{Querying the Semantic Resolution Tree}\label{sec:querying}
+
+Given a built \srt{}, this section defines the query-time model and describes how an agent uses the tree to route into raw code.
+The key principle is that summaries are a routing layer, not a substitute for source: the agent descends through summaries to identify promising files, then reads code directly.
+
+\subsection{Query Model}\label{sec:querymodel}
+
+\begin{definition}[Token Budget]\label{def:budget}
+A query $\query$ is accompanied by a token budget $\tbudget \in \mathbb{N}$, representing the maximum context tokens to load.
+The traversal produces a context set $\context \subseteq \nodes$ such that:
+\begin{equation}\label{eq:budget}
+    \sum_{v \in \context} |\summ(v)|_{\text{tok}} \leq \tbudget
+\end{equation}
+where $|\cdot|_{\text{tok}}$ denotes token count.
+\end{definition}
+
+\begin{definition}[Child Selection Oracle]\label{def:relevance}
+For a query $\query$ and an internal node $v$, let $\text{children}(v)$ denote the immediate children of $v$.
+The child selection oracle
+\[
+\mathcal{O}(\query, v) \to \{(c, \ell_c) : c \in \text{children}(v),\; \ell_c \in \{\texttt{strong},\texttt{possible}\}\}
+\]
+returns the subset of children whose summaries appear relevant to the query.
+The natural instantiation is to use the same LLM that powers the agent: given the query and the list of child $(\text{path}, \text{summary})$ pairs, it returns only selected child paths together with a label \texttt{strong} or \texttt{possible}.
+Children not returned by $\mathcal{O}$ are pruned.
+\end{definition}
+
+\begin{definition}[Summary-to-Code Handoff]\label{def:sufficiency}
+Query-time traversal uses summaries only for routing.
+Once traversal has identified a small candidate set of promising files, the agent reads raw file contents and answers from code rather than from summaries alone.
+A natural stopping rule is top-$k$ file candidates with a small constant $k$ (e.g., $k{=}3$), after which ordinary local follow-up exploration from those files is allowed.
+\end{definition}
+
+% ----- 4.2 Query-Time Traversal -----
+\subsection{Traversal}\label{sec:traversal}
+
+The \srt{} is a routing layer, not a replacement for reading code.
+At query time, an agent traverses summaries to decide which branches are worth opening, and only later reads raw code.
+
+\paragraph{Traversal policy.}
+Traversal begins at the repository root.
+For each currently open directory node $v$, the agent reads $v$'s summary record and presents the user query together with the list of immediate child $(\text{path}, \text{summary})$ pairs to the LLM.
+The LLM returns only the child paths labeled \texttt{strong} or \texttt{possible}.
+The agent descends into all selected children and prunes the branch if no children are selected.
+The labels act only as an inclusion filter; in the reference protocol, \texttt{strong} and \texttt{possible} are treated equally for traversal priority (the distinction exists to support richer priority policies in future implementations).
+
+\paragraph{Budget-aware search.}
+The search is adaptive under a token budget $\tbudget$.
+The budget constrains how many summaries can be read during routing and how many raw files can be opened afterward.
+A natural stopping rule is: continue summary-guided descent until the agent has identified a small set of promising file leaves, then open the top few candidate files and answer from code.
+If the opened files reveal additional nearby evidence---imports, callees, referenced identifiers, or neighboring modules---the agent may perform ordinary local follow-up exploration from those files.
+
+\paragraph{Failure and fallback behavior.}
+If a file was too large to summarize during indexing, its parent still mentions the child path together with an appropriate marker (e.g., \texttt{summary unavailable: oversized file}).
+Such files remain reachable by path during traversal, but routing quality is weaker because there is no semantic summary.
+Binary files, symlinks, and other non-source artifacts can be excluded from the tree without affecting the structural invariant.
+
+\paragraph{Complexity.}
+Let $b$ be the average branching factor, $h$ the tree height, and let $s_\ell$ denote the average token length of a directory summary at level $\ell$.
+If the agent explores $m_\ell$ directory nodes at level $\ell$, then the summary-routing work is
+\begin{equation}
+    \bigO\!\Bigl(\sum_{\ell=0}^{h-1} m_\ell \cdot s_\ell\Bigr)
+\end{equation}
+plus the cost of opening a small number of raw files near the end of traversal.
+Unlike flat retrieval, the goal is not to rank every file globally; it is to prune large irrelevant subtrees quickly and spend raw-code reads only on the most promising leaves.
+
+% ----- 4.3 Agent Integration -----
+\subsection{Agent Integration}\label{sec:agentintegration}
+
+The \srt{} does not require a bespoke server, database, or vector index.
+It is an on-disk artifact that an external coding agent reads directly, using the same file-reading capabilities it already possesses.
+
+\paragraph{Deployment model.}
+The tree is built offline and stored inside the repository.
+A coding agent is given a brief instruction (a ``skill'' or system-prompt directive) telling it to consult the summary hierarchy before opening raw code.
+The instruction is procedural: read the directory summary, inspect the listed children, descend into promising branches, and switch to raw files once a small candidate set has been identified.
+Concrete deployment details for a reference implementation are given in \Cref{app:impl}.
+
+\paragraph{Why this is distinct from ordinary agentic search.}
+Coding agents already know how to search repositories. The contribution of the \srt{} is not a better search algorithm but a different kind of artifact. Some of the repository understanding work has been precomputed, externalized, and stored as a versioned, reviewable, collaboratively maintained part of the repository itself. The agent is no longer starting every query from scratch; it is querying a persistent semantic layer that is shared across sessions, agents, and collaborators, and that participates in the repository's version-control lifecycle.
+
+
+% ============================================================
+% 5. COMPARISON WITH EXISTING MCP TOOLS
+% ============================================================
+\section{Comparison with Existing Repository Search Tools}\label{sec:comparison}
+
+The most important comparison is not between \srt{} and a strawman that cannot search code at all. Modern coding agents and repository tools can already navigate large codebases. The right question is whether a persistent, git-native summary tree offers meaningful advantages---in both retrieval quality and systems-level properties.
+
+\begin{table}[!htbp]
+\centering
+\caption{Comparison between ordinary repository search and \srt{}-guided routing across retrieval and architectural dimensions.}\label{tab:comparison}
+\footnotesize
+\begin{tabularx}{\textwidth}{lXXX}
+\toprule
+\textbf{Dimension} & \textbf{Flat / ordinary search} & \textbf{Coding agent without SRT} & \textbf{\srt{}} \\
+\midrule
+Primary artifact & Chunks, symbols, or grep hits & Transient in-context notes from live exploration & Persistent summaries aligned to the filesystem \\
+\addlinespace
+Navigation style & Rank results globally & Search/read/inspect iteratively & Descend through summaries, then read code \\
+\addlinespace
+Cross-query reuse & Limited to the index & Weak; understanding mostly stays in model context & Strong; summaries persist on disk across queries \\
+\addlinespace
+Incremental maintenance & Usually index rebuild or re-chunking & None & Git-style hash invalidation along the tree \\
+\addlinespace
+Interpretability & Search results only & Session-dependent & Human-readable summary records, versioned with the code \\
+\addlinespace
+\midrule
+\multicolumn{4}{l}{\textit{Architectural properties}} \\
+\addlinespace
+Collaboration & Index per-developer or shared via infrastructure & Per-session; not shared & Shared via git push/pull/merge \\
+\addlinespace
+Code review & Index is opaque & N/A & Summary diffs visible in pull requests \\
+\addlinespace
+Infrastructure required & Vector DB, embedding service, or search server & None & None (plain files in git) \\
+\addlinespace
+Model/tool lock-in & Tied to embedding model and store format & Tied to the agent's own context & Any LLM generates; any agent consumes \\
+\addlinespace
+Audit history & External log, if any & None & \texttt{git log}/\texttt{git blame} on every summary \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Compared with flat retrieval tools such as Claude Context~\cite{claudecontext}, Shire~\cite{shire}, and MCP Context Manager~\cite{mcpcontext}, the \srt{} changes the unit of repository understanding from ``a set of retrieved chunks'' to ``a persistent hierarchy of summaries and files.'' But the deeper distinction is architectural: the \srt{} participates in the repository's version-control lifecycle, while retrieval indexes live outside it. This means the \srt{} inherits collaboration, review, and auditability properties that retrieval indexes must build as separate features---if they build them at all.
+
+This comparison also clarifies the main skepticism the paper must answer. If an agent can already search and open files successfully, a summary tree is only justified when it improves something measurable: routing efficiency, repeatability, token cost, or answer quality on repeated repository questions. The evaluation in the next section is designed around exactly that question.
+
+% ============================================================
+% 6. EVALUATION FRAMEWORK
+% ============================================================
+\section{Evaluation Framework}\label{sec:evaluation}
+
+We design an evaluation framework that measures three properties: token efficiency, retrieval quality, and build cost.
+The evaluation uses a private enterprise codebase as the primary target, with reproducibility aided by standard benchmarks.
+
+\subsection{Metrics}\label{sec:metrics}
+
+\begin{definition}[Token Efficiency Ratio]\label{def:ter}
+For a query $\query$ answered with context set $\context$:
+\begin{equation}\label{eq:ter}
+    \text{TER}(\query) = \frac{|\context|_{\text{tok}}}{|\context_{\text{baseline}}|_{\text{tok}}}
+\end{equation}
+where $\context_{\text{baseline}}$ is the context set returned by the baseline system for the same query at equivalent retrieval quality.
+TER $< 1$ indicates \srt{} uses fewer tokens.
+\end{definition}
+
+\begin{definition}[Quality-Adjusted Token Efficiency]\label{def:qate}
+To enable fair comparison across systems that may trade quality for efficiency:
+\begin{equation}\label{eq:qate}
+    \text{QATE}(\query) = \frac{\text{Quality}(\query)}{\log_2\!\bigl(1 + |\context|_{\text{tok}}\bigr)}
+\end{equation}
+where Quality is measured by retrieval metrics (Recall@$k$, NDCG@10) or downstream task success.
+Higher QATE is better: more quality per token.
+\end{definition}
+
+\paragraph{Retrieval quality metrics.}
+\begin{itemize}[nosep]
+    \item \textbf{Recall@$k$}: fraction of ground-truth relevant code units found in the top-$k$ returned items. Measures completeness.
+    \item \textbf{NDCG@10}: normalized discounted cumulative gain at rank~10. Measures ranking quality.
+    \item \textbf{MRR}: mean reciprocal rank of the first relevant result. Measures ``time to first useful context.''
+    \item \textbf{Precision@$k$}: fraction of returned items that are relevant. Measures noise in the context.
+\end{itemize}
+
+\paragraph{Token efficiency metrics.}
+\begin{itemize}[nosep]
+    \item \textbf{Tokens loaded}: total tokens in $\context$ for a query.
+    \item \textbf{TER}: as defined above, relative to each baseline.
+    \item \textbf{QATE}: quality per log-token, enabling cross-system comparison at different operating points.
+\end{itemize}
+
+\paragraph{Build and runtime cost metrics.}
+\begin{itemize}[nosep]
+    \item \textbf{Index build time}: wall-clock time for full index construction.
+    \item \textbf{Incremental update time}: time to update after a single-file change.
+    \item \textbf{Index size on disk}: storage footprint of summary records.
+    \item \textbf{Query latency (p50, p95)}: time from query to context set delivery.
+    \item \textbf{LLM API calls per query}: number of LLM calls during traversal.
+\end{itemize}
+
+\subsection{Experimental Setup}\label{sec:setup}
+
+\paragraph{Target codebase.}
+The primary evaluation target is a private enterprise monorepo (the authors' company codebase).
+We report codebase characteristics without disclosing proprietary code: number of files, lines of code, number of packages, maximum depth, and language distribution.
+
+\paragraph{Query workload.}
+We construct three query categories:
+\begin{enumerate}[nosep]
+    \item \textbf{Focused queries} (30): target a specific function or class. Example: ``What does \texttt{validate\_token} do and what are its error cases?''
+    \item \textbf{Module-level queries} (30): ask about a package or subsystem. Example: ``How does the authentication module work?''
+    \item \textbf{Cross-cutting queries} (30): span multiple modules. Example: ``Find all places where user permissions are checked before database writes.''
+\end{enumerate}
+Ground-truth relevant code units are labeled by engineers familiar with the codebase.
+Each query has an associated set of relevant files and, when appropriate, relevant directories, enabling Recall and NDCG computation.
+
+\paragraph{Baselines.}
+\begin{enumerate}[nosep]
+    \item \textbf{Claude Context}~\cite{claudecontext}: configured with OpenAI \texttt{text-embedding-3-small} and Zilliz Cloud, default chunk settings.
+    \item \textbf{Shire}~\cite{shire}: configured with RAG enabled (fastembed BAAI/bge-small-en-v1.5, sqlite-vec).
+    \item \textbf{MCP Context Manager}~\cite{mcpcontext}: default configuration with BM25 + fuzzy matching.
+    \item \textbf{Flat RAG baseline}: standard dense retrieval with \texttt{text-embedding-3-small}, chunked at function level. This isolates the effect of hierarchical structure from the effect of embedding-based ranking.
+    \item \textbf{RAPTOR baseline}: RAPTOR-style tree built over the same codebase via unsupervised GMM clustering and LLM summarization. This isolates the effect of using code's natural hierarchy vs.\ induced structure.
+\end{enumerate}
+
+\subsection{Experimental Procedure}\label{sec:procedure}
+
+\begin{algorithm}[t]
+\caption{\textsc{EvaluateSRT}: Experimental Evaluation Procedure}\label{alg:eval}
+\begin{algorithmic}[1]
+\Require Codebase $R$, Query set $\{(\query_i, G_i)\}_{i=1}^{90}$ with ground truth $G_i$, Systems $\{S_j\}$
+\Ensure Metrics tables
+\Statex
+\State \Comment{--- Phase 1: Build all indexes ---}
+\For{each system $S_j$}
+    \State $t_{\text{start}} \gets \textsc{Clock}()$
+    \State $\text{Index}_j \gets S_j.\textsc{Build}(R)$
+    \State $t_{\text{build}}(S_j) \gets \textsc{Clock}() - t_{\text{start}}$
+    \State $\text{size}(S_j) \gets \textsc{DiskSize}(\text{Index}_j)$
+\EndFor
+\Statex
+\State \Comment{--- Phase 2: Query evaluation at multiple budgets ---}
+\For{each budget $\tbudget \in \{2048, 4096, 8192, 16384, 32768\}$}
+    \For{each query $(\query_i, G_i)$}
+        \For{each system $S_j$}
+            \State $t_{\text{start}} \gets \textsc{Clock}()$
+            \State $\context_{ij} \gets S_j.\textsc{Query}(\query_i, \tbudget)$
+            \State $\text{latency}_{ij} \gets \textsc{Clock}() - t_{\text{start}}$
+            \State $\text{tokens}_{ij} \gets |\context_{ij}|_{\text{tok}}$
+            \State $\text{llm\_calls}_{ij} \gets S_j.\textsc{LLMCallCount}()$
+            \State $\text{Recall}_{ij} \gets |G_i \cap \context_{ij}| / |G_i|$
+            \State $\text{NDCG}_{ij} \gets \textsc{ComputeNDCG}(\context_{ij}, G_i, 10)$
+            \State $\text{MRR}_{ij} \gets 1 / \textsc{FirstRelevantRank}(\context_{ij}, G_i)$
+            \State $\text{QATE}_{ij} \gets \text{NDCG}_{ij} / \log_2(1 + \text{tokens}_{ij})$
+        \EndFor
+    \EndFor
+\EndFor
+\Statex
+\State \Comment{--- Phase 3: Incremental update ---}
+\For{each system $S_j$}
+    \State Modify 1 function in the codebase
+    \State $t_{\text{incr}}(S_j) \gets$ time to update index
+    \State Revert modification
+\EndFor
+\Statex
+\State \Comment{--- Phase 4: Aggregate and report ---}
+\State Report: mean $\pm$ std per metric, per query category, per budget level
+\State Report: QATE Pareto curves (quality vs.\ tokens)
+\State Report: build/update times and index sizes
+\end{algorithmic}
+\end{algorithm}
+
+\paragraph{Budget-constrained evaluation.}
+The critical evaluation design choice is to compare systems \emph{at multiple token budgets}.
+At $\tbudget{=}2048$ (tight budget), \srt{} should show the largest advantage because its hierarchical summaries provide useful context even at low token counts, while flat retrieval systems must choose between returning one detailed chunk or several truncated ones.
+At $\tbudget{=}32768$ (generous budget), the advantage should narrow as flat systems can afford to load more context.
+The QATE metric (\Cref{def:qate}) captures this tradeoff explicitly.
+
+\paragraph{Per-category analysis.}
+We hypothesize:
+\begin{itemize}[nosep]
+    \item \textbf{Focused queries}: \srt{} matches baselines on retrieval quality (all systems find the target function) but uses fewer tokens (loads only the target subtree, not surrounding chunks).
+    \item \textbf{Module-level queries}: \srt{} significantly outperforms baselines by returning module summaries directly rather than requiring the agent to reconstruct module understanding from function chunks.
+    \item \textbf{Cross-cutting queries}: \srt{} shows moderate advantage via multi-branch beam search; the advantage depends on whether the relevant code is concentrated or dispersed.
+\end{itemize}
+
+\subsection{Supplementary Benchmarks}\label{sec:benchmarks}
+
+To complement the enterprise evaluation, we recommend running on:
+\begin{itemize}[nosep]
+    \item \textbf{SWE-bench Verified}~\cite{swebench}: 500 tasks from 12 Python repos. Measures end-to-end resolve rate. Use the BM25 retrieval variants at 13K/27K/40K token budgets for direct comparison with \srt{} at the same budgets.
+    \item \textbf{CrossCodeEval}~\cite{crosscodeeval}: cross-file code completion benchmark (NeurIPS 2023). Measures exactly what \srt{} optimizes: whether the system retrieves the right cross-file context. Report EM, Edit Similarity, and Identifier Match.
+    \item \textbf{RepoBench-R}~\cite{repobench}: repository-level retrieval benchmark. Report acc@1, acc@3, acc@5.
+\end{itemize}
+
+
+% ============================================================
+% 7. DISCUSSION
+% ============================================================
+\section{Discussion}\label{sec:discussion}
+
+\paragraph{When does \srt{} help most?}
+The \srt{} is most compelling when the same repository is queried repeatedly and many questions are structural rather than purely local: ``where does auth live?''; ``which subsystem handles billing retries?''; ``which package should I inspect for session refresh?'' In those cases, a persistent summary hierarchy can reduce repeated rediscovery.
+
+\paragraph{What would make the idea fail?}
+If the summaries are too vague, too lossy, or too stale, then the agent will still need to search raw code in almost the same way it would without the tree. The paper therefore lives or dies on a practical empirical question: whether the summaries improve routing enough to justify their build and maintenance cost.
+
+\paragraph{Summary quality is load-bearing.}
+A parent summary that fails to make a useful child discoverable can create false negatives that ordinary search would avoid. The design partly mitigates this by requiring every immediate child to be mentioned in its parent's summary and by treating summaries as routing aids rather than final evidence. But this remains the core risk of the approach.
+
+\paragraph{Why files as leaves?}
+Using files as leaves makes the design far simpler than a symbol-level tree. The tradeoff is that file summaries can still be coarse, and very large files may be skipped altogether. Symbol-level leaves are a natural extension, but the core contribution is strongest when it stays with the simpler filesystem-aligned design.
+
+\paragraph{Git-native storage as an architectural thesis.}
+Most of the properties enumerated in \S\ref{sec:intro} are not features that were designed in; they are consequences of a single decision---storing summaries as plain text files tracked by git.
+This is worth stating explicitly because it means the properties are not independent claims that each require separate justification.
+They are the natural behavior of any text artifact that lives inside a git repository.
+ACID-like semantics, branch-based isolation, merge-based collaboration, diff-based review, \texttt{git log} auditability, and zero-infrastructure deployment all follow from the storage choice alone.
+
+The closest analogy is to configuration-as-code or infrastructure-as-code, where committing a declarative artifact to the repository unlocks version control, review, and collaboration workflows that were previously manual or external.
+The \srt{} applies the same pattern to semantic understanding: understanding-as-code.
+
+\paragraph{Multi-agent and multi-developer coordination.}
+A property that deserves particular emphasis is that the \srt{} is a \emph{shared} artifact.
+When one developer or agent builds or updates the tree, every collaborator who pulls the repository receives the updated semantic layer.
+Agent~A's comprehension work benefits Agent~B without any explicit coordination protocol.
+This converts repository understanding from a per-session, per-agent ephemeral state into a durable team resource.
+
+In multi-branch workflows, each branch can carry its own semantic state.
+A feature branch that restructures a subsystem will produce summary diffs localized to the affected subtree.
+When branches merge, git's merge machinery applies to summaries just as it does to source.
+Merge conflicts on summary files surface exactly where parallel development created divergent understandings of the same code---useful signal, not just noise to resolve.
+
+\paragraph{Code review as human oversight.}
+The fact that summary changes appear in pull requests is significant beyond workflow convenience.
+It provides a natural mechanism for human oversight of AI-generated artifacts.
+A reviewer can verify that the LLM's description of a module is accurate, flag misleading summaries, and correct errors before they propagate to downstream consumers.
+This is the same review process that already governs source code, applied without modification to the semantic layer.
+
+\paragraph{Living documentation and documentation rot.}
+Traditional code documentation decays because there is no structural coupling between code changes and doc updates.
+The \srt{}'s hash invalidation scheme provides that coupling: when code changes, the corresponding summary's content hash changes, marking it stale.
+A CI hook or periodic rebuild regenerates only the affected summaries.
+The result is documentation that stays current not through discipline but through mechanical enforcement.
+
+The dual-use nature of the artifact matters here.
+For an AI agent, the \srt{} is a routing index that accelerates code navigation.
+For a human developer, the same files are readable onboarding material that describes what each directory and file does.
+These are not two separate products sharing storage; they are the same artifact serving two audiences.
+
+\paragraph{Offline comprehension as compilation.}
+The \srt{} separates expensive comprehension (offline, amortized) from cheap query-time routing (online, per-question).
+This is structurally similar to compilation: a compiler pays the cost of parsing, analysis, and optimization once, producing an artifact that is cheap to execute many times.
+The current agent paradigm is closer to an interpreter that re-understands the repository on every query.
+The \srt{} introduces a compilation step that stores the result of that understanding for reuse.
+
+Incremental updates extend the analogy: just as incremental compilation re-processes only changed translation units, hash-based invalidation re-summarizes only changed subtrees.
+
+\paragraph{Tool and model agnosticism.}
+Because the \srt{} is plain Markdown, it is decoupled from the model that generated it and from the agent that consumes it.
+Summaries generated by one LLM are consumable by any other.
+An agent built on Claude, GPT, Gemini, or a local model can read the same \texttt{.srt/} directory.
+This is a practical advantage over retrieval systems that depend on specific embedding models or vector store formats, where switching providers requires re-indexing or migration.
+
+
+% ============================================================
+% 8. CONCLUSION
+% ============================================================
+\section{Conclusion}\label{sec:conclusion}
+
+We have proposed treating semantic understanding of a codebase as a first-class, version-controlled artifact.
+The Semantic Resolution Tree is a concrete realization: a deterministic summary hierarchy where files are leaves, directories are internal nodes, and summaries are built bottom-up and stored as colocated Markdown records tracked by git.
+
+The core claim is that a single architectural decision---plain text in git---produces a set of properties that no existing retrieval system offers.
+The semantic layer inherits transactional guarantees from git, flows through ordinary collaboration workflows, is subject to code review, requires zero external infrastructure, is agnostic to the model that generated it and the agent that consumes it, and maintains a fully auditable history.
+At the same time, the artifact functions as a routing index that amortizes expensive comprehension offline and reuses it cheaply across queries, sessions, and collaborators.
+
+Whether this artifact improves agent navigation enough to justify its build cost is an empirical question.
+The evaluation framework presented in \S\ref{sec:evaluation} is designed to answer it.
+But even independent of the retrieval results, the \srt{} introduces a useful concept: that the AI-generated understanding of a codebase should be stored, versioned, reviewed, and shared by the same mechanisms that govern the code itself.
+
+Even if later implementations add richer parsing, symbol-level leaves, or learned ranking, the reference implementation described in \Cref{app:impl} is already a concrete systems proposal: build summaries offline, store them inside the repository, and let any external agent consume them directly.
+
+
+% ============================================================
+% REFERENCES
+% ============================================================
+\bibliographystyle{plain}
+\begin{thebibliography}{30}
+
+\bibitem{jetbrains2025context}
+JetBrains Research.
+\newblock Cutting through the noise: Smarter context management for LLM-powered agents.
+\newblock \emph{NeurIPS DL4C Workshop}, 2025.
+
+\bibitem{liu2024lost}
+N.~F. Liu, K.~Lin, J.~Hewitt, A.~Paranjape, M.~Bevilacqua, F.~Petroni, and P.~Liang.
+\newblock Lost in the middle: How language models use long contexts.
+\newblock \emph{Transactions of the ACL}, 12:157--173, 2024.
+
+\bibitem{claudecontext}
+Zilliz.
+\newblock Claude Context: Code search MCP for Claude Code.
+\newblock \url{https://github.com/zilliztech/claude-context}, 2025.
+
+\bibitem{shire}
+J.~Jones.
+\newblock Shire: Monorepo package indexer and MCP server.
+\newblock \url{https://github.com/justinjdev/shire}, 2025.
+
+\bibitem{mcpcontext}
+transparentlyok.
+\newblock MCP Context Manager.
+\newblock \url{https://github.com/transparentlyok/mcp-context-manager}, 2025.
+
+\bibitem{kusupati2022matryoshka}
+A.~Kusupati, G.~Bhatt, A.~Rez, M.~Wallingford, A.~Sinha, V.~Ramanujan, W.~Kusupati, P.~Jain, K.~D. Saenko, S.~Kakade, et~al.
+\newblock Matryoshka Representation Learning.
+\newblock \emph{NeurIPS}, 2022.
+
+\bibitem{codecraft2025}
+A.~Aliyev and Z.~Mammadli.
+\newblock Code-Craft: Hierarchical graph-based code summarization for enhanced context retrieval.
+\newblock \emph{arXiv:2504.08975}, 2025.
+
+\bibitem{dhulshette2025}
+A.~Dhulshette et~al.
+\newblock Hierarchical repository-level code summarization for business applications using local LLMs.
+\newblock \emph{LLM4Code@ICSE}, 2025.
+
+\bibitem{sun2025}
+Z.~Sun et~al.
+\newblock Repository-level code understanding by LLMs via hierarchical summarization.
+\newblock \emph{arXiv:2503.10737}, 2025.
+
+\bibitem{oskooei2025}
+A.~Oskooei et~al.
+\newblock Abstract repository tree for hierarchical code search and bug localization.
+\newblock \emph{ICCSA}, 2025.
+
+\bibitem{repounderstand2025}
+H.~Zan et~al.
+\newblock RepoUnderstander / LingmaAgent: How to understand whole repository?
+\newblock \emph{ICLR}, 2025.
+
+\bibitem{repograph2025}
+Y.~Ouyang et~al.
+\newblock RepoGraph: Enhancing AI software engineering with repository-level code graph.
+\newblock \emph{ICLR}, 2025.
+
+\bibitem{graphcoder2024}
+Y.~Liu et~al.
+\newblock GraphCoder: Enhancing repository-level code completion via code context graph.
+\newblock \emph{ASE}, 2024.
+
+\bibitem{raptor2024}
+P.~Sarthi, S.~Abdullah, A.~Tuli, S.~Khanna, A.~Goldie, and C.~Manning.
+\newblock RAPTOR: Recursive abstractive processing for tree-organized retrieval.
+\newblock \emph{ICLR}, 2024.
+
+\bibitem{hiro2024}
+S.~Goel and M.~Rezaei.
+\newblock HIRO: Hierarchical information retrieval optimization.
+\newblock \emph{arXiv:2406.09979}, 2024.
+
+\bibitem{lattice2025}
+S.~Gupta et~al.
+\newblock LLM-guided hierarchical retrieval (LATTICE).
+\newblock \emph{arXiv:2510.13217}, 2025.
+
+\bibitem{hirag2025}
+X.~Huang et~al.
+\newblock HiRAG: Retrieval-augmented generation with hierarchical knowledge.
+\newblock \emph{EMNLP Findings}, 2025.
+
+\bibitem{arag2025}
+Z.~Li et~al.
+\newblock A-RAG: Scaling agentic retrieval-augmented generation via hierarchical retrieval interfaces.
+\newblock \emph{arXiv:2602.03442}, 2025.
+
+\bibitem{2dmse2024}
+W.~Li et~al.
+\newblock 2DMSE: Two-dimensional Matryoshka sentence embeddings.
+\newblock \emph{arXiv:2402.14776}, 2024.
+
+\bibitem{matadaptor2024}
+J.~Yoon et~al.
+\newblock Matryoshka-Adaptor: Unsupervised and supervised tuning for smaller embedding dimensions.
+\newblock \emph{arXiv:2407.20243}, 2024.
+
+\bibitem{selfrag2024}
+A.~Asai, Z.~Wu, Y.~Wang, A.~Sil, and H.~Hajishirzi.
+\newblock Self-RAG: Learning to retrieve, generate, and critique through self-reflection.
+\newblock \emph{ICLR (Oral)}, 2024.
+
+\bibitem{flare2023}
+Z.~Jiang, F.~F. Xu, L.~Gao, Z.~Sun, Q.~Liu, J.~Dwivedi-Yu, Y.~Yang, J.~Callan, and G.~Neubig.
+\newblock Active retrieval augmented generation.
+\newblock \emph{EMNLP}, 2023.
+
+\bibitem{mctsrag2025}
+Z.~Hu et~al.
+\newblock MCTS-RAG: Enhancing LLM reasoning via Monte Carlo tree search.
+\newblock \emph{arXiv:2503.20757}, 2025.
+
+\bibitem{tale2025}
+Y.~Han et~al.
+\newblock TALE: Token-budget-aware LLM reasoning.
+\newblock \emph{ACL Findings}, 2025.
+
+\bibitem{linkedin2026}
+F.~Borisyuk et~al.
+\newblock Semantic Search at LinkedIn.
+\newblock \emph{arXiv:2602.07309}, 2026.
+
+\bibitem{mixlm2025}
+G.~Li et~al.
+\newblock MixLM: High-throughput and effective LLM ranking via text-embedding mix-interaction.
+\newblock \emph{arXiv:2512.07846}, 2025.
+
+\bibitem{anthropic2025context}
+Anthropic.
+\newblock Effective context engineering for AI agents.
+\newblock \url{https://www.anthropic.com/engineering}, 2025.
+
+\bibitem{memgpt2023}
+C.~Packer, S.~Wooders, K.~Lin, V.~Fang, S.~Patil, I.~Stoica, and J.~Gonzalez.
+\newblock MemGPT: Towards LLMs as operating systems.
+\newblock \emph{arXiv:2310.08560}, 2023.
+
+\bibitem{swebench}
+C.~E. Jimenez et~al.
+\newblock SWE-bench: Can language models resolve real-world GitHub issues?
+\newblock \emph{ICLR}, 2024.
+
+\bibitem{crosscodeeval}
+Y.~Ding et~al.
+\newblock CrossCodeEval: A diverse and multilingual benchmark for cross-file code completion.
+\newblock \emph{NeurIPS}, 2023.
+
+\bibitem{repobench}
+T.~Liu et~al.
+\newblock RepoBench: Benchmarking repository-level code auto-completion systems.
+\newblock \emph{ICLR}, 2024.
+
+\end{thebibliography}
+
+
+% ============================================================
+% APPENDIX
+% ============================================================
+\appendix
+\section{Reference Implementation}\label{app:impl}
+
+This appendix describes a concrete reference implementation of the \srt{}.
+The main body of the paper defines the data structure, algorithms, and evaluation framework at a level that admits multiple implementations.
+This appendix pins down one complete, deliberately simple instantiation: a Python indexer, colocated Markdown records, and a usage protocol for external coding agents such as Claude Code.
+
+\subsection{On-disk format}\label{app:ondisk}
+
+Summary records are stored inside the repository in colocated hidden directories:
+\begin{itemize}[nosep]
+    \item Each directory in the repository contains a hidden \texttt{.srt/} folder.
+    \item The directory's own summary record is stored as \texttt{.srt/\_\_dir\_\_.md}.
+    \item Each direct file leaf in that directory is stored as \texttt{.srt/<filename>.md}.
+\end{itemize}
+Each record is a Markdown document with YAML frontmatter containing the repo-relative path, content hash, and child paths.
+The Markdown body contains the node's prose summary.
+
+This colocated design means summary records are versioned by git alongside the code they describe.
+Summary drift becomes visible in ordinary diffs and code review, and the artifact is inspectable by both humans and agents without any special tooling.
+
+\subsection{Record format examples}\label{app:examples}
+
+A directory record (\texttt{.srt/\_\_dir\_\_.md}) contains YAML frontmatter followed by a prose summary and a routing table listing every immediate child:
+
+\begin{verbatim}
+---
+path: sv/employer
+type: directory
+content_hash: e5f6a7b8c9d0...
+---
+
+This directory implements the employer-facing hiring
+workflow, including job posting management, candidate
+tracking, and billing integration.
+
+## Children
+
+- **sv/employer/posting/**: Job posting CRUD, validation
+  rules, and posting-to-board syndication logic
+- **sv/employer/candidates/**: Candidate pipeline stages,
+  resume parsing, and status transitions
+- **sv/employer/billing/**: Subscription checks, usage
+  metering, and Stripe webhook handlers
+- **sv/employer/auth.pm**: Employer session authentication
+  and permission guards
+\end{verbatim}
+
+The directory summary is a fused routing table: the prose overview and the per-child pointers appear in a single document so that an agent can read one file and immediately decide which branches to explore.
+Every immediate child must be mentioned by name.
+
+A file record (\texttt{.srt/<filename>.md}) has the same frontmatter structure with a shorter body:
+
+\begin{verbatim}
+---
+path: sv/employer/auth.pm
+type: file
+content_hash: a1b2c3d4e5f6...
+---
+
+Employer session authentication module. Validates session
+tokens, checks employer-level permissions, and provides
+guard functions used by route handlers across the employer
+subsystem.
+\end{verbatim}
+
+\subsection{Deterministic traversal}
+The indexer walks the repository by deterministic filesystem traversal. Directories are internal nodes. Files are leaves. Dotfiles, dot-directories, symlinks, and binary files are ignored. Non-hidden, non-binary text files are included regardless of extension. The traversal order is post-order DFS so that child summaries are available before parent summaries are generated.
+
+\subsection{Hashing and freshness}
+Files are keyed by repo-relative path and hashed from full file contents. Directory hashes are computed git-style from a canonical serialization of the sorted immediate \((\text{child path}, \text{child hash})\) pairs. In the intended steady-state behavior, a summary is regenerated only when the content hash changes, although manual refresh is allowed.
+
+The same hash can serve as a staleness guard at query time.
+If an agent reads a \texttt{.srt/} record and the stored \texttt{content\_hash} does not match the current file or directory contents, the summary may be out of date.
+In that case, the agent should treat the summary as unreliable and read the raw file directly rather than relying on the stale summary for routing.
+
+\subsection{Summarization prompts}\label{app:prompts}
+
+The reference implementation uses intentionally minimal prompts.
+The structure of the \srt{} comes from deterministic traversal, not prompt specialization.
+
+\begin{table}[h]
+\centering
+\caption{Summarization prompts in the reference implementation.}\label{tab:prompts}
+\footnotesize
+\begin{tabularx}{\textwidth}{clX}
+\toprule
+\textbf{Node Type} & \textbf{Input} & \textbf{Prompt Template} \\
+\midrule
+File leaf & repo-relative path + full file contents & \texttt{summarize this file} \\
+\addlinespace
+Directory node & list of immediate child (path, summary) pairs & \texttt{summarize these children} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+File summarization input is the repo-relative path together with the file's full contents. Directory summarization input is the list of immediate child \((\text{path}, \text{summary})\) pairs. Parent regeneration uses only current child summaries, never the previous parent summary.
+
+\subsection{Oversized files}
+If a file is too large for the configured model context window, the system skips summary generation for that file and stores a placeholder marker: \texttt{summary unavailable: oversized file}. Parent summaries still include the child path and this marker so that the file remains visible in the tree.
+
+\subsection{Agent deployment and query-time protocol}\label{app:agent}
+
+The \srt{} is not a separate service.
+It is an on-disk artifact that an external coding agent reads directly, using the same file-reading capabilities it already possesses.
+
+\paragraph{Deployment model.}
+A practical deployment is to build the tree offline and then provide the coding agent with a skill or instruction file (e.g., a \texttt{CLAUDE.md} directive) telling it to consult \texttt{.srt/} summaries before opening raw code.
+The skill encodes three hard invariants:
+\begin{enumerate}[nosep]
+    \item \textbf{Summaries route, code answers.} The agent never produces a final answer based solely on summary content. It always reads raw source files before answering.
+    \item \textbf{Top-down entry.} When exploring an unfamiliar area, the agent checks for \texttt{.srt/\_\_dir\_\_.md} before opening individual files or grepping.
+    \item \textbf{Graceful fallback.} If no \texttt{.srt/} directory exists at a path, the agent falls back to ordinary search. The tree is additive, never blocking.
+\end{enumerate}
+
+\paragraph{Query-time protocol.}
+The agent follows a simple descent procedure:
+\begin{enumerate}[nosep]
+    \item \textbf{Check for SRT.} At the most relevant directory for the query, read \texttt{.srt/\_\_dir\_\_.md}. If it does not exist, fall back to ordinary search.
+    \item \textbf{Scan the routing table.} The directory record lists every immediate child with a description. Select children whose descriptions appear relevant to the query. Skip branches that clearly do not match.
+    \item \textbf{Descend.} For each selected child directory, read its \texttt{.srt/\_\_dir\_\_.md} and repeat. For selected child files, optionally read \texttt{.srt/<filename>.md} to confirm relevance before opening the raw file.
+    \item \textbf{Read raw code.} Once the agent has identified a small set of promising file leaves, open and read the actual source files. Answer from code, not from summaries.
+    \item \textbf{Follow up normally.} After reading candidate files, the agent may follow imports, grep for symbols, or read neighboring files as it normally would. The \srt{} gets the agent to the right neighborhood; ordinary local exploration takes over from there.
+\end{enumerate}
+
+\paragraph{Stopping rule.}
+The reference protocol does not impose a token budget or a rigid file-count cutoff.
+The agent decides when it has identified enough candidates to stop descending through summaries and switch to raw code.
+In practice this tends to be a small number of files (roughly 3--5), but the decision is left to the agent rather than enforced by the protocol.
+Budget-aware traversal, in which a token budget $\tbudget$ explicitly constrains how many summaries and files can be read, is a natural optimization described in \S\ref{sec:querying} but is not required by the reference implementation.
+
+\paragraph{Discovery-based scoping.}
+The skill does not hardcode which directories are indexed.
+The agent checks for \texttt{.srt/\_\_dir\_\_.md} at any path it visits; if present, the agent uses it for routing, and if absent, the agent searches normally.
+This scales automatically as more directories are indexed, with no changes to the skill or the agent's instructions.
+
+\subsection{Design scope and limitations}\label{app:limits}
+
+The reference implementation is intentionally narrow in order to make the artifact easy to build and easy for existing agents to consume:
+\begin{itemize}[nosep]
+    \item It ignores symlinks, binary files, dotfiles, and dot-directories.
+    \item It skips summary generation for files that exceed the model context window.
+    \item It uses open-ended prose summaries rather than a rigid schema.
+    \item It relies on an LLM, not a learned ranker, to decide which child summaries are worth descending into.
+    \item It does not batch or truncate child summaries for high-fan-out directories. If a directory has enough children that concatenating all child summaries exceeds the summarization model's context window, the build will fail for that node. A richer implementation could summarize children in batches and then summarize the batch summaries, or truncate each child summary to its first sentence before passing to the directory prompt.
+\end{itemize}
+These are implementation choices, not limitations of the \srt{} abstraction itself.
+A richer implementation could add symbol-level leaves, structured summary schemas, batched summarization for wide directories, or embedding-assisted pre-filtering (\Cref{app:embeddings}) without changing the core data structure or query protocol.
+
+
+% ============================================================
+% APPENDIX B: EMBEDDING OPTIMIZATION
+% ============================================================
+\section{Optimization: Embedding-Assisted Routing}\label{app:embeddings}
+
+The reference design routes queries entirely through LLM calls: at each tree level, the agent reads child summaries and asks the LLM which branches are relevant. This is simple and effective for moderate fan-out, but each routing decision costs a full LLM call. This appendix describes an optional optimization in which precomputed embeddings accelerate child selection.
+
+\subsection{Multi-resolution node embeddings}
+
+Each node $v$ in the \srt{} can be paired with a vector embedding $\embed(v) \in \mathbb{R}^d$ computed from its summary text $\summ(v)$.
+Because nodes at different tree levels describe code at different granularities, the embedding model should produce representations that remain comparable across resolutions.
+Matryoshka Representation Learning~\cite{kusupati2022matryoshka} and its extensions (2DMSE~\cite{2dmse2024}, Matryoshka-Adaptor~\cite{matadaptor2024}) provide a natural fit: embeddings can be truncated to lower dimensions for coarse routing at upper tree levels and used at full dimension for fine-grained file selection near the leaves.
+
+\subsection{Embedding-assisted child selection}
+
+At query time, the query $\query$ is embedded once.
+Before invoking the LLM oracle $\mathcal{O}(\query, v)$ at an internal node $v$, the system computes cosine similarity between the query embedding and each child's embedding:
+\[
+\text{sim}(c) = \frac{\embed(\query) \cdot \embed(c)}{\|\embed(\query)\| \, \|\embed(c)\|}
+\quad \text{for each } c \in \text{children}(v).
+\]
+Children with similarity below a threshold $\tau$ can be pruned before the LLM call, reducing the number of summaries the LLM must read.
+Children above $\tau$ are passed to the LLM for the final selection decision.
+This is a pre-filter, not a replacement: the LLM still makes the routing judgment, but over a smaller candidate set.
+
+\subsection{When this optimization matters}
+
+The embedding pre-filter is most useful at high-fan-out directory nodes (e.g., a top-level \texttt{src/} with 30+ subdirectories) where reading all child summaries in a single LLM call is expensive or exceeds practical prompt limits.
+For trees with moderate branching factor ($b \leq 10$), the LLM-only approach is already efficient and the added complexity of maintaining embeddings may not be justified.
+
+\subsection{Storage}
+
+Embeddings can be stored alongside summary records in a lightweight SQLite database or as serialized vectors in the \texttt{.srt/} directory structure.
+Incremental updates follow the same hash-based invalidation as summaries: when a node's content hash changes, its embedding is recomputed.
+
+\end{document}
