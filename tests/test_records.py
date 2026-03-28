@@ -7,6 +7,7 @@ import pytest
 from semtree.records import (
     read_record,
     record_path_for_dir,
+    record_path_for_dir_sibling,
     record_path_for_file,
     write_record,
 )
@@ -20,6 +21,20 @@ class TestRecordPathForFile:
     def test_top_level_file(self, tmp_path: Path) -> None:
         result = record_path_for_file(tmp_path, "README.md")
         assert result == tmp_path / ".sem" / "README.md.md"
+
+
+class TestRecordPathForDirSibling:
+    def test_returns_parent_sem_sibling(self, tmp_path: Path) -> None:
+        result = record_path_for_dir_sibling(tmp_path, "src/auth")
+        assert result == tmp_path / "src" / ".sem" / "auth.md"
+
+    def test_top_level_dir(self, tmp_path: Path) -> None:
+        result = record_path_for_dir_sibling(tmp_path, "cli")
+        assert result == tmp_path / ".sem" / "cli.md"
+
+    def test_root_returns_dir_record(self, tmp_path: Path) -> None:
+        result = record_path_for_dir_sibling(tmp_path, "")
+        assert result == tmp_path / ".sem" / "__dir__.md"
 
 
 class TestRecordPathForDir:
