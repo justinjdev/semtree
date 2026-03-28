@@ -147,6 +147,11 @@ def main() -> None:
         help="Benchmark repo name (default: fellowship)",
     )
     bench_parser.add_argument(
+        "--repo-path",
+        default=None,
+        help="Direct path to repo (bypasses clone/cache)",
+    )
+    bench_parser.add_argument(
         "--clean",
         action="store_true",
         help="Remove cached benchmark repos",
@@ -278,11 +283,17 @@ def main() -> None:
         from bench.repos import get_repo
         from bench.harness import append_results
 
-        try:
-            repo_path = get_repo(args.repo)
-        except ValueError as e:
-            print(f"error: {e}", file=sys.stderr)
-            sys.exit(1)
+        if args.repo_path:
+            repo_path = Path(args.repo_path).resolve()
+            if not repo_path.is_dir():
+                print(f"error: {args.repo_path} is not a directory", file=sys.stderr)
+                sys.exit(1)
+        else:
+            try:
+                repo_path = get_repo(args.repo)
+            except ValueError as e:
+                print(f"error: {e}", file=sys.stderr)
+                sys.exit(1)
 
         results_path = Path(args.results)
         phases = ["build", "quality", "routing", "incremental"] if args.phase == "all" else [args.phase]
@@ -301,9 +312,27 @@ def main() -> None:
                 if not query_file.exists():
                     print(f"error: no query set for repo '{args.repo}'", file=sys.stderr)
                     sys.exit(1)
-                # For now, use a placeholder select_fn — real LLM integration is separate
-                print("  (routing phase requires LLM select_fn — skipping for now)", file=sys.stderr)
-                records = []
+                from bench.routing import run_routing_phase, make_embedding_select_fn
+                from bench.baseline import run_baseline_phase
+
+                select_fn = make_embedding_select_fn(repo_path)
+                print("  Running SRT routing (embedding-based)...", file=sys.stderr)
+                srt_records = run_routing_phase(repo_path, query_file, select_fn, repo_name=args.repo, results_path=results_path)
+                print(f"  SRT: {len(srt_records)} metrics written incrementally", file=sys.stderr)
+
+                print("  Running baseline routing (grep/glob)...", file=sys.stderr)
+                baseline_records = run_baseline_phase(repo_path, query_file, repo_name=args.repo, results_path=results_path)
+                print(f"  Baseline: {len(baseline_records)} metrics written incrementally", file=sys.stderr)
+
+                try:
+                    from bench.shire_adapter import run_shire_phase
+                    print("  Running Shire routing...", file=sys.stderr)
+                    shire_records = run_shire_phase(repo_path, query_file, repo_name=args.repo, results_path=results_path)
+                    print(f"  Shire: {len(shire_records)} metrics written incrementally", file=sys.stderr)
+                except Exception as e:
+                    print(f"  Shire skipped: {e}", file=sys.stderr)
+
+                records = []  # already written incrementally
             elif phase == "incremental":
                 from bench.incremental import run_incremental_phase
                 records = run_incremental_phase(repo_path, repo_name=args.repo)

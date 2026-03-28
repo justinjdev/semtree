@@ -112,19 +112,32 @@ r = read_record(record_path_for_dir(root, 'CHILD_PATH'))
 print(r['summary'] if r else 'no summary')
 "
 
-Use this to write the directory record:
+Use this to write the directory record AND its sibling at the parent level:
 source /Users/justin/git/semtree/.venv/bin/activate && python3 -c "
 import sys; sys.path.insert(0, '/Users/justin/git/semtree/src')
 from pathlib import Path
-from semtree.records import record_path_for_dir, write_record
+from semtree.records import record_path_for_dir, record_path_for_dir_sibling, write_record
 root = Path('REPO_ROOT')
 write_record(record_path_for_dir(root, 'DIR_PATH'), 'DIR_PATH_OR_DOT', 'directory', 'DIR_HASH', '''SUMMARY_WITH_CHILDREN''')
+sibling = record_path_for_dir_sibling(root, 'DIR_PATH')
+if sibling != record_path_for_dir(root, 'DIR_PATH'):
+    write_record(sibling, 'DIR_PATH', 'directory', 'DIR_HASH', '''SUMMARY_WITH_CHILDREN''')
 print('wrote DIR_PATH')
 "
 
 Directories to process (with their children and hashes):
 - dir: <path>, hash: <hash>, children: [child1, child2, ...]
 ```
+
+### Step 3.5: Compute embeddings for routing
+
+After all records are written, run `semtree embed` to create `.vec` sidecar files for embedding-assisted routing:
+
+```bash
+source /Users/justin/git/semtree/.venv/bin/activate && semtree embed REPO_ROOT
+```
+
+This enables `semtree route` and `semtree query` to rank children by cosine similarity.
 
 ### Step 4: Report results
 
@@ -136,5 +149,6 @@ Print summary of files/dirs summarized vs skipped.
 - **Directory summaries are LLM-generated prose** — not mechanical concatenation. The agent reads child summaries and writes a natural-language overview + routing table.
 - **Every child MUST appear in the `## Children` routing table** by name with a description.
 - **Bottom-up ordering for directories** — deepest first, so child summaries exist before parents need them.
+- **Directory sibling records** — every directory (except root) must have a sibling record at the parent level (`<parent>/.sem/<dirname>.md`) in addition to its own `<dir>/.sem/__dir__.md`. This enables embedding-based routing to rank directories alongside files.
 - **File summaries are independent** — parallelize aggressively across batches.
 - **Use the semtree library** for hashing, record paths, and record I/O. Don't reimplement.

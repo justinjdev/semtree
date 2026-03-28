@@ -78,8 +78,8 @@ class TestSimulateDescent:
         _make_sem_tree(tmp_path)
 
         def mock_select(question, children, beam_width):
-            # Select all children up to beam_width
-            return [c[0] for c in children[:beam_width]] if children else []
+            # Select all children up to beam_width, return (path, score) pairs
+            return [(c[0], 0.5) for c in children[:beam_width]] if children else []
 
         result = simulate_descent(
             repo_path=tmp_path,

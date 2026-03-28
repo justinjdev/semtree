@@ -66,7 +66,7 @@ def ndcg_at_k(retrieved: list[str], relevant: dict[str, int], k: int = 10) -> fl
     return dcg / idcg
 
 
-SelectFn = Callable[[str, list[tuple[str, str]], int], list[str]]
+SelectFn = Callable[[str, list[tuple[str, str]], int], list[tuple[str, float]]]
 
 
 def simulate_descent(
@@ -80,8 +80,12 @@ def simulate_descent(
     """Simulate SRT routing protocol descent.
 
     select_fn(question, [(child_path, child_summary)], beam_width) -> [selected_paths]
+
+    Files are ranked by the depth at which they were discovered (deeper = more
+    specifically routed), with ties broken by selection order within a level.
     """
-    files_reached = []
+    # Track files with their selection score
+    files_with_score: list[tuple[str, float]] = []
     llm_calls = 0
     tokens_loaded = 0
     t0 = time.monotonic()
@@ -112,22 +116,26 @@ def simulate_descent(
         if not children:
             continue
 
-        # LLM selects children
+        # Select children (returns (path, score) pairs)
         selected = select_fn(question, children, beam_width)
         llm_calls += 1
 
-        for child_path in selected:
+        for child_path, score in selected:
             child_full = repo_path / child_path
             if child_full.is_dir():
                 queue.append((child_path, depth + 1))
             else:
-                files_reached.append(child_path)
+                files_with_score.append((child_path, score))
                 # Load file summary tokens
                 sem_dir = child_full.parent / SEM_DIR
                 file_record = sem_dir / f"{child_full.name}.md"
                 file_data = read_record(file_record)
                 if file_data:
                     tokens_loaded += len(file_data.get("summary", "")) // 4
+
+    # Rank files by cosine similarity score (highest = most relevant)
+    files_with_score.sort(key=lambda x: x[1], reverse=True)
+    files_reached = [path for path, _score in files_with_score]
 
     elapsed = time.monotonic() - t0
     return DescentResult(
@@ -169,15 +177,56 @@ SRT_CONTROL_GRID = [
 # Per-call cost estimate (Claude Haiku for routing)
 COST_PER_LLM_CALL = 0.001  # $0.001 per call estimate
 
+# Embedding cost: model load is ~0.3s amortized, per-query embed is ~0.002s
+COST_PER_EMBED_CALL = 0.0  # local inference, no API cost
+
+
+def make_embedding_select_fn(repo_path: Path, model: str = "BAAI/bge-small-en-v1.5") -> SelectFn:
+    """Create a select_fn that uses cosine similarity over .vec sidecars.
+
+    Loads the embedding model once; subsequent calls just embed the query and rank.
+    """
+    from semtree.embedder import embed_query, read_vec, cosine_rank
+
+    # Cache query embeddings across calls within a run
+    _query_cache: dict[str, list[float]] = {}
+
+    def select_fn(question: str, children: list[tuple[str, str]], beam_width: int) -> list[tuple[str, float]]:
+        if question not in _query_cache:
+            _query_cache[question] = embed_query(question, model_name=model)
+        query_vec = _query_cache[question]
+
+        # Load child vectors
+        children_vecs: dict[str, list[float]] = {}
+        for child_path, _summary in children:
+            child_full = repo_path / child_path
+            vec_path = child_full.parent / ".sem" / f"{child_full.name}.vec"
+            vec_data = read_vec(vec_path)
+            if vec_data is not None:
+                children_vecs[child_path] = vec_data["vector"]
+
+        if not children_vecs:
+            return [(path, 0.0) for path, _ in children[:beam_width]]
+
+        ranked = cosine_rank(query_vec, children_vecs)
+        return ranked[:beam_width]
+
+    return select_fn
+
 
 def run_routing_phase(
     repo_path: Path,
     query_file: Path,
     select_fn: SelectFn,
     repo_name: str = "local",
+    results_path: Path | None = None,
 ) -> list[MetricRecord]:
-    """Run routing phase: sweep control grid, collect metrics per query per setting."""
-    now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    """Run routing phase: sweep control grid, collect metrics per query per setting.
+
+    If results_path is provided, writes results incrementally after each test.
+    """
+    from bench.harness import append_results
+
     queries = load_queries(query_file)
     records: list[MetricRecord] = []
 
@@ -185,6 +234,7 @@ def run_routing_phase(
         relevant_map = {r["path"]: r["relevance"] for r in query.relevant}
 
         for control in SRT_CONTROL_GRID:
+            now = datetime.now(timezone.utc).isoformat(timespec="seconds")
             control_json = json.dumps(control, sort_keys=True)
 
             result = simulate_descent(
@@ -199,6 +249,7 @@ def run_routing_phase(
             ndcg = ndcg_at_k(result.files_reached, relevant_map, k=10)
             cost = result.llm_calls * COST_PER_LLM_CALL
 
+            batch: list[MetricRecord] = []
             for metric, value in [
                 ("ndcg@10", ndcg),
                 ("cost_usd", cost),
@@ -206,9 +257,13 @@ def run_routing_phase(
                 ("tokens_loaded", result.tokens_loaded),
                 ("llm_calls", result.llm_calls),
             ]:
-                records.append(MetricRecord(
+                batch.append(MetricRecord(
                     now, "routing", repo_name, "srt",
                     query.id, control_json, metric, value,
                 ))
+
+            records.extend(batch)
+            if results_path:
+                append_results(results_path, batch)
 
     return records

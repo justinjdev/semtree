@@ -39,8 +39,13 @@ def grep_search(
 
     for keyword in keywords:
         result = subprocess.run(
-            ["grep", "-rl", "--include=*.go", "--include=*.py", "--include=*.md",
-             "--include=*.ts", "--include=*.js", keyword, "."],
+            ["grep", "-rl",
+             "--include=*.go", "--include=*.py", "--include=*.md",
+             "--include=*.ts", "--include=*.js",
+             "--exclude-dir=node_modules", "--exclude-dir=.git",
+             "--exclude-dir=.sem", "--exclude-dir=.srt",
+             "--exclude-dir=.shire", "--exclude-dir=vendor",
+             keyword, "."],
             cwd=repo_path, capture_output=True, text=True,
         )
         if result.returncode == 0:
@@ -77,9 +82,14 @@ def run_baseline_phase(
     repo_path: Path,
     query_file: Path,
     repo_name: str = "local",
+    results_path: Path | None = None,
 ) -> list[MetricRecord]:
-    """Run baseline phase: sweep control grid, collect metrics."""
-    now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    """Run baseline phase: sweep control grid, collect metrics.
+
+    If results_path is provided, writes results incrementally after each test.
+    """
+    from bench.harness import append_results
+
     queries = load_queries(query_file)
     records: list[MetricRecord] = []
 
@@ -87,6 +97,7 @@ def run_baseline_phase(
         relevant_map = {r["path"]: r["relevance"] for r in query.relevant}
 
         for control in BASELINE_CONTROL_GRID:
+            now = datetime.now(timezone.utc).isoformat(timespec="seconds")
             control_json = json.dumps(control, sort_keys=True)
 
             result = grep_search(
@@ -107,6 +118,7 @@ def run_baseline_phase(
 
             ndcg = ndcg_at_k(files_within_budget, relevant_map, k=10)
 
+            batch: list[MetricRecord] = []
             for metric, value in [
                 ("ndcg@10", ndcg),
                 ("cost_usd", 0.0),  # grep is free
@@ -114,9 +126,13 @@ def run_baseline_phase(
                 ("tokens_loaded", token_sum),
                 ("llm_calls", 0),
             ]:
-                records.append(MetricRecord(
+                batch.append(MetricRecord(
                     now, "routing", repo_name, "baseline",
                     query.id, control_json, metric, value,
                 ))
+
+            records.extend(batch)
+            if results_path:
+                append_results(results_path, batch)
 
     return records

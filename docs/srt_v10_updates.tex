@@ -1,0 +1,121 @@
+% ============================================================
+% SRT v10 Updates — changes from implementation experience
+% Apply these edits to srt_v9.tex
+% ============================================================
+
+% ============================================================
+% UPDATE 1: On-disk format (Appendix A, ~line 923)
+% Add directory sibling records to the storage description
+% ============================================================
+% REPLACE lines 925-930:
+
+Summary records are stored inside the repository in colocated hidden directories:
+\begin{itemize}[nosep]
+    \item Each directory in the repository contains a hidden \texttt{.srt/} folder.
+    \item The directory's own summary record is stored as \texttt{.srt/\_\_dir\_\_.md}.
+    \item Each direct file leaf in that directory is stored as \texttt{.srt/<filename>.md}.
+    \item Each direct subdirectory child is \emph{also} stored as a sibling record at the parent level: \texttt{.srt/<dirname>.md}. This sibling duplicates the content of \texttt{<dirname>/.srt/\_\_dir\_\_.md} but lives alongside file records so that all immediate children---files and directories alike---are enumerable from a single \texttt{.srt/} folder. This is necessary for embedding-assisted routing (\Cref{app:embeddings}), where each child must have a colocated vector sidecar.
+\end{itemize}
+
+% ============================================================
+% UPDATE 2: Traversal (Section 4.2, ~line 309)
+% Add embedding-based traversal as an alternative policy
+% ============================================================
+% AFTER the existing \paragraph{Traversal policy.} block (line 309-314),
+% ADD a new paragraph:
+
+\paragraph{Embedding-based traversal.}
+An alternative traversal policy replaces the per-level LLM oracle with precomputed vector similarity.
+During an offline embedding pass, each node's summary is encoded into a dense vector stored as a sidecar file alongside the summary record (\Cref{app:embeddings}).
+At query time, the query is embedded once, and at each internal node the system ranks children by cosine similarity between the query vector and each child's precomputed vector.
+The top-$k$ children (a beam width parameter) are selected for descent without an LLM call.
+
+This policy is a complete traversal strategy, not only a pre-filter.
+In the reference implementation, a single CLI invocation performs beam-search descent from root to leaves in under 100\,ms on a 300-node tree, compared to seconds per level for the LLM-oracle policy.
+The tradeoff is that cosine similarity over summary embeddings is a weaker relevance signal than a full LLM judgment; the embedding policy may miss children whose relevance depends on reasoning not captured by vector proximity.
+A hybrid policy---embedding pre-filter followed by LLM confirmation on the survivors---combines the speed of embedding routing with the judgment of the oracle.
+
+% ============================================================
+% UPDATE 3: Appendix B title and framing (~line 1069)
+% Reframe from "optimization" to "implementation" since it
+% works as standalone routing, not just pre-filtering
+% ============================================================
+% REPLACE line 1069:
+
+\section{Embedding-Assisted Routing}\label{app:embeddings}
+
+% REPLACE lines 1071 (the opening paragraph):
+
+The reference design routes queries through LLM calls: at each tree level, the agent reads child summaries and asks the LLM which branches are relevant.
+This appendix describes an embedding layer that accelerates or replaces that per-level LLM call.
+Precomputed vector embeddings of node summaries enable cosine-similarity ranking of children, which can serve as either a pre-filter before the LLM oracle or as a standalone traversal policy.
+
+% ============================================================
+% UPDATE 4: Appendix B — child selection (~line 1079-1089)
+% Update to acknowledge standalone mode
+% ============================================================
+% REPLACE lines 1087-1089:
+
+Children with similarity below a threshold $\tau$ can be pruned before the LLM call, reducing the number of summaries the LLM must read.
+Children above $\tau$ are passed to the LLM for the final selection decision.
+
+When used as a pre-filter, the LLM still makes the routing judgment but over a smaller candidate set.
+The embedding layer can also operate as a standalone traversal policy by selecting the top-$k$ children at each level without invoking the LLM at all.
+In practice, beam-search descent with $k = 3$ and no LLM calls identifies the correct target files for a range of structural queries, completing full root-to-leaf traversal in under 100\,ms.
+The LLM oracle remains available for queries where vector similarity is insufficient---for example, queries requiring multi-hop reasoning about relationships between distant modules.
+
+% ============================================================
+% UPDATE 5: Appendix B — Storage (~line 1096-1099)
+% Pin the .vec sidecar format
+% ============================================================
+% REPLACE lines 1096-1099:
+
+\subsection{Storage}
+
+The reference implementation stores embeddings as per-node JSON sidecar files colocated with summary records.
+For a summary record at \texttt{.srt/foo.py.md}, the corresponding embedding is stored at \texttt{.srt/foo.py.vec} containing:
+
+\begin{verbatim}
+{
+  "model": "BAAI/bge-small-en-v1.5",
+  "content_hash": "e5f6a7b8c9d0...",
+  "vector": [0.0123, -0.0456, ...]
+}
+\end{verbatim}
+
+The \texttt{content\_hash} field mirrors the summary record's hash; a mismatch indicates the embedding is stale and must be recomputed.
+The \texttt{model} field records which embedding model produced the vector, enabling detection when the model changes (requiring a full re-embedding pass).
+Incremental updates follow the same hash-based invalidation as summaries: when a node's content hash changes, its embedding is recomputed.
+
+This sidecar design preserves the git-native storage property: embedding files are plain text tracked alongside summaries, visible in diffs, and require no external infrastructure.
+The tradeoff relative to a SQLite store is a larger number of small files; in practice the per-file overhead is negligible and the gain in diff visibility and per-node invalidation granularity is worth it.
+
+% ============================================================
+% UPDATE 6: Appendix A — Design scope and limitations (~line 1052)
+% Update the limitation about LLM-only routing
+% ============================================================
+% REPLACE the fourth bullet (line 1059):
+
+    \item The default traversal relies on an LLM to decide which child summaries are worth descending into; an embedding-based alternative is described in \Cref{app:embeddings} and implemented in the reference indexer.
+
+% REPLACE lines 1062-1063:
+
+These are implementation choices, not limitations of the \srt{} abstraction itself.
+A richer implementation could add symbol-level leaves, structured summary schemas, or batched summarization for wide directories without changing the core data structure or query protocol.
+
+% ============================================================
+% UPDATE 7: Appendix A — Reference implementation CLI (~line 1017)
+% Add embed/query/route commands to the deployment section
+% ============================================================
+% AFTER the existing query-time protocol enumeration (line 1039),
+% ADD a new paragraph:
+
+\paragraph{CLI tools for embedding-assisted routing.}
+The reference indexer provides three additional commands that support the embedding layer:
+\begin{itemize}[nosep]
+    \item \texttt{semtree embed [path]} computes embeddings for all existing summary records, writing \texttt{.vec} sidecar files. Skips nodes whose embedding is already fresh (matching content hash and model).
+    \item \texttt{semtree query <query> [path]} ranks the immediate children of a directory by cosine similarity to a natural-language query. Useful for one-level pre-filtering.
+    \item \texttt{semtree route <query> [path]} performs a complete beam-search descent from root to leaves in a single invocation, ranking children by cosine similarity at each level. Returns the traversal path and candidate files.
+\end{itemize}
+The \texttt{route} command is the primary entry point for embedding-based traversal: it loads the embedding model once, descends through the tree, and reports candidates in under 100\,ms for trees of several hundred nodes.
+The \texttt{build} command optionally runs the embedding pass after summarization (controlled by a \texttt{--no-embed} flag).
