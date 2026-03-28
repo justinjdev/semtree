@@ -133,6 +133,30 @@ def main() -> None:
         help="Maximum descent depth (default: 10)",
     )
 
+    bench_parser = sub.add_parser("bench", help="Run benchmark evaluation phases")
+    bench_parser.add_argument(
+        "phase",
+        nargs="?",
+        default="all",
+        choices=["build", "quality", "routing", "incremental", "analysis", "all"],
+        help="Phase to run (default: all)",
+    )
+    bench_parser.add_argument(
+        "--repo",
+        default="fellowship",
+        help="Benchmark repo name (default: fellowship)",
+    )
+    bench_parser.add_argument(
+        "--clean",
+        action="store_true",
+        help="Remove cached benchmark repos",
+    )
+    bench_parser.add_argument(
+        "--results",
+        default="results.tsv",
+        help="Path to results TSV file (default: results.tsv)",
+    )
+
     args = parser.parse_args()
 
     if args.command is None:
@@ -243,3 +267,57 @@ def main() -> None:
         if candidates:
             print(f"\nCandidates: {', '.join(candidates)}")
         print(f"Time: {elapsed:.2f}s", file=sys.stderr)
+
+    elif args.command == "bench":
+        if args.clean:
+            from bench.repos import clean_cache
+            clean_cache()
+            print("Cleaned benchmark repo cache.", file=sys.stderr)
+            return
+
+        from bench.repos import get_repo
+        from bench.harness import append_results
+
+        try:
+            repo_path = get_repo(args.repo)
+        except ValueError as e:
+            print(f"error: {e}", file=sys.stderr)
+            sys.exit(1)
+
+        results_path = Path(args.results)
+        phases = ["build", "quality", "routing", "incremental"] if args.phase == "all" else [args.phase]
+
+        for phase in phases:
+            print(f"\nRunning {phase} phase...", file=sys.stderr)
+
+            if phase == "build":
+                from bench.build_phase import run_build_phase
+                records = run_build_phase(repo_path, repo_name=args.repo)
+            elif phase == "quality":
+                from bench.quality import run_quality_phase
+                records = run_quality_phase(repo_path, repo_name=args.repo)
+            elif phase == "routing":
+                query_file = Path(__file__).parent / "../../bench/queries" / f"{args.repo}.yaml"
+                if not query_file.exists():
+                    print(f"error: no query set for repo '{args.repo}'", file=sys.stderr)
+                    sys.exit(1)
+                # For now, use a placeholder select_fn — real LLM integration is separate
+                print("  (routing phase requires LLM select_fn — skipping for now)", file=sys.stderr)
+                records = []
+            elif phase == "incremental":
+                from bench.incremental import run_incremental_phase
+                records = run_incremental_phase(repo_path, repo_name=args.repo)
+            elif phase == "analysis":
+                from bench.analysis import pareto_prune, normalize_to_utility, hypervolume
+                from bench.harness import read_results
+                print("  Running analysis on existing results...", file=sys.stderr)
+                # Analysis reads from results.tsv — implementation deferred to when data exists
+                records = []
+            else:
+                records = []
+
+            if records:
+                append_results(results_path, records)
+                print(f"  Wrote {len(records)} metrics to {results_path}", file=sys.stderr)
+
+        print("\nBenchmark complete.", file=sys.stderr)
