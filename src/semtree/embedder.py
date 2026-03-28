@@ -7,6 +7,8 @@ from typing import Any
 import numpy as np
 from fastembed import TextEmbedding
 
+from semtree.records import read_record, SEM_DIR
+
 
 DEFAULT_MODEL = "BAAI/bge-small-en-v1.5"
 
@@ -100,3 +102,52 @@ def cosine_rank(
 
     results.sort(key=lambda x: x[1], reverse=True)
     return results
+
+
+def _find_sem_records(target_path: Path) -> list[tuple[Path, Path]]:
+    """Find all (.md record, .vec sidecar) pairs under target_path."""
+    pairs = []
+    for md_path in sorted(target_path.rglob(f"{SEM_DIR}/*.md")):
+        vec_path = md_path.with_suffix(".vec")
+        pairs.append((md_path, vec_path))
+    return pairs
+
+
+def embed_directory(
+    target_path: Path,
+    model: str = DEFAULT_MODEL,
+    force: bool = False,
+) -> dict[str, int]:
+    """Embed all .sem/ records under target_path. Returns stats dict."""
+    pairs = _find_sem_records(target_path)
+    stats = {"embedded": 0, "skipped": 0, "errored": 0}
+
+    to_embed: list[tuple[Path, str, str]] = []  # (vec_path, content_hash, summary)
+    for md_path, vec_path in pairs:
+        record = read_record(md_path)
+        if record is None:
+            stats["errored"] += 1
+            continue
+
+        content_hash = record.get("content_hash", "")
+        summary = record.get("summary", "")
+
+        if not force:
+            existing = read_vec(vec_path)
+            if is_vec_fresh(existing, content_hash, model):
+                stats["skipped"] += 1
+                continue
+
+        to_embed.append((vec_path, content_hash, summary))
+
+    if not to_embed:
+        return stats
+
+    texts = [summary for _, _, summary in to_embed]
+    vectors = embed_texts(texts, model_name=model)
+
+    for (vec_path, content_hash, _), vector in zip(to_embed, vectors):
+        write_vec(vec_path, model=model, content_hash=content_hash, vector=vector)
+        stats["embedded"] += 1
+
+    return stats
