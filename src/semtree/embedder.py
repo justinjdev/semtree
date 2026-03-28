@@ -206,3 +206,89 @@ def query_directory(
         results = results[:top_k]
 
     return results
+
+
+def route_directory(
+    target_path: Path,
+    query: str,
+    model: str = DEFAULT_MODEL,
+    beam_width: int = 3,
+    max_depth: int = 10,
+) -> list[dict]:
+    """Full top-down descent from target_path, ranking children at each level.
+
+    Returns list of dicts, one per level descended:
+    [
+        {"dir": ".", "selected": [("cli/", 0.69, "Go CLI binary...")], "all_children": 4},
+        {"dir": "cli/internal", "selected": [("hooks/", 0.78, "Plugin hook..."), ("state/", 0.71, "Quest state...")], "all_children": 15},
+        ...
+    ]
+
+    At each level:
+    1. Read .sem/*.vec files for immediate children
+    2. Rank by cosine similarity to query
+    3. Select top beam_width children
+    4. If selected child is a directory, queue it for descent at next level
+    5. If selected child is a file, add to candidates
+    6. Stop when max_depth reached or no more directories to descend
+    """
+    query_vec = embed_query(query, model_name=model)
+
+    levels: list[dict] = []
+    # Queue: (directory_absolute_path, dir_relative_path, depth)
+    queue: list[tuple[Path, str, int]] = [(target_path, "", 0)]
+    candidates: list[str] = []  # file paths reached
+
+    while queue:
+        dir_abs, dir_rel, depth = queue.pop(0)
+        if depth >= max_depth:
+            continue
+
+        sem_dir = dir_abs / SEM_DIR
+        if not sem_dir.is_dir():
+            continue
+
+        # Load child vectors and metadata
+        children_vecs: dict[str, list[float]] = {}
+        children_meta: dict[str, tuple[str, bool]] = {}  # path -> (first_line, is_dir)
+
+        for vec_path in sorted(sem_dir.glob("*.vec")):
+            vec_data = read_vec(vec_path)
+            if vec_data is None:
+                continue
+            md_path = vec_path.with_suffix(".md")
+            record = read_record(md_path)
+            if record is None:
+                continue
+
+            rel_path = record.get("path", "")
+            summary = record.get("summary", "")
+            first_line = summary.split("\n", 1)[0].strip()
+            is_directory = record.get("type") == "directory"
+
+            children_vecs[rel_path] = vec_data["vector"]
+            children_meta[rel_path] = (first_line, is_directory)
+
+        if not children_vecs:
+            continue
+
+        ranked = cosine_rank(query_vec, children_vecs)
+        selected = ranked[:beam_width]
+
+        level_info = {
+            "dir": dir_rel or ".",
+            "selected": [(path, score, children_meta[path][0]) for path, score in selected],
+            "all_children": len(ranked),
+        }
+        levels.append(level_info)
+
+        for child_path, score in selected:
+            first_line, is_dir = children_meta[child_path]
+            if is_dir:
+                child_abs = target_path / child_path
+                if child_abs.is_dir():
+                    queue.append((child_abs, child_path, depth + 1))
+            else:
+                candidates.append(child_path)
+
+    return levels

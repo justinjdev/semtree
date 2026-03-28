@@ -78,3 +78,62 @@ class TestQueryDirectory:
         embed_directory(tmp_path, model=DEFAULT_MODEL, force=False)
         results = query_directory(tmp_path, query="login", model=DEFAULT_MODEL, threshold=0.99)
         assert len(results) < 3
+
+
+class TestRouteDirectory:
+    def test_descends_through_levels(self, tmp_path: Path) -> None:
+        """Create a two-level tree and verify route descends."""
+        from semtree.embedder import embed_directory, route_directory
+
+        # Root level
+        root_sem = tmp_path / ".sem"
+        root_sem.mkdir()
+        write_record(root_sem / "src.md", "src", "directory", "hash_src", "Source code with auth module.")
+        write_record(root_sem / "docs.md", "docs", "directory", "hash_docs", "Documentation files.")
+        write_record(root_sem / "__dir__.md", ".", "directory", "hash_root",
+                     "Root.\n\n## Children\n\n- **src**: Source code.\n- **docs**: Docs.")
+
+        # src level
+        src_dir = tmp_path / "src"
+        src_dir.mkdir()
+        src_sem = src_dir / ".sem"
+        src_sem.mkdir()
+        write_record(src_sem / "auth.py.md", "src/auth.py", "file", "hash_auth", "Authentication module.")
+        write_record(src_sem / "db.py.md", "src/db.py", "file", "hash_db", "Database layer.")
+        write_record(src_sem / "__dir__.md", "src", "directory", "hash_src2",
+                     "Source.\n\n## Children\n\n- **auth.py**: Auth.\n- **db.py**: Database.")
+
+        # docs level (leaf)
+        docs_dir = tmp_path / "docs"
+        docs_dir.mkdir()
+
+        # Embed everything
+        embed_directory(tmp_path, model=DEFAULT_MODEL, force=True)
+
+        levels = route_directory(tmp_path, query="authentication login", model=DEFAULT_MODEL, beam_width=2)
+
+        assert len(levels) >= 1
+        # First level should have selected children
+        assert len(levels[0]["selected"]) > 0
+        # Each selected entry is (path, score, first_line)
+        path, score, first_line = levels[0]["selected"][0]
+        assert isinstance(score, float)
+        assert isinstance(path, str)
+
+    def test_respects_max_depth(self, tmp_path: Path) -> None:
+        _make_sem_tree(tmp_path)
+        from semtree.embedder import embed_directory, route_directory
+        embed_directory(tmp_path, model=DEFAULT_MODEL, force=True)
+
+        levels = route_directory(tmp_path, query="anything", model=DEFAULT_MODEL, max_depth=1)
+        # Should only descend 1 level (the root)
+        assert len(levels) <= 1
+
+    def test_beam_width_limits_selection(self, tmp_path: Path) -> None:
+        _make_sem_tree(tmp_path)
+        from semtree.embedder import embed_directory, route_directory
+        embed_directory(tmp_path, model=DEFAULT_MODEL, force=True)
+
+        levels = route_directory(tmp_path, query="login", model=DEFAULT_MODEL, beam_width=1)
+        if levels:
+            assert len(levels[0]["selected"]) <= 1

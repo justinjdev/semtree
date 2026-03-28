@@ -104,6 +104,35 @@ def main() -> None:
         help="Minimum cosine similarity score",
     )
 
+    route_parser = sub.add_parser("route", help="Full top-down descent ranking children at each level")
+    route_parser.add_argument(
+        "query",
+        help="Natural language query",
+    )
+    route_parser.add_argument(
+        "path",
+        nargs="?",
+        default=".",
+        help="Root directory to start descent from (default: current directory)",
+    )
+    route_parser.add_argument(
+        "--model",
+        default="BAAI/bge-small-en-v1.5",
+        help="Embedding model name (default: BAAI/bge-small-en-v1.5)",
+    )
+    route_parser.add_argument(
+        "--beam-width",
+        type=int,
+        default=3,
+        help="Number of children to select at each level (default: 3)",
+    )
+    route_parser.add_argument(
+        "--max-depth",
+        type=int,
+        default=10,
+        help="Maximum descent depth (default: 10)",
+    )
+
     args = parser.parse_args()
 
     if args.command is None:
@@ -173,3 +202,44 @@ def main() -> None:
 
         for score, path, first_line in results:
             print(f"{score:.4f}\t{path}\t{first_line}")
+
+    elif args.command == "route":
+        target = Path(args.path).resolve()
+        if not target.is_dir():
+            print(f"error: {args.path} is not a directory", file=sys.stderr)
+            sys.exit(1)
+
+        from semtree.embedder import route_directory
+        import time
+
+        t0 = time.monotonic()
+        levels = route_directory(
+            target,
+            query=args.query,
+            model=args.model,
+            beam_width=args.beam_width,
+            max_depth=args.max_depth,
+        )
+        elapsed = time.monotonic() - t0
+
+        if not levels:
+            print("No results (missing .vec files? Run: semtree embed)", file=sys.stderr)
+            sys.exit(1)
+
+        candidates = []
+        for level in levels:
+            dir_label = level["dir"]
+            n = level["all_children"]
+            print(f"\n{dir_label}/ ({n} children):")
+            for path, score, first_line in level["selected"]:
+                marker = "/" if any(
+                    l["dir"] == path or l["dir"].startswith(path + "/")
+                    for l in levels
+                ) else ""
+                print(f"  {score:.4f}  {path}{marker}\t{first_line[:80]}")
+                if not marker:
+                    candidates.append(path)
+
+        if candidates:
+            print(f"\nCandidates: {', '.join(candidates)}")
+        print(f"Time: {elapsed:.2f}s", file=sys.stderr)
