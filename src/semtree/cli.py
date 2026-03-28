@@ -320,9 +320,14 @@ def main() -> None:
                 srt_records = run_routing_phase(repo_path, query_file, select_fn, repo_name=args.repo, results_path=results_path)
                 print(f"  SRT: {len(srt_records)} metrics written incrementally", file=sys.stderr)
 
-                print("  Running baseline routing (grep/glob)...", file=sys.stderr)
+                print("  Running grep baseline...", file=sys.stderr)
                 baseline_records = run_baseline_phase(repo_path, query_file, repo_name=args.repo, results_path=results_path)
-                print(f"  Baseline: {len(baseline_records)} metrics written incrementally", file=sys.stderr)
+                print(f"  Grep: {len(baseline_records)} metrics written incrementally", file=sys.stderr)
+
+                from bench.baseline import run_rg_phase
+                print("  Running ripgrep baseline...", file=sys.stderr)
+                rg_records = run_rg_phase(repo_path, query_file, repo_name=args.repo, results_path=results_path)
+                print(f"  Ripgrep: {len(rg_records)} metrics written incrementally", file=sys.stderr)
 
                 try:
                     from bench.shire_adapter import run_shire_phase
