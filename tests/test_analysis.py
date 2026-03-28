@@ -91,3 +91,100 @@ class TestHypervolume:
         utility_frontier = np.empty((0, 3))
         hv = hypervolume(utility_frontier)
         assert hv == 0.0
+
+
+from bench.analysis import (
+    budget_slice,
+    latency_slice,
+    initial_ascent,
+    knee_location,
+    flattening_rate,
+    workload_hypervolume,
+    category_hypervolume,
+)
+
+
+class TestBudgetSlice:
+    def test_filters_by_latency_band(self) -> None:
+        # Points: (cost, latency, quality)
+        points = np.array([
+            [1.0, 0.5, 0.3],
+            [2.0, 0.6, 0.5],
+            [3.0, 5.0, 0.9],  # outside latency band
+            [4.0, 0.4, 0.7],
+        ])
+        # latency band [0.3, 0.7] → includes points 0, 1, 3
+        curve = budget_slice(points, latency_band=(0.3, 0.7))
+        assert len(curve) == 3
+        # Curve is (cost, quality) pairs sorted by cost
+        assert curve[0][0] < curve[1][0]
+
+    def test_empty_band(self) -> None:
+        points = np.array([[1.0, 5.0, 0.5]])
+        curve = budget_slice(points, latency_band=(0.0, 0.1))
+        assert len(curve) == 0
+
+
+class TestLatencySlice:
+    def test_filters_by_cost_band(self) -> None:
+        points = np.array([
+            [1.0, 0.5, 0.3],
+            [1.5, 0.6, 0.5],
+            [10.0, 0.1, 0.9],  # outside cost band
+        ])
+        curve = latency_slice(points, cost_band=(0.5, 2.0))
+        assert len(curve) == 2
+
+
+class TestInitialAscent:
+    def test_steep_ascent(self) -> None:
+        # (resource, quality) pairs — quality jumps quickly
+        curve = [(0.1, 0.0), (0.2, 0.5), (0.5, 0.8), (1.0, 0.9)]
+        slope = initial_ascent(curve)
+        assert slope > 0
+
+    def test_flat_start(self) -> None:
+        curve = [(0.1, 0.0), (0.5, 0.01), (1.0, 0.8)]
+        slope = initial_ascent(curve)
+        assert slope < 1.0
+
+
+class TestKneeLocation:
+    def test_finds_knee(self) -> None:
+        # Quality rises fast then flattens
+        curve = [(0.1, 0.0), (0.2, 0.5), (0.3, 0.75), (0.5, 0.8), (1.0, 0.82), (2.0, 0.83)]
+        knee = knee_location(curve, tau=0.1)
+        assert 0.3 <= knee <= 1.0
+
+    def test_no_knee_always_steep(self) -> None:
+        curve = [(0.1, 0.0), (0.2, 0.5), (0.3, 1.0)]
+        knee = knee_location(curve, tau=0.01)
+        # No knee found → returns last resource value
+        assert knee == 0.3
+
+
+class TestFlatteningRate:
+    def test_positive_for_saturating_curve(self) -> None:
+        curve = [(0.1, 0.0), (0.2, 0.5), (0.5, 0.8), (1.0, 0.85), (2.0, 0.86)]
+        rate = flattening_rate(curve)
+        assert rate > 0  # positive means it is flattening
+
+
+class TestWorkloadHypervolume:
+    def test_mean_and_ci(self) -> None:
+        per_query_hvs = [0.3, 0.4, 0.5, 0.6, 0.35, 0.45, 0.55, 0.5, 0.4, 0.42]
+        mean, ci_low, ci_high = workload_hypervolume(per_query_hvs)
+        assert ci_low <= mean <= ci_high
+        assert 0.3 < mean < 0.6
+
+
+class TestCategoryHypervolume:
+    def test_per_category(self) -> None:
+        per_query_hvs = [0.3, 0.5, 0.7, 0.4, 0.6, 0.8]
+        categories = ["focused", "focused", "module", "module", "cross-cutting", "cross-cutting"]
+        result = category_hypervolume(per_query_hvs, categories)
+        assert "focused" in result
+        assert "module" in result
+        assert "cross-cutting" in result
+        assert result["focused"] == pytest.approx(0.4)
+        assert result["module"] == pytest.approx(0.55)

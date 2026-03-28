@@ -89,3 +89,146 @@ def hypervolume(utility_frontier: np.ndarray) -> float:
                 total -= vol
 
     return total
+
+
+def budget_slice(
+    points: np.ndarray,
+    latency_band: tuple[float, float],
+) -> list[tuple[float, float]]:
+    """Extract quality-vs-cost curve at a fixed latency band.
+
+    Returns [(cost, quality)] sorted by cost, upper envelope.
+    """
+    if len(points) == 0:
+        return []
+
+    lo, hi = latency_band
+    mask = (points[:, 1] >= lo) & (points[:, 1] <= hi)
+    filtered = points[mask]
+    if len(filtered) == 0:
+        return []
+
+    # Sort by cost, take upper envelope of quality
+    order = np.argsort(filtered[:, 0])
+    filtered = filtered[order]
+    curve = [(float(row[0]), float(row[2])) for row in filtered]
+
+    # Upper envelope: keep only points where quality is non-decreasing
+    envelope = [curve[0]]
+    for cost, quality in curve[1:]:
+        if quality >= envelope[-1][1]:
+            envelope.append((cost, quality))
+        else:
+            envelope.append((cost, envelope[-1][1]))
+
+    return envelope
+
+
+def latency_slice(
+    points: np.ndarray,
+    cost_band: tuple[float, float],
+) -> list[tuple[float, float]]:
+    """Extract quality-vs-latency curve at a fixed cost band.
+
+    Returns [(latency, quality)] sorted by latency.
+    """
+    if len(points) == 0:
+        return []
+
+    lo, hi = cost_band
+    mask = (points[:, 0] >= lo) & (points[:, 0] <= hi)
+    filtered = points[mask]
+    if len(filtered) == 0:
+        return []
+
+    order = np.argsort(filtered[:, 1])
+    filtered = filtered[order]
+    curve = [(float(row[1]), float(row[2])) for row in filtered]
+
+    envelope = [curve[0]]
+    for resource, quality in curve[1:]:
+        if quality >= envelope[-1][1]:
+            envelope.append((resource, quality))
+        else:
+            envelope.append((resource, envelope[-1][1]))
+
+    return envelope
+
+
+def initial_ascent(curve: list[tuple[float, float]]) -> float:
+    """Slope near minimum resource value. curve is [(resource, quality)]."""
+    if len(curve) < 2:
+        return 0.0
+    r0, q0 = curve[0]
+    r1, q1 = curve[1]
+    dr = r1 - r0
+    if dr == 0:
+        return 0.0
+    return (q1 - q0) / dr
+
+
+def knee_location(curve: list[tuple[float, float]], tau: float) -> float:
+    """Smallest resource where marginal gain drops below tau."""
+    if len(curve) < 2:
+        return curve[0][0] if curve else 0.0
+
+    for i in range(1, len(curve)):
+        r_prev, q_prev = curve[i - 1]
+        r_curr, q_curr = curve[i]
+        dr = r_curr - r_prev
+        if dr == 0:
+            continue
+        slope = (q_curr - q_prev) / dr
+        if slope < tau:
+            return r_prev
+
+    return curve[-1][0]
+
+
+def flattening_rate(curve: list[tuple[float, float]]) -> float:
+    """Post-knee decay of marginal gain via second differences."""
+    if len(curve) < 3:
+        return 0.0
+
+    slopes = []
+    for i in range(1, len(curve)):
+        dr = curve[i][0] - curve[i - 1][0]
+        if dr == 0:
+            continue
+        slopes.append((curve[i][1] - curve[i - 1][1]) / dr)
+
+    if len(slopes) < 2:
+        return 0.0
+
+    second_diffs = [slopes[i] - slopes[i - 1] for i in range(1, len(slopes))]
+    return -float(np.mean(second_diffs))
+
+
+def workload_hypervolume(
+    per_query_hvs: list[float],
+    n_bootstrap: int = 1000,
+) -> tuple[float, float, float]:
+    """Mean hypervolume with bootstrap 95% confidence interval."""
+    arr = np.array(per_query_hvs)
+    mean = float(np.mean(arr))
+
+    rng = np.random.default_rng(42)
+    boot_means = []
+    for _ in range(n_bootstrap):
+        sample = rng.choice(arr, size=len(arr), replace=True)
+        boot_means.append(float(np.mean(sample)))
+
+    ci_low = float(np.percentile(boot_means, 2.5))
+    ci_high = float(np.percentile(boot_means, 97.5))
+    return mean, ci_low, ci_high
+
+
+def category_hypervolume(
+    per_query_hvs: list[float],
+    categories: list[str],
+) -> dict[str, float]:
+    """Mean hypervolume per query category."""
+    result: dict[str, list[float]] = {}
+    for hv, cat in zip(per_query_hvs, categories):
+        result.setdefault(cat, []).append(hv)
+    return {cat: float(np.mean(vals)) for cat, vals in result.items()}
