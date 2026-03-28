@@ -253,6 +253,9 @@ def route_directory(
         children_meta: dict[str, tuple[str, bool]] = {}  # path -> (first_line, is_dir)
 
         for vec_path in sorted(sem_dir.glob("*.vec")):
+            # Skip __dir__.vec — it represents this directory itself, not a child
+            if vec_path.stem == "__dir__":
+                continue
             vec_data = read_vec(vec_path)
             if vec_data is None:
                 continue
