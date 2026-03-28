@@ -1,31 +1,31 @@
 ## 1. Project Setup
 
-- [ ] 1.1 Create `cli/` directory with `cargo init --name semtree`
-- [ ] 1.2 Add dependencies to Cargo.toml: clap, serde, serde_json, serde_yaml, sha2, ort, tokio, memmap2, walkdir
-- [ ] 1.3 Set up clap subcommand skeleton (build, embed, query, route, serve, bench, vec) with flag definitions matching rust-cli spec
-- [ ] 1.4 Verify `cargo build` produces a working binary with `--help` output
+- [x] 1.1 Create `cli/` directory with `cargo init --name semtree`
+- [x] 1.2 Add dependencies to Cargo.toml: clap, serde, serde_json, serde_yaml, sha2, ort, tokio, memmap2, walkdir
+- [x] 1.3 Set up clap subcommand skeleton (build, embed, query, route, serve, bench, vec) with flag definitions matching rust-cli spec
+- [x] 1.4 Verify `cargo build` produces a working binary with `--help` output
 
 ## 2. Records I/O (rust-records)
 
-- [ ] 2.1 Implement record_path_for_file, record_path_for_dir, record_path_for_dir_sibling
-- [ ] 2.2 Implement write_record (YAML frontmatter + Markdown body, create .sem/ dirs)
-- [ ] 2.3 Implement read_record (parse frontmatter, extract summary)
-- [ ] 2.4 Write tests: round-trip, missing file, malformed YAML, path generation
+- [x] 2.1 Implement record_path_for_file, record_path_for_dir, record_path_for_dir_sibling
+- [x] 2.2 Implement write_record (YAML frontmatter + Markdown body, create .sem/ dirs)
+- [x] 2.3 Implement read_record (parse frontmatter, extract summary)
+- [x] 2.4 Write tests: round-trip, missing file, malformed YAML, path generation
 
 ## 3. Hasher (rust-hasher)
 
-- [ ] 3.1 Implement hash_file (SHA-256 of raw bytes)
-- [ ] 3.2 Implement hash_directory (SHA-256 of sorted child_path:child_hash pairs)
-- [ ] 3.3 Write tests: determinism, order-independence, hash propagation
+- [x] 3.1 Implement hash_file (SHA-256 of raw bytes)
+- [x] 3.2 Implement hash_directory (SHA-256 of sorted child_path:child_hash pairs)
+- [x] 3.3 Write tests: determinism, order-independence, hash propagation
 
 ## 4. Walker (rust-walker)
 
-- [ ] 4.1 Implement git-aware walk using `git ls-files` subprocess
-- [ ] 4.2 Implement filesystem fallback walk (for non-git repos)
-- [ ] 4.3 Implement filters: binary, dotfiles, dot-directories, symlinks
-- [ ] 4.4 Implement --exclude glob pattern support
-- [ ] 4.5 Implement post-order DFS sort (children before parents)
-- [ ] 4.6 Write tests: git filtering, post-order, exclude patterns, binary detection
+- [x] 4.1 Implement git-aware walk using `git ls-files` subprocess
+- [x] 4.2 Implement filesystem fallback walk (for non-git repos)
+- [x] 4.3 Implement filters: binary, dotfiles, dot-directories, symlinks
+- [x] 4.4 Implement --exclude glob pattern support
+- [x] 4.5 Implement post-order DFS sort (children before parents)
+- [x] 4.6 Write tests: git filtering, post-order, exclude patterns, binary detection
 
 ## 5. Binary .vec Format (binary-vec)
 
