@@ -46,6 +46,17 @@ def main() -> None:
         help="Glob pattern to exclude (can be repeated, e.g. --exclude 'static/_app/*')",
     )
 
+    build_parser.add_argument(
+        "--no-embed",
+        action="store_true",
+        help="Skip embedding computation after build",
+    )
+    build_parser.add_argument(
+        "--embed-model",
+        default="BAAI/bge-small-en-v1.5",
+        help="Embedding model name (default: BAAI/bge-small-en-v1.5)",
+    )
+
     embed_parser = sub.add_parser("embed", help="Compute embeddings for existing .sem/ records")
     embed_parser.add_argument(
         "path",
@@ -119,6 +130,8 @@ def main() -> None:
             max_tokens=args.max_tokens,
             force=args.force,
             exclude=tuple(args.exclude),
+            embed=not args.no_embed,
+            embed_model=args.embed_model,
         )
         build(config)
 

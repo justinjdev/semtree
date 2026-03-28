@@ -121,3 +121,19 @@ def build(config: BuildConfig) -> None:
         f"{stats['errored']} errored",
         file=sys.stderr,
     )
+
+    if config.embed:
+        from semtree.embedder import embed_directory
+
+        print("\nComputing embeddings...", file=sys.stderr)
+        embed_stats = embed_directory(
+            config.target_path,
+            model=config.embed_model,
+            force=config.force,
+        )
+        print(
+            f"Embeddings: {embed_stats['embedded']} embedded, "
+            f"{embed_stats['skipped']} skipped, "
+            f"{embed_stats['errored']} errored",
+            file=sys.stderr,
+        )
