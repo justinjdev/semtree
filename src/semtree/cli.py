@@ -64,6 +64,35 @@ def main() -> None:
         help="Re-embed all records, ignoring freshness checks",
     )
 
+    query_parser = sub.add_parser("query", help="Rank directory children by similarity to a query")
+    query_parser.add_argument(
+        "query",
+        help="Natural language query",
+    )
+    query_parser.add_argument(
+        "path",
+        nargs="?",
+        default=".",
+        help="Directory whose children to rank (default: current directory)",
+    )
+    query_parser.add_argument(
+        "--model",
+        default="BAAI/bge-small-en-v1.5",
+        help="Embedding model name (default: BAAI/bge-small-en-v1.5)",
+    )
+    query_parser.add_argument(
+        "--top-k",
+        type=int,
+        default=None,
+        help="Return only top K results",
+    )
+    query_parser.add_argument(
+        "--threshold",
+        type=float,
+        default=None,
+        help="Minimum cosine similarity score",
+    )
+
     args = parser.parse_args()
 
     if args.command is None:
@@ -108,3 +137,26 @@ def main() -> None:
             f"{stats['errored']} errored",
             file=sys.stderr,
         )
+
+    elif args.command == "query":
+        target = Path(args.path).resolve()
+        if not target.is_dir():
+            print(f"error: {args.path} is not a directory", file=sys.stderr)
+            sys.exit(1)
+
+        from semtree.embedder import query_directory
+
+        results = query_directory(
+            target,
+            query=args.query,
+            model=args.model,
+            top_k=args.top_k,
+            threshold=args.threshold,
+        )
+
+        if not results:
+            print("No results (missing .vec files? Run: semtree embed)", file=sys.stderr)
+            sys.exit(1)
+
+        for score, path, first_line in results:
+            print(f"{score:.4f}\t{path}\t{first_line}")

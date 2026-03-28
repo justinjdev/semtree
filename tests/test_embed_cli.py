@@ -44,3 +44,37 @@ class TestEmbedDirectory:
         stats = embed_directory(tmp_path, model=DEFAULT_MODEL, force=True)
         assert stats["embedded"] == 3
         assert stats["skipped"] == 0
+
+
+class TestQueryDirectory:
+    def test_returns_ranked_children(self, tmp_path: Path) -> None:
+        _make_sem_tree(tmp_path)
+        from semtree.embedder import embed_directory, query_directory
+        embed_directory(tmp_path, model=DEFAULT_MODEL, force=False)
+
+        results = query_directory(tmp_path, query="user authentication login", model=DEFAULT_MODEL)
+        assert len(results) > 0
+        score, path, first_line = results[0]
+        assert isinstance(score, float)
+        assert isinstance(path, str)
+        assert isinstance(first_line, str)
+
+    def test_returns_empty_when_no_vec_files(self, tmp_path: Path) -> None:
+        _make_sem_tree(tmp_path)
+        from semtree.embedder import query_directory
+        results = query_directory(tmp_path, query="anything", model=DEFAULT_MODEL)
+        assert results == []
+
+    def test_top_k_limits_results(self, tmp_path: Path) -> None:
+        _make_sem_tree(tmp_path)
+        from semtree.embedder import embed_directory, query_directory
+        embed_directory(tmp_path, model=DEFAULT_MODEL, force=False)
+        results = query_directory(tmp_path, query="login", model=DEFAULT_MODEL, top_k=1)
+        assert len(results) == 1
+
+    def test_threshold_filters_results(self, tmp_path: Path) -> None:
+        _make_sem_tree(tmp_path)
+        from semtree.embedder import embed_directory, query_directory
+        embed_directory(tmp_path, model=DEFAULT_MODEL, force=False)
+        results = query_directory(tmp_path, query="login", model=DEFAULT_MODEL, threshold=0.99)
+        assert len(results) < 3

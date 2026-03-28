@@ -151,3 +151,58 @@ def embed_directory(
         stats["embedded"] += 1
 
     return stats
+
+
+def query_directory(
+    target_path: Path,
+    query: str,
+    model: str = DEFAULT_MODEL,
+    top_k: int | None = None,
+    threshold: float | None = None,
+) -> list[tuple[float, str, str]]:
+    """Query children of a directory by cosine similarity.
+
+    Returns [(score, repo_relative_path, summary_first_line)] ranked descending.
+    Only considers immediate children of target_path (files in target_path/.sem/).
+    """
+    sem_dir = target_path / SEM_DIR
+    if not sem_dir.is_dir():
+        return []
+
+    children_vecs: dict[str, list[float]] = {}
+    children_summaries: dict[str, str] = {}
+
+    for vec_path in sorted(sem_dir.glob("*.vec")):
+        vec_data = read_vec(vec_path)
+        if vec_data is None:
+            continue
+
+        md_path = vec_path.with_suffix(".md")
+        record = read_record(md_path)
+        if record is None:
+            continue
+
+        rel_path = record.get("path", "")
+        summary = record.get("summary", "")
+        first_line = summary.split("\n", 1)[0].strip()
+
+        children_vecs[rel_path] = vec_data["vector"]
+        children_summaries[rel_path] = first_line
+
+    if not children_vecs:
+        return []
+
+    query_vec = embed_query(query, model_name=model)
+    ranked = cosine_rank(query_vec, children_vecs)
+
+    results = []
+    for path, score in ranked:
+        if threshold is not None and score < threshold:
+            continue
+        first_line = children_summaries.get(path, "")
+        results.append((score, path, first_line))
+
+    if top_k is not None:
+        results = results[:top_k]
+
+    return results
