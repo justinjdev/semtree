@@ -22,6 +22,16 @@ At the most relevant directory for the task, read `.sem/__dir__.md`.
 - If it exists: scan the `## Children` section for children whose descriptions match your task
 - If it doesn't exist: fall back to normal search (grep, glob, ls)
 
+### Step 1.5: Pre-filter high fan-out directories
+
+If the directory from Step 1 has **15 or more children** listed in its `## Children` section:
+
+1. Run: `semtree query "<your question>" <directory-path>`
+2. Use the top-ranked results to decide which children to descend into
+3. This replaces manual scanning of all children — the cosine ranking does the initial triage
+
+If `semtree` is not available or the directory has fewer than 15 children, skip this step and scan the children list manually as before.
+
 ### Step 2: Descend through summaries
 
 For each selected child:
