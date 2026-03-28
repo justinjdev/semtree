@@ -6,3 +6,13 @@ build/
 .venv/
 .pytest_cache/
 *.egg
+.DS_Store
+.fastembed_cache/
+.fellowship/
+.shire/
+bench/.repos/
+results*.tsv
+*.aux
+*.log
+*.out
+*.synctex.gz
