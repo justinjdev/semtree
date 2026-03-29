@@ -32,39 +32,95 @@ pub struct RouteLevel {
 // ---------------------------------------------------------------------------
 
 static MODEL: Mutex<Option<TextEmbedding>> = Mutex::new(None);
+/// The model name currently loaded (to detect model switches).
+static MODEL_NAME: Mutex<Option<String>> = Mutex::new(None);
+
+/// Resolve model string to fastembed enum.
+fn resolve_model(model_name: &str) -> Result<EmbeddingModel> {
+    match model_name {
+        "BAAI/bge-small-en-v1.5" => Ok(EmbeddingModel::BGESmallENV15),
+        "nomic-ai/nomic-embed-text-v1.5" => Ok(EmbeddingModel::NomicEmbedTextV15),
+        "nomic-ai/nomic-embed-text-v1.5-q" => Ok(EmbeddingModel::NomicEmbedTextV15Q),
+        other => bail!("Unsupported model: {other}. Supported: BAAI/bge-small-en-v1.5, nomic-ai/nomic-embed-text-v1.5"),
+    }
+}
+
+/// Native dimensions for each model.
+fn model_native_dims(model_name: &str) -> usize {
+    match model_name {
+        "BAAI/bge-small-en-v1.5" => 384,
+        _ => 768, // nomic v1.5 variants
+    }
+}
 
 fn get_model(model_name: &str) -> Result<std::sync::MutexGuard<'static, Option<TextEmbedding>>> {
     let mut guard = MODEL.lock().map_err(|e| anyhow::anyhow!("model lock poisoned: {e}"))?;
-    if guard.is_none() {
-        let model_enum = match model_name {
-            "BAAI/bge-small-en-v1.5" => EmbeddingModel::BGESmallENV15,
-            other => bail!("Unsupported embedding model: {other}. Only BAAI/bge-small-en-v1.5 is currently supported."),
-        };
+    let mut name_guard = MODEL_NAME.lock().map_err(|e| anyhow::anyhow!("name lock poisoned: {e}"))?;
+
+    let needs_load = match name_guard.as_deref() {
+        Some(loaded) => loaded != model_name,
+        None => true,
+    };
+
+    if needs_load {
+        let model_enum = resolve_model(model_name)?;
         let options = InitOptions::new(model_enum).with_show_download_progress(true);
         let model = TextEmbedding::try_new(options).context("loading embedding model")?;
         *guard = Some(model);
+        *name_guard = Some(model_name.to_string());
     }
     Ok(guard)
 }
 
+/// Truncate vectors to target_dims for Matryoshka-compatible models (nomic).
+/// Re-normalizes after truncation.
+fn maybe_truncate(vectors: Vec<Vec<f32>>, model: &str, target_dims: Option<usize>) -> Vec<Vec<f32>> {
+    let target = match target_dims {
+        Some(d) => d,
+        None => return vectors,
+    };
+    let native = model_native_dims(model);
+    if target >= native {
+        return vectors;
+    }
+    vectors.into_iter().map(|v| {
+        let truncated: Vec<f32> = v[..target].to_vec();
+        let norm = dot(&truncated, &truncated).sqrt();
+        if norm > 0.0 {
+            truncated.into_iter().map(|x| x / norm).collect()
+        } else {
+            truncated
+        }
+    }).collect()
+}
+
 /// Embed a batch of document texts. Returns list of float vectors.
+/// If target_dims is set and model supports Matryoshka, truncates to that size.
 pub fn embed_texts(texts: &[String], model: &str) -> Result<Vec<Vec<f32>>> {
+    embed_texts_with_dims(texts, model, None)
+}
+
+pub fn embed_texts_with_dims(texts: &[String], model: &str, target_dims: Option<usize>) -> Result<Vec<Vec<f32>>> {
     if texts.is_empty() {
         return Ok(vec![]);
     }
     let guard = get_model(model)?;
     let m = guard.as_ref().unwrap();
     let embeddings = m.embed(texts.to_vec(), None)?;
-    Ok(embeddings)
+    Ok(maybe_truncate(embeddings, model, target_dims))
 }
 
 /// Embed a single query string. Returns a float vector.
 pub fn embed_query(query: &str, model: &str) -> Result<Vec<f32>> {
+    embed_query_with_dims(query, model, None)
+}
+
+pub fn embed_query_with_dims(query: &str, model: &str, target_dims: Option<usize>) -> Result<Vec<f32>> {
     let guard = get_model(model)?;
     let m = guard.as_ref().unwrap();
     let embeddings = m.embed(vec![format!("query: {query}")], None)?;
-    embeddings
-        .into_iter()
+    let vecs = maybe_truncate(embeddings, model, target_dims);
+    vecs.into_iter()
         .next()
         .ok_or_else(|| anyhow::anyhow!("empty embedding result"))
 }

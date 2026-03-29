@@ -29,12 +29,10 @@ pub struct BuildStats {
     pub errored: usize,
 }
 
-/// Run the full SRT build pipeline using the default Claude CLI summarizer.
+/// Run the full SRT build pipeline using the auto-detected summarizer.
 pub fn build(config: &BuildConfig) -> Result<BuildStats> {
-    let summarizer = summarizer::ClaudeSummarizer {
-        model: config.model.clone(),
-    };
-    build_with_summarizer(config, &summarizer)
+    let summarizer = summarizer::create_summarizer(&config.model);
+    build_with_summarizer(config, summarizer.as_ref())
 }
 
 /// Run the build pipeline with an injectable summarizer (for testing).

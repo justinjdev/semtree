@@ -68,8 +68,14 @@ Summarize each directory listed below. For each one:
 
 1. Read its children's .sem/ records to understand what each child does
 2. Write a concise prose overview (2-4 sentences)
-3. Write a ## Children section listing EVERY immediate child with a one-line description
-4. Write the .sem/ record
+3. If the directory has 5+ children: write a ## Cross-Cutting Concerns section
+   identifying interactions between children — cases where files in different
+   children collaborate, share state, or implement a feature together. Name
+   the specific files involved. Put this section BEFORE ## Children so it falls
+   within the embedding model's context window. Skip this section if children
+   are independent or there are fewer than 5.
+4. Write a ## Children section listing EVERY immediate child with a one-line description
+5. Write the .sem/ record
 
 Read child summaries by reading .sem/<child>.md files directly.
 Write directory records by writing .sem/__dir__.md and sibling .sem/<dirname>.md files directly.
@@ -97,6 +103,7 @@ Print summary of files/dirs summarized vs skipped.
 
 - **Agents write records directly** — no extract-parse-write pipeline. Each agent owns its records end-to-end.
 - **Directory summaries are LLM-generated prose** — not mechanical concatenation. The agent reads child summaries and writes a natural-language overview + routing table.
+- **Cross-cutting concerns section** — for directories with 5+ children, identify interactions between children (shared state, collaborating files, cross-package features). Place BEFORE ## Children to stay within embedding context window. Name specific files.
 - **Every child MUST appear in the `## Children` routing table** by name with a description.
 - **Bottom-up ordering for directories** — deepest first, so child summaries exist before parents need them.
 - **Directory sibling records** — every directory (except root) must have a sibling record at the parent level (`<parent>/.sem/<dirname>.md`) in addition to its own `<dir>/.sem/__dir__.md`. This enables embedding-based routing to rank directories alongside files.
