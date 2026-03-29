@@ -196,6 +196,11 @@ pub fn daemon_request(
 // Utilities
 // ---------------------------------------------------------------------------
 
+/// Default socket path for the daemon.
+pub fn default_socket_path() -> PathBuf {
+    expand_tilde(Path::new("~/.cache/semtree/semtree.sock"))
+}
+
 fn expand_tilde(path: &Path) -> PathBuf {
     if let Ok(stripped) = path.strip_prefix("~") {
         if let Some(home) = std::env::var_os("HOME") {

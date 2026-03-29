@@ -172,7 +172,41 @@ fn main() -> anyhow::Result<()> {
         Commands::Route { query, path, model, beam_width, max_depth } => {
             let target = std::fs::canonicalize(&path)?;
             let start = std::time::Instant::now();
-            let levels = embedder::route_directory(&target, &query, &model, beam_width, max_depth)?;
+
+            // Try daemon first, fall back to local
+            let socket_path = server::default_socket_path();
+            let levels = if server::daemon_available(&socket_path) {
+                let params = serde_json::json!({
+                    "path": target.to_string_lossy(),
+                    "query": query,
+                    "model": model,
+                    "beam_width": beam_width,
+                    "max_depth": max_depth,
+                });
+                let result = server::daemon_request(&socket_path, "route", params)?;
+                // Daemon wraps in {"levels": [...]} with {path,score,summary} objects
+                let wrapper: serde_json::Value = result;
+                let levels_val = wrapper.get("levels").unwrap_or(&wrapper);
+                let daemon_levels: Vec<serde_json::Value> = serde_json::from_value(levels_val.clone())?;
+                daemon_levels.iter().map(|l| {
+                    let selected: Vec<(String, f32, String)> = l["selected"].as_array()
+                        .unwrap_or(&vec![]).iter()
+                        .map(|s| (
+                            s["path"].as_str().unwrap_or("").to_string(),
+                            s["score"].as_f64().unwrap_or(0.0) as f32,
+                            s["summary"].as_str().unwrap_or("").to_string(),
+                        )).collect();
+                    embedder::RouteLevel {
+                        dir: l["dir"].as_str().unwrap_or("").to_string(),
+                        selected,
+                        all_children: l["all_children"].as_u64().unwrap_or(0) as usize,
+                        elapsed_ms: l["elapsed_ms"].as_u64().unwrap_or(0),
+                    }
+                }).collect()
+            } else {
+                embedder::route_directory(&target, &query, &model, beam_width, max_depth)?
+            };
+
             if levels.is_empty() {
                 eprintln!("No .sem/ records found for routing.");
             } else {

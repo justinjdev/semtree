@@ -19,7 +19,7 @@ pub struct EmbedStats {
 }
 
 /// A single level in the route descent.
-#[derive(Debug)]
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct RouteLevel {
     pub dir: String,
     pub selected: Vec<(String, f32, String)>, // (path, score, first_line)
