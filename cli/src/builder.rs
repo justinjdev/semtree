@@ -35,6 +35,52 @@ pub fn build(config: &BuildConfig) -> Result<BuildStats> {
     build_with_summarizer(config, summarizer.as_ref())
 }
 
+/// Resolves target-relative paths to repo-root-relative paths.
+///
+/// When `semtree build` is invoked on a subdirectory (e.g., `/repo/crates`),
+/// the walker produces paths relative to that subdirectory. But .sem/ records
+/// need repo-root-relative paths so that `semtree route` can match them.
+/// This struct detects the git root and computes the prefix automatically.
+struct PathResolver {
+    prefix: Option<String>,
+}
+
+impl PathResolver {
+    fn new(target_path: &std::path::Path) -> Self {
+        let repo_root = Self::git_repo_root(target_path);
+        let canonical_target = target_path.canonicalize().unwrap_or_else(|_| target_path.to_path_buf());
+        let prefix = repo_root.and_then(|root| {
+            let canonical_root = root.canonicalize().unwrap_or(root);
+            canonical_target.strip_prefix(&canonical_root).ok().and_then(|p| {
+                let s = p.to_string_lossy().to_string();
+                if s.is_empty() { None } else { Some(s) }
+            })
+        });
+        Self { prefix }
+    }
+
+    /// Convert a target-relative path to a repo-root-relative path.
+    fn to_repo_rel(&self, rel: &str) -> String {
+        match &self.prefix {
+            Some(prefix) if !rel.is_empty() => format!("{}/{}", prefix, rel),
+            Some(prefix) => prefix.clone(),
+            None => rel.to_string(),
+        }
+    }
+
+    fn git_repo_root(from: &std::path::Path) -> Option<PathBuf> {
+        let output = std::process::Command::new("git")
+            .args(["rev-parse", "--show-toplevel"])
+            .current_dir(from)
+            .output()
+            .ok()?;
+        if !output.status.success() {
+            return None;
+        }
+        Some(PathBuf::from(String::from_utf8_lossy(&output.stdout).trim()))
+    }
+}
+
 /// Run the build pipeline with an injectable summarizer (for testing).
 pub fn build_with_summarizer(
     config: &BuildConfig,
@@ -43,6 +89,8 @@ pub fn build_with_summarizer(
     let nodes = walker::walk(&config.target_path, &config.exclude)?;
     let total = nodes.len();
 
+    let resolver = PathResolver::new(&config.target_path);
+
     let mut node_hashes: HashMap<String, String> = HashMap::new();
     let mut node_summaries: HashMap<String, String> = HashMap::new();
     let mut stats = BuildStats::default();
@@ -50,6 +98,7 @@ pub fn build_with_summarizer(
     for (i, node) in nodes.iter().enumerate() {
         let idx = i + 1;
         let rel = &node.repo_relative_path;
+        let repo_rel = resolver.to_repo_rel(rel);
         let label = if rel.is_empty() { "(root)" } else { rel.as_str() };
 
         if node.is_directory {
@@ -85,7 +134,7 @@ pub fn build_with_summarizer(
                             if needs_sibling {
                                 records::write_record(
                                     &sibling_path,
-                                    rel,
+                                    &repo_rel,
                                     "directory",
                                     &content_hash,
                                     &record.summary,
@@ -115,10 +164,10 @@ pub fn build_with_summarizer(
 
             match summarizer.call(&prompt) {
                 Ok(summary) => {
-                    let write_path = if rel.is_empty() { "." } else { rel.as_str() };
+                    let write_path = if repo_rel.is_empty() { ".".to_string() } else { repo_rel.clone() };
                     records::write_record(
                         &rec_path,
-                        write_path,
+                        &write_path,
                         "directory",
                         &content_hash,
                         &summary,
@@ -129,7 +178,7 @@ pub fn build_with_summarizer(
                     if sibling_path != rec_path {
                         records::write_record(
                             &sibling_path,
-                            rel,
+                            &repo_rel,
                             "directory",
                             &content_hash,
                             &summary,
@@ -186,7 +235,7 @@ pub fn build_with_summarizer(
 
             match summarizer.call(&prompt) {
                 Ok(summary) => {
-                    records::write_record(&rec_path, rel, "file", &content_hash, &summary)?;
+                    records::write_record(&rec_path, &repo_rel, "file", &content_hash, &summary)?;
                     node_summaries.insert(rel.clone(), summary);
                     stats.summarized += 1;
                     eprintln!("[{idx}/{total}] summarized {label}");
@@ -215,6 +264,7 @@ pub fn build_with_summarizer(
 pub fn build_batch(config: &BuildConfig) -> Result<BuildStats> {
     let nodes = walker::walk(&config.target_path, &config.exclude)?;
     let total = nodes.len();
+    let resolver = PathResolver::new(&config.target_path);
 
     let mut node_hashes: HashMap<String, String> = HashMap::new();
     let mut node_summaries: HashMap<String, String> = HashMap::new();
@@ -229,6 +279,7 @@ pub fn build_batch(config: &BuildConfig) -> Result<BuildStats> {
     for (i, node) in nodes.iter().enumerate() {
         let idx = i + 1;
         let rel = &node.repo_relative_path;
+        let repo_rel = resolver.to_repo_rel(rel);
 
         if node.is_directory {
             // Compute hash, check freshness, defer summarization to phase 2
@@ -261,7 +312,7 @@ pub fn build_batch(config: &BuildConfig) -> Result<BuildStats> {
                             };
                             if needs_sibling {
                                 records::write_record(
-                                    &sibling_path, rel, "directory", &content_hash, &record.summary,
+                                    &sibling_path, &repo_rel, "directory", &content_hash, &record.summary,
                                 )?;
                             }
                         }
@@ -293,7 +344,7 @@ pub fn build_batch(config: &BuildConfig) -> Result<BuildStats> {
 
             let file_size = std::fs::metadata(&node.absolute_path)?.len();
             if summarizer::is_oversized(file_size, config.max_tokens) {
-                records::write_record(&rec_path, rel, "file", &content_hash, summarizer::OVERSIZED_PLACEHOLDER)?;
+                records::write_record(&rec_path, &repo_rel, "file", &content_hash, summarizer::OVERSIZED_PLACEHOLDER)?;
                 node_summaries.insert(rel.clone(), summarizer::OVERSIZED_PLACEHOLDER.to_string());
                 stats.summarized += 1;
                 eprintln!("[{idx}/{total}] oversized {rel}");
@@ -323,9 +374,10 @@ pub fn build_batch(config: &BuildConfig) -> Result<BuildStats> {
         eprintln!("\nBatch complete: {} results", results.len());
 
         for (custom_id, prompt, rel, content_hash, rec_path) in &batch_items {
+            let batch_repo_rel = resolver.to_repo_rel(rel);
             if let Some(summary) = results.get(custom_id) {
                 if !summary.is_empty() {
-                    records::write_record(rec_path, rel, "file", content_hash, summary)?;
+                    records::write_record(rec_path, &batch_repo_rel, "file", content_hash, summary)?;
                     node_summaries.insert(rel.clone(), summary.clone());
                     stats.summarized += 1;
                 } else {
@@ -399,14 +451,15 @@ pub fn build_batch(config: &BuildConfig) -> Result<BuildStats> {
             // Write records and update summaries for next level
             for (custom_id, _prompt, rel, content_hash) in &level_items {
                 let label = if rel.is_empty() { "(root)" } else { rel.as_str() };
+                let dir_repo_rel = resolver.to_repo_rel(rel);
                 if let Some(summary) = results.get(custom_id) {
                     if !summary.is_empty() {
-                        let write_path = if rel.is_empty() { "." } else { rel.as_str() };
+                        let write_path = if dir_repo_rel.is_empty() || dir_repo_rel == "." { ".".to_string() } else { dir_repo_rel.clone() };
                         let rec_path = records::record_path_for_dir(&config.target_path, rel);
-                        records::write_record(&rec_path, write_path, "directory", content_hash, summary)?;
+                        records::write_record(&rec_path, &write_path, "directory", content_hash, summary)?;
                         let sibling_path = records::record_path_for_dir_sibling(&config.target_path, rel);
                         if sibling_path != rec_path {
-                            records::write_record(&sibling_path, rel, "directory", content_hash, summary)?;
+                            records::write_record(&sibling_path, &dir_repo_rel, "directory", content_hash, summary)?;
                         }
                         node_summaries.insert(rel.clone(), summary.clone());
                         stats.summarized += 1;
@@ -584,6 +637,58 @@ mod tests {
         let record = records::read_record(&sibling).unwrap().unwrap();
         assert_eq!(record.node_type, "directory");
         assert_eq!(record.path, "src");
+    }
+
+    #[test]
+    fn test_subdirectory_build_uses_repo_relative_paths() {
+        // Build from a subdirectory — records should still have repo-root-relative paths.
+        // Setup: create a git repo with src/lib/ structure
+        let tmp = tempfile::tempdir().unwrap();
+        let root = tmp.path();
+
+        // Initialize git repo
+        std::process::Command::new("git")
+            .args(["init"])
+            .current_dir(root)
+            .output()
+            .unwrap();
+
+        // Create files
+        let src = root.join("src").join("lib");
+        std::fs::create_dir_all(&src).unwrap();
+        std::fs::write(src.join("mod.rs"), "pub fn hello() {}").unwrap();
+        std::fs::write(src.join("util.rs"), "pub fn helper() {}").unwrap();
+
+        // Git add so ls-files works
+        std::process::Command::new("git")
+            .args(["add", "."])
+            .current_dir(root)
+            .output()
+            .unwrap();
+
+        // Build from src/lib/ (subdirectory, not repo root)
+        let config = BuildConfig {
+            target_path: src.clone(),
+            model: String::new(),
+            max_tokens: 100_000,
+            force: false,
+            exclude: vec![],
+            embed: false,
+            embed_model: String::new(),
+        };
+        build_with_summarizer(&config, &MockSummarizer).unwrap();
+
+        // Check that file records have repo-root-relative paths
+        let mod_record = records::read_record(
+            &records::record_path_for_file(&src, "mod.rs"),
+        ).unwrap().unwrap();
+        assert_eq!(mod_record.path, "src/lib/mod.rs",
+            "File record should have repo-root-relative path, not just 'mod.rs'");
+
+        let util_record = records::read_record(
+            &records::record_path_for_file(&src, "util.rs"),
+        ).unwrap().unwrap();
+        assert_eq!(util_record.path, "src/lib/util.rs");
     }
 
     #[test]
