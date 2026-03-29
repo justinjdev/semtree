@@ -83,24 +83,33 @@ pub async fn serve(socket_path: &Path) -> Result<()> {
 /// Per-request timeout (seconds).
 const REQUEST_TIMEOUT_SECS: u64 = 30;
 
+/// Idle timeout per connection — close if no new request arrives within this window.
+const CONNECTION_IDLE_SECS: u64 = 5;
+
 async fn handle_connection(stream: tokio::net::UnixStream) -> Result<()> {
     let (reader, mut writer) = stream.into_split();
     let mut lines = BufReader::new(reader).lines();
 
-    while let Some(line) = lines.next_line().await? {
+    loop {
+        // Wait for next line with an idle timeout — prevents leaked connections
+        // from clients that close without shutdown.
+        let idle_timeout = tokio::time::Duration::from_secs(CONNECTION_IDLE_SECS);
+        let line = match tokio::time::timeout(idle_timeout, lines.next_line()).await {
+            Ok(Ok(Some(line))) => line,
+            Ok(Ok(None)) => break,      // client closed cleanly
+            Ok(Err(_)) => break,         // read error
+            Err(_) => break,             // idle timeout — reclaim connection
+        };
+
         let resp = match serde_json::from_str::<Request>(&line) {
             Ok(req) => {
                 let method = req.method.clone();
-                eprintln!("[daemon] request: method={} params={}", method, req.params);
                 let start = std::time::Instant::now();
-
-                // Clone data for the blocking task (avoid borrowing across await)
-                let req_owned = req;
 
                 let timeout = tokio::time::Duration::from_secs(REQUEST_TIMEOUT_SECS);
                 let result = tokio::time::timeout(
                     timeout,
-                    tokio::task::spawn_blocking(move || dispatch(&req_owned)),
+                    tokio::task::spawn_blocking(move || dispatch(&req)),
                 )
                 .await;
 
@@ -109,27 +118,27 @@ async fn handle_connection(stream: tokio::net::UnixStream) -> Result<()> {
                 match result {
                     Ok(Ok(resp)) => {
                         let status = if resp.error.is_some() { "error" } else { "ok" };
-                        eprintln!("[daemon] response: method={} status={} elapsed={}ms", method, status, elapsed_ms);
+                        eprintln!("[daemon] {method} {status} {elapsed_ms}ms");
                         resp
                     }
                     Ok(Err(e)) => {
-                        eprintln!("[daemon] panic: method={} error={} elapsed={}ms", method, e, elapsed_ms);
+                        eprintln!("[daemon] {method} panic {elapsed_ms}ms: {e}");
                         Response {
                             result: None,
                             error: Some(format!("dispatch panicked: {e}")),
                         }
                     }
                     Err(_) => {
-                        eprintln!("[daemon] timeout: method={} exceeded {}s", method, REQUEST_TIMEOUT_SECS);
+                        eprintln!("[daemon] {method} timeout {REQUEST_TIMEOUT_SECS}s");
                         Response {
                             result: None,
-                            error: Some(format!("request timed out after {}s", REQUEST_TIMEOUT_SECS)),
+                            error: Some(format!("request timed out after {REQUEST_TIMEOUT_SECS}s")),
                         }
                     }
                 }
             }
             Err(e) => {
-                eprintln!("[daemon] parse error: {}", e);
+                eprintln!("[daemon] parse error: {e}");
                 Response {
                     result: None,
                     error: Some(format!("invalid request: {e}")),
@@ -139,6 +148,7 @@ async fn handle_connection(stream: tokio::net::UnixStream) -> Result<()> {
         let json = serde_json::to_string(&resp)?;
         writer.write_all(json.as_bytes()).await?;
         writer.write_all(b"\n").await?;
+        writer.flush().await?;
     }
 
     Ok(())
@@ -228,8 +238,10 @@ pub fn daemon_request(
     use std::io::{BufRead, Write};
 
     let mut stream = std::os::unix::net::UnixStream::connect(socket_path)?;
+    stream.set_read_timeout(Some(std::time::Duration::from_secs(REQUEST_TIMEOUT_SECS + 5)))?;
     let req = serde_json::json!({"method": method, "params": params});
     writeln!(stream, "{}", serde_json::to_string(&req)?)?;
+    stream.shutdown(std::net::Shutdown::Write)?; // signal EOF
 
     let mut reader = std::io::BufReader::new(&stream);
     let mut line = String::new();

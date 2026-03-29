@@ -158,10 +158,12 @@ def run_srt_warm(repo, queries, repo_name, results_path):
             os.unlink(SOCKET_PATH)
     print("done", file=sys.stderr)
 
-def _daemon_call(request):
+def _daemon_call(request, timeout=60):
     sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    sock.settimeout(timeout)
     sock.connect(SOCKET_PATH)
     sock.sendall((json.dumps(request) + "\n").encode())
+    sock.shutdown(socket.SHUT_WR)  # signal EOF so server doesn't wait for more lines
     resp = b""
     while b"\n" not in resp:
         chunk = sock.recv(65536)
