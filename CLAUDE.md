@@ -51,6 +51,14 @@ SRT is a **routing layer**, not a retrieval system. Summaries help agents decide
 - **Graceful fallback**: if `.srt/` doesn't exist at a path, agent searches normally
 - **Discovery-based scoping**: agent checks for `.srt/__dir__.md` at any path it visits; no hardcoded paths
 
+## Rust CLI
+
+Build: `cd cli && cargo build --release`
+Binary: `cli/target/release/semtree`
+Install: `cargo install --path cli`
+
+Commands: build, embed, query, route, serve, bench, vec inspect
+
 ## Build Commands
 
 ```bash

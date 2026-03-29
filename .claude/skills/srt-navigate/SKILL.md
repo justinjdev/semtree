@@ -27,6 +27,7 @@ At the most relevant directory for the task, read `.sem/__dir__.md`.
 If the directory from Step 1 has **15 or more children** listed in its `## Children` section:
 
 1. Run: `semtree query "<your question>" <directory-path>`
+   (Assumes `semtree` is on PATH via `cargo install --path cli`)
 2. Use the top-ranked results to decide which children to descend into
 3. This replaces manual scanning of all children — the cosine ranking does the initial triage
 

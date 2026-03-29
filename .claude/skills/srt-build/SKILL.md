@@ -22,31 +22,9 @@ If no path is provided, use the current working directory.
 Run this via Bash to get the stale file list and directory structure:
 
 ```bash
-source /Users/justin/git/semtree/.venv/bin/activate && python3 << 'PYEOF'
-import json, sys
-sys.path.insert(0, "/Users/justin/git/semtree/src")
-from pathlib import Path
-from semtree.walker import walk
-from semtree.hasher import hash_file
-from semtree.records import read_record, record_path_for_file
-
-root = Path("TARGET_PATH")
-nodes = walk(root)
-
-stale_files = []
-fresh_files = []
-for n in nodes:
-    if n.is_directory:
-        continue
-    h = hash_file(n.absolute_path)
-    rec = read_record(record_path_for_file(root, n.repo_relative_path))
-    if rec and rec.get("content_hash") == h:
-        fresh_files.append(n.repo_relative_path)
-    else:
-        stale_files.append({"path": n.repo_relative_path, "hash": h})
-
-print(json.dumps({"stale": stale_files, "fresh": fresh_files, "total_nodes": len(nodes)}))
-PYEOF
+semtree build TARGET_PATH --no-embed 2>&1 | head -1
+# Or for a dry-run to see what's stale, run build with defaults.
+# The CLI handles walking, hashing, and staleness detection internally.
 ```
 
 ### Step 2: Summarize stale files via parallel agents that WRITE records directly
@@ -63,14 +41,8 @@ For each file listed below, read it, write a 2-5 sentence summary, then write th
 
 Use this Bash command to write each record (fill in the values):
 
-source /Users/justin/git/semtree/.venv/bin/activate && python3 -c "
-import sys; sys.path.insert(0, '/Users/justin/git/semtree/src')
-from pathlib import Path
-from semtree.records import record_path_for_file, write_record
-root = Path('REPO_ROOT')
-write_record(record_path_for_file(root, 'REL_PATH'), 'REL_PATH', 'file', 'HASH', '''SUMMARY''')
-print('wrote REL_PATH')
-"
+semtree build REPO_ROOT --no-embed
+# Or for manual agent-driven writes, agents write .sem/ records directly via file I/O.
 
 Files to process:
 - path: <rel_path>, hash: <hash>
@@ -99,31 +71,9 @@ Summarize each directory listed below. For each one:
 3. Write a ## Children section listing EVERY immediate child with a one-line description
 4. Write the .sem/ record
 
-Use this to read child summaries:
-source /Users/justin/git/semtree/.venv/bin/activate && python3 -c "
-import sys; sys.path.insert(0, '/Users/justin/git/semtree/src')
-from pathlib import Path
-from semtree.records import read_record, record_path_for_file, record_path_for_dir
-root = Path('REPO_ROOT')
-# For file children:
-r = read_record(record_path_for_file(root, 'CHILD_PATH'))
-# For directory children:
-r = read_record(record_path_for_dir(root, 'CHILD_PATH'))
-print(r['summary'] if r else 'no summary')
-"
-
-Use this to write the directory record AND its sibling at the parent level:
-source /Users/justin/git/semtree/.venv/bin/activate && python3 -c "
-import sys; sys.path.insert(0, '/Users/justin/git/semtree/src')
-from pathlib import Path
-from semtree.records import record_path_for_dir, record_path_for_dir_sibling, write_record
-root = Path('REPO_ROOT')
-write_record(record_path_for_dir(root, 'DIR_PATH'), 'DIR_PATH_OR_DOT', 'directory', 'DIR_HASH', '''SUMMARY_WITH_CHILDREN''')
-sibling = record_path_for_dir_sibling(root, 'DIR_PATH')
-if sibling != record_path_for_dir(root, 'DIR_PATH'):
-    write_record(sibling, 'DIR_PATH', 'directory', 'DIR_HASH', '''SUMMARY_WITH_CHILDREN''')
-print('wrote DIR_PATH')
-"
+Read child summaries by reading .sem/<child>.md files directly.
+Write directory records by writing .sem/__dir__.md and sibling .sem/<dirname>.md files directly.
+The `semtree build` command handles this automatically for CLI-driven builds.
 
 Directories to process (with their children and hashes):
 - dir: <path>, hash: <hash>, children: [child1, child2, ...]
@@ -134,7 +84,7 @@ Directories to process (with their children and hashes):
 After all records are written, run `semtree embed` to create `.vec` sidecar files for embedding-assisted routing:
 
 ```bash
-source /Users/justin/git/semtree/.venv/bin/activate && semtree embed REPO_ROOT
+semtree embed REPO_ROOT
 ```
 
 This enables `semtree route` and `semtree query` to rank children by cosine similarity.

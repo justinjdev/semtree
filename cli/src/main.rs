@@ -9,6 +9,7 @@ mod embedder;
 mod summarizer;
 mod builder;
 mod server;
+mod bench;
 
 #[derive(Parser)]
 #[command(name = "semtree", about = "Semantic Resolution Tree indexer")]
@@ -189,11 +190,37 @@ fn main() -> anyhow::Result<()> {
             rt.block_on(server::serve(&socket))?;
         }
         Commands::Bench { phase, repo_path, results } => {
-            todo!("bench command")
+            let target = repo_path.map(|p| p.canonicalize().unwrap_or(p))
+                .unwrap_or_else(|| std::env::current_dir().unwrap());
+
+            if phase == "quality" || phase == "all" {
+                eprintln!("Running quality phase...");
+                let metrics = bench::run_quality(&target, "local")?;
+                let now = {
+                    let d = std::time::SystemTime::now()
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .unwrap_or_default();
+                    format!("{}", d.as_secs())
+                };
+                let rows: Vec<_> = metrics.iter().map(|(metric, value)| {
+                    (now.clone(), "quality".to_string(), "local".to_string(), "srt".to_string(),
+                     String::new(), String::new(), metric.clone(), *value)
+                }).collect();
+                bench::append_tsv(&results, &rows)?;
+                for (metric, value) in &metrics {
+                    eprintln!("  {}: {}", metric, value);
+                }
+            }
+            eprintln!("Benchmark complete.");
         }
         Commands::Vec { cmd } => match cmd {
             VecCommands::Inspect { path } => {
-                todo!("vec inspect command")
+                let data = vec_store::read_vec(&path)?
+                    .ok_or_else(|| anyhow::anyhow!("file not found: {}", path.display()))?;
+                println!("Model:        {}", data.model);
+                println!("Content hash: {}", data.content_hash);
+                println!("Dimensions:   {}", data.vector.len());
+                println!("First 5:      {:?}", &data.vector[..data.vector.len().min(5)]);
             }
         },
     }

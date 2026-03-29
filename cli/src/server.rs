@@ -86,7 +86,7 @@ async fn handle_connection(stream: tokio::net::UnixStream) -> Result<()> {
 
     while let Some(line) = lines.next_line().await? {
         let resp = match serde_json::from_str::<Request>(&line) {
-            Ok(req) => dispatch(&req).await,
+            Ok(req) => dispatch(&req),
             Err(e) => Response {
                 result: None,
                 error: Some(format!("invalid request: {e}")),
@@ -100,22 +100,49 @@ async fn handle_connection(stream: tokio::net::UnixStream) -> Result<()> {
     Ok(())
 }
 
-async fn dispatch(req: &Request) -> Response {
+fn dispatch(req: &Request) -> Response {
     match req.method.as_str() {
         "route" => {
-            // Parse params: query, path, beam_width, max_depth
-            // Will delegate to embedder::route_directory once implemented
-            Response {
-                result: Some(serde_json::json!({"status": "not_implemented"})),
-                error: None,
+            let query = req.params["query"].as_str().unwrap_or("");
+            let path_str = req.params["path"].as_str().unwrap_or(".");
+            let beam_width = req.params["beam_width"].as_u64().unwrap_or(3) as usize;
+            let max_depth = req.params["max_depth"].as_u64().unwrap_or(10) as usize;
+            let model = req.params["model"].as_str().unwrap_or("BAAI/bge-small-en-v1.5");
+
+            let path = std::path::PathBuf::from(path_str);
+            match crate::embedder::route_directory(&path, query, model, beam_width, max_depth) {
+                Ok(levels) => {
+                    let json_levels: Vec<serde_json::Value> = levels.iter().map(|l| {
+                        serde_json::json!({
+                            "dir": l.dir,
+                            "all_children": l.all_children,
+                            "elapsed_ms": l.elapsed_ms,
+                            "selected": l.selected.iter().map(|(p, s, fl)| {
+                                serde_json::json!({"path": p, "score": s, "summary": fl})
+                            }).collect::<Vec<_>>(),
+                        })
+                    }).collect();
+                    Response { result: Some(serde_json::json!({"levels": json_levels})), error: None }
+                }
+                Err(e) => Response { result: None, error: Some(format!("{e}")) },
             }
         }
         "query" => {
-            // Parse params: query, path, top_k, threshold
-            // Will delegate to embedder::query_directory once implemented
-            Response {
-                result: Some(serde_json::json!({"status": "not_implemented"})),
-                error: None,
+            let query = req.params["query"].as_str().unwrap_or("");
+            let path_str = req.params["path"].as_str().unwrap_or(".");
+            let top_k = req.params["top_k"].as_u64().map(|v| v as usize);
+            let threshold = req.params["threshold"].as_f64().map(|v| v as f32);
+            let model = req.params["model"].as_str().unwrap_or("BAAI/bge-small-en-v1.5");
+
+            let path = std::path::PathBuf::from(path_str);
+            match crate::embedder::query_directory(&path, query, model, top_k, threshold) {
+                Ok(results) => {
+                    let json_results: Vec<serde_json::Value> = results.iter().map(|(score, p, fl)| {
+                        serde_json::json!({"score": score, "path": p, "summary": fl})
+                    }).collect();
+                    Response { result: Some(serde_json::json!({"children": json_results})), error: None }
+                }
+                Err(e) => Response { result: None, error: Some(format!("{e}")) },
             }
         }
         _ => Response {
