@@ -1,3 +1,4 @@
+use anyhow::Context;
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 
@@ -334,8 +335,11 @@ fn main() -> anyhow::Result<()> {
             rt.block_on(server::serve(&socket))?;
         }
         Commands::Bench { phase, repo_path, results, queries, dilution } => {
-            let target = repo_path.map(|p| p.canonicalize().unwrap_or(p))
-                .unwrap_or_else(|| std::env::current_dir().unwrap());
+            let target = match repo_path {
+                Some(p) => std::fs::canonicalize(&p)
+                    .with_context(|| format!("invalid repo path: {}", p.display()))?,
+                None => std::env::current_dir()?,
+            };
 
             if phase == "quality" || phase == "all" {
                 eprintln!("Running quality phase...");

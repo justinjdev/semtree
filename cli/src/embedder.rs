@@ -607,7 +607,7 @@ pub fn route_directory_with_policy(
             .collect();
         let ranked = cosine_rank(&query_vec, &children_refs);
 
-        let remaining_levels = max_depth.saturating_sub(depth);
+        let remaining_levels = max_depth.saturating_sub(depth).max(1);
         let (selected, bf, amb, alloc_beam) = match policy {
             BeamPolicy::Uniform => {
                 let sel = adaptive_beam(&ranked, beam_width);

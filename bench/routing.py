@@ -125,6 +125,8 @@ def log_dilution_penalty(
     if not telemetry:
         return 0.0
     w = weights or [1.0] * len(telemetry)
+    if len(w) < len(telemetry):
+        raise ValueError(f"weights length {len(w)} < telemetry length {len(telemetry)}")
     return sum(w[i] * math.log(1 + t.n_selected) for i, t in enumerate(telemetry))
 
 
@@ -136,6 +138,8 @@ def ratio_dilution_penalty(
     if not telemetry:
         return 0.0
     w = weights or [1.0] * len(telemetry)
+    if len(w) < len(telemetry):
+        raise ValueError(f"weights length {len(w)} < telemetry length {len(telemetry)}")
     return sum(w[i] * t.rho_l for i, t in enumerate(telemetry))
 
 
