@@ -116,19 +116,33 @@ fn dispatch(req: &Request) -> Response {
             let beam_width = req.params["beam_width"].as_u64().unwrap_or(3) as usize;
             let max_depth = req.params["max_depth"].as_u64().unwrap_or(10) as usize;
             let model = req.params["model"].as_str().unwrap_or("BAAI/bge-small-en-v1.5");
+            let policy = match req.params.get("beam_policy").and_then(|v| v.as_str()) {
+                Some("waterfill") => crate::embedder::BeamPolicy::Waterfill,
+                _ => crate::embedder::BeamPolicy::Uniform,
+            };
 
             let path = std::path::PathBuf::from(path_str);
-            match crate::embedder::route_directory(&path, query, model, beam_width, max_depth) {
+            match crate::embedder::route_directory_with_policy(&path, query, model, beam_width, max_depth, policy) {
                 Ok(levels) => {
                     let json_levels: Vec<serde_json::Value> = levels.iter().map(|l| {
-                        serde_json::json!({
+                        let mut obj = serde_json::json!({
                             "dir": l.dir,
                             "all_children": l.all_children,
                             "elapsed_ms": l.elapsed_ms,
                             "selected": l.selected.iter().map(|(p, s, fl)| {
                                 serde_json::json!({"path": p, "score": s, "summary": fl})
                             }).collect::<Vec<_>>(),
-                        })
+                        });
+                        if let Some(bf) = l.branching_factor {
+                            obj["branching_factor"] = serde_json::json!(bf);
+                        }
+                        if let Some(amb) = l.ambiguity {
+                            obj["ambiguity"] = serde_json::json!(amb);
+                        }
+                        if let Some(ab) = l.allocated_beam {
+                            obj["allocated_beam"] = serde_json::json!(ab);
+                        }
+                        obj
                     }).collect();
                     Response { result: Some(serde_json::json!({"levels": json_levels})), error: None }
                 }

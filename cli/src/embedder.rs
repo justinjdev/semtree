@@ -20,11 +20,24 @@ pub struct EmbedStats {
 
 /// A single level in the route descent.
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
+/// Policy for beam allocation across descent levels.
+#[derive(Clone, Copy, Default, PartialEq, Eq, clap::ValueEnum)]
+pub enum BeamPolicy {
+    /// Fixed beam width at every level (current behavior)
+    #[default]
+    Uniform,
+    /// Allocate beam proportional to alpha_l = B_l * m_l (water-filling)
+    Waterfill,
+}
+
 pub struct RouteLevel {
     pub dir: String,
     pub selected: Vec<(String, f32, String)>, // (path, score, first_line)
     pub all_children: usize,
     pub elapsed_ms: u64,
+    pub branching_factor: Option<usize>,
+    pub ambiguity: Option<f32>,
+    pub allocated_beam: Option<usize>,
 }
 
 // ---------------------------------------------------------------------------
@@ -454,6 +467,57 @@ fn adaptive_beam(ranked: &[(String, f32)], beam_width: usize) -> Vec<(String, f3
     ranked[..take].to_vec()
 }
 
+/// Compute ambiguity m_l from cosine similarity scores.
+/// High ambiguity (clustered scores) -> high m_l -> wider beam needed.
+/// Low ambiguity (spread scores) -> low m_l -> narrow beam sufficient.
+pub fn compute_ambiguity(scores: &[f32]) -> f32 {
+    if scores.len() < 4 {
+        return 0.5; // default for small fan-out
+    }
+    let mut sorted: Vec<f32> = scores.to_vec();
+    sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    let n = sorted.len();
+    let q25 = sorted[n / 4];
+    let q75 = sorted[3 * n / 4];
+    let iqr = q75 - q25;
+    // High IQR = spread out = easy to distinguish = low ambiguity
+    // Low IQR = clustered = hard to distinguish = high ambiguity
+    (1.0 - iqr).clamp(0.1, 1.0)
+}
+
+/// Water-filling beam allocation: allocate beam width proportional to difficulty.
+/// Returns (selected children, beam_used).
+fn waterfill_beam(
+    ranked: &[(String, f32)],
+    branching_factor: usize,
+    ambiguity: f32,
+    remaining_budget: usize,
+    remaining_levels: usize,
+) -> (Vec<(String, f32)>, usize) {
+    let n = ranked.len();
+    if n == 0 {
+        return (vec![], 0);
+    }
+
+    // alpha_l = B_l * m_l
+    let alpha_l = branching_factor as f32 * ambiguity;
+
+    // Estimate average alpha for unseen levels (use current as proxy)
+    let avg_alpha = alpha_l;
+    let total_alpha = alpha_l + avg_alpha * (remaining_levels.saturating_sub(1) as f32);
+
+    // Allocate proportionally from remaining budget
+    let b_l = if total_alpha > 0.0 {
+        ((remaining_budget as f32 * alpha_l / total_alpha).round() as usize).max(1)
+    } else {
+        1
+    };
+
+    // Don't exceed remaining children or budget
+    let take = b_l.min(n).min(remaining_budget);
+    (ranked[..take].to_vec(), take)
+}
+
 pub fn route_directory(
     target: &Path,
     query: &str,
@@ -461,7 +525,20 @@ pub fn route_directory(
     beam_width: usize,
     max_depth: usize,
 ) -> Result<Vec<RouteLevel>> {
+    route_directory_with_policy(target, query, model, beam_width, max_depth, BeamPolicy::Uniform)
+}
+
+pub fn route_directory_with_policy(
+    target: &Path,
+    query: &str,
+    model: &str,
+    beam_width: usize,
+    max_depth: usize,
+    policy: BeamPolicy,
+) -> Result<Vec<RouteLevel>> {
     let query_vec = embed_query(query, model)?;
+    // Total budget for waterfill: beam_width * max_depth
+    let mut remaining_budget = beam_width * max_depth;
 
     let mut levels: Vec<RouteLevel> = Vec::new();
     // Queue: (directory_absolute_path, dir_relative_path, depth)
@@ -530,7 +607,21 @@ pub fn route_directory(
             .collect();
         let ranked = cosine_rank(&query_vec, &children_refs);
 
-        let selected = adaptive_beam(&ranked, beam_width);
+        let remaining_levels = max_depth.saturating_sub(depth);
+        let (selected, bf, amb, alloc_beam) = match policy {
+            BeamPolicy::Uniform => {
+                let sel = adaptive_beam(&ranked, beam_width);
+                (sel, None, None, None)
+            }
+            BeamPolicy::Waterfill => {
+                let bf = ranked.len();
+                let scores: Vec<f32> = ranked.iter().map(|(_, s)| *s).collect();
+                let amb = compute_ambiguity(&scores);
+                let (sel, used) = waterfill_beam(&ranked, bf, amb, remaining_budget, remaining_levels);
+                remaining_budget = remaining_budget.saturating_sub(used);
+                (sel, Some(bf), Some(amb), Some(used))
+            }
+        };
 
         // Build a quick lookup for selected children
         let child_lookup: std::collections::HashMap<&str, &ChildInfo> = children
@@ -556,6 +647,9 @@ pub fn route_directory(
                 .collect(),
             all_children: ranked.len(),
             elapsed_ms: level_start.elapsed().as_millis() as u64,
+            branching_factor: bf,
+            ambiguity: amb,
+            allocated_beam: alloc_beam,
         };
         levels.push(level_info);
 
@@ -746,5 +840,75 @@ mod tests {
     fn test_dot_product() {
         assert!((dot(&[1.0, 2.0, 3.0], &[4.0, 5.0, 6.0]) - 32.0).abs() < 1e-5);
         assert!((dot(&[1.0, 0.0], &[0.0, 1.0]) - 0.0).abs() < 1e-5);
+    }
+
+    // --- compute_ambiguity tests (task 2.2) ---
+
+    #[test]
+    fn test_ambiguity_clustered_scores() {
+        // All scores similar -> high ambiguity (close to 1.0)
+        let scores = vec![0.80, 0.81, 0.79, 0.80, 0.82];
+        let amb = compute_ambiguity(&scores);
+        assert!(amb > 0.9, "clustered scores should have high ambiguity, got {amb}");
+    }
+
+    #[test]
+    fn test_ambiguity_spread_scores() {
+        // Scores spread out -> low ambiguity
+        let scores = vec![0.1, 0.3, 0.5, 0.7, 0.9];
+        let amb = compute_ambiguity(&scores);
+        assert!(amb < 0.7, "spread scores should have low ambiguity, got {amb}");
+    }
+
+    #[test]
+    fn test_ambiguity_fewer_than_4() {
+        assert_eq!(compute_ambiguity(&[0.5, 0.6, 0.7]), 0.5);
+        assert_eq!(compute_ambiguity(&[0.5]), 0.5);
+        assert_eq!(compute_ambiguity(&[]), 0.5);
+    }
+
+    // --- waterfill_beam tests (task 3.3) ---
+
+    #[test]
+    fn test_waterfill_hard_level_wider_beam() {
+        let ranked: Vec<(String, f32)> = (0..10).map(|i| (format!("c{i}"), 0.9 - i as f32 * 0.05)).collect();
+        // Hard level: high branching * high ambiguity
+        let (sel_hard, _) = waterfill_beam(&ranked, 10, 0.9, 20, 3);
+        // Easy level: low branching * low ambiguity
+        let (sel_easy, _) = waterfill_beam(&ranked, 3, 0.2, 20, 3);
+        assert!(sel_hard.len() >= sel_easy.len(),
+            "hard level should get wider beam: {} vs {}", sel_hard.len(), sel_easy.len());
+    }
+
+    #[test]
+    fn test_waterfill_minimum_beam() {
+        let ranked = vec![("a".to_string(), 0.9), ("b".to_string(), 0.5)];
+        let (sel, used) = waterfill_beam(&ranked, 2, 0.1, 10, 5);
+        assert!(sel.len() >= 1, "should always select at least 1");
+        assert!(used >= 1);
+    }
+
+    #[test]
+    fn test_waterfill_budget_not_exceeded() {
+        let ranked: Vec<(String, f32)> = (0..20).map(|i| (format!("c{i}"), 0.9 - i as f32 * 0.01)).collect();
+        let budget = 5;
+        let (sel, used) = waterfill_beam(&ranked, 20, 1.0, budget, 1);
+        assert!(used <= budget, "used {used} exceeds budget {budget}");
+        assert!(sel.len() <= budget);
+    }
+
+    #[test]
+    fn test_waterfill_single_level() {
+        let ranked: Vec<(String, f32)> = (0..8).map(|i| (format!("c{i}"), 0.9 - i as f32 * 0.05)).collect();
+        // With 1 remaining level, should use all remaining budget
+        let (sel, _) = waterfill_beam(&ranked, 8, 0.5, 6, 1);
+        assert_eq!(sel.len(), 6, "single level should use full budget (capped by children)");
+    }
+
+    #[test]
+    fn test_waterfill_empty() {
+        let (sel, used) = waterfill_beam(&[], 0, 0.5, 10, 3);
+        assert!(sel.is_empty());
+        assert_eq!(used, 0);
     }
 }
