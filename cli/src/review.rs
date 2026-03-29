@@ -49,6 +49,10 @@ pub fn run(
     // Task 4: compute triage with fan-out and severity
     let triaged = compute_triage(target, &changed_files, top_k, similarity_threshold)?;
 
+    // Task 5: cross-cutting warnings (wired in Task 6)
+    let _cc_warnings = find_cross_cutting_warnings(target, &changed_files, &contexts);
+    let _consider_also = find_consider_also(&triaged, &changed_files, similarity_threshold);
+
     for t in &triaged {
         println!(
             "[{}] {} (fan_out={})",
@@ -68,6 +72,80 @@ pub fn run(
     }
 
     Ok(())
+}
+
+/// Render the review manifest as markdown to stdout.
+fn render_markdown(
+    triaged: &[FileTriage],
+    contexts: &[FileContext],
+    cc_warnings: &[CrossCuttingWarning],
+    consider_also: &[ConsiderAlso],
+) {
+    // Section 1: Triage table
+    println!("# Review Manifest\n");
+    println!("## Triage\n");
+    println!("| File | Severity | Fan-out | Summary |");
+    println!("|------|----------|---------|---------|");
+    for t in triaged {
+        let summary = if t.first_line.len() > 60 {
+            format!("{}...", &t.first_line[..60])
+        } else {
+            t.first_line.clone()
+        };
+        println!("| {} | {} | {} | {} |", t.path, t.severity, t.fan_out, summary);
+    }
+
+    // Section 2: Per-file context
+    for t in triaged {
+        let ctx = contexts.iter().find(|c| c.path == t.path);
+        println!("\n---\n");
+        println!("## {} [{}]\n", t.path, t.severity);
+
+        let file_first_line = ctx.map(|c| c.first_line.as_str()).unwrap_or(&t.first_line);
+        println!("**Summary:** {}\n", file_first_line);
+
+        if let Some(c) = ctx {
+            if !c.module_first_line.is_empty() {
+                println!("**Module context ({}/):** {}\n", c.parent_dir, c.module_first_line);
+            }
+        }
+
+        if !t.related.is_empty() {
+            println!("**Related files to review:**");
+            for (rpath, score, fl) in &t.related {
+                println!("- {} ({:.2}) — {}", rpath, score, fl);
+            }
+        }
+    }
+
+    // Section 3: Cross-cutting warnings (only if there are any)
+    if !cc_warnings.is_empty() || !consider_also.is_empty() {
+        println!("\n---\n");
+        println!("## Cross-Cutting Warnings\n");
+
+        if !cc_warnings.is_empty() {
+            println!("### High Confidence");
+            println!("These files are explicitly documented as collaborators with changed files:");
+            for w in cc_warnings {
+                println!(
+                    "- **{}** not in diff — {} (from {})",
+                    w.collaborator, w.context, w.source_dir
+                );
+            }
+            println!();
+        }
+
+        if !consider_also.is_empty() {
+            println!("### Consider Also");
+            println!("These files are highly similar to changed files but not in the diff:");
+            for ca in consider_also {
+                println!(
+                    "- {} ({:.2} similar to {}) — {}",
+                    ca.file, ca.score, ca.similar_to, ca.first_line
+                );
+            }
+        }
+    }
 }
 
 /// Parse git diff to get list of changed files (repo-relative paths).
@@ -205,6 +283,160 @@ fn load_all_vectors(target: &Path) -> Result<Vec<VecEntry>> {
     }
 
     Ok(entries)
+}
+
+/// A cross-cutting warning: a file documented as a collaborator with a changed file.
+#[derive(Debug)]
+struct CrossCuttingWarning {
+    collaborator: String,
+    changed_file: String,
+    context: String,
+    source_dir: String,
+}
+
+/// A suggestion: a file highly similar to a changed file but not in the diff.
+#[derive(Debug)]
+struct ConsiderAlso {
+    file: String,
+    similar_to: String,
+    score: f32,
+    first_line: String,
+}
+
+/// Find cross-cutting warnings by scanning __dir__.md Cross-Cutting Concerns sections.
+fn find_cross_cutting_warnings(
+    target: &Path,
+    changed_files: &[String],
+    contexts: &[FileContext],
+) -> Vec<CrossCuttingWarning> {
+    let changed_set: HashSet<&str> = changed_files.iter().map(|s| s.as_str()).collect();
+
+    // Collect basenames (lowercase, no extension) of changed files for matching
+    let changed_basenames: HashSet<String> = changed_files
+        .iter()
+        .filter_map(|f| {
+            Path::new(f)
+                .file_stem()
+                .map(|s| s.to_string_lossy().to_lowercase())
+        })
+        .collect();
+
+    // Unique parent directories from contexts
+    let parent_dirs: HashSet<&str> = contexts.iter().map(|c| c.parent_dir.as_str()).collect();
+
+    let mut warnings = Vec::new();
+
+    for dir in &parent_dirs {
+        let dir_rec_path = records::record_path_for_dir(target, dir);
+        let summary = match records::read_record(&dir_rec_path) {
+            Ok(Some(r)) => r.summary,
+            _ => continue,
+        };
+
+        // Find the Cross-Cutting Concerns section
+        let mut in_section = false;
+        for line in summary.lines() {
+            if line.starts_with("## Cross-Cutting Concerns") {
+                in_section = true;
+                continue;
+            }
+            if in_section && line.starts_with("## ") {
+                break; // next section
+            }
+            if !in_section {
+                continue;
+            }
+
+            let line_lower = line.to_lowercase();
+
+            // Check if any changed file's basename is mentioned in this line
+            for changed in changed_files {
+                let basename = match Path::new(changed).file_stem() {
+                    Some(s) => s.to_string_lossy().to_lowercase(),
+                    None => continue,
+                };
+                if !line_lower.contains(&basename) {
+                    continue;
+                }
+
+                // Look for other filenames in this line (word.ext patterns)
+                for word in line.split_whitespace() {
+                    let word_clean = word.trim_matches(|c: char| !c.is_alphanumeric() && c != '.' && c != '_' && c != '-');
+                    if word_clean.len() <= 3 || !word_clean.contains('.') {
+                        continue;
+                    }
+                    // Check it looks like a filename (has extension)
+                    let parts: Vec<&str> = word_clean.rsplitn(2, '.').collect();
+                    if parts.len() != 2 || parts[0].is_empty() || parts[1].is_empty() {
+                        continue;
+                    }
+                    let candidate_stem = parts[1].to_lowercase();
+                    // Skip if this is a changed file's basename
+                    if changed_basenames.contains(&candidate_stem) {
+                        continue;
+                    }
+                    // Skip if this candidate is in the changed set (full path check)
+                    if changed_set.iter().any(|cf| {
+                        Path::new(cf)
+                            .file_name()
+                            .map_or(false, |n| n.to_string_lossy() == word_clean)
+                    }) {
+                        continue;
+                    }
+
+                    let source_dir = if dir.is_empty() {
+                        ".".to_string()
+                    } else {
+                        dir.to_string()
+                    };
+
+                    warnings.push(CrossCuttingWarning {
+                        collaborator: word_clean.to_string(),
+                        changed_file: changed.clone(),
+                        context: line.trim().to_string(),
+                        source_dir: format!("{}/.sem/__dir__.md", source_dir),
+                    });
+                }
+            }
+        }
+    }
+
+    warnings
+}
+
+/// Find files similar to changed files that are not in the diff.
+fn find_consider_also(
+    triages: &[FileTriage],
+    changed_files: &[String],
+    similarity_threshold: f32,
+) -> Vec<ConsiderAlso> {
+    let changed_set: HashSet<&str> = changed_files.iter().map(|s| s.as_str()).collect();
+    let mut seen: HashSet<String> = HashSet::new();
+    let mut results = Vec::new();
+
+    for triage in triages {
+        for (path, score, first_line) in &triage.related {
+            if *score < similarity_threshold {
+                continue;
+            }
+            if changed_set.contains(path.as_str()) {
+                continue;
+            }
+            if seen.contains(path) {
+                continue;
+            }
+            seen.insert(path.clone());
+            results.push(ConsiderAlso {
+                file: path.clone(),
+                similar_to: triage.path.clone(),
+                score: *score,
+                first_line: first_line.clone(),
+            });
+        }
+    }
+
+    results.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
+    results
 }
 
 /// Compute triage for each changed file: fan-out, severity, and related files.
