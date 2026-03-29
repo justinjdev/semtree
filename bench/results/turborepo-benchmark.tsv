@@ -1,521 +1,521 @@
 timestamp	phase	repo	system	query_id	control_json	metric	value
-2026-03-29T15:51:32+00:00	routing	turborepo	srt-cold	q01	{"beam_width": 3, "max_depth": 3}	ndcg@10	0.0
-2026-03-29T15:51:32+00:00	routing	turborepo	srt-cold	q01	{"beam_width": 3, "max_depth": 3}	latency_s	0.09154570799999999
-2026-03-29T15:51:32+00:00	routing	turborepo	srt-cold	q01	{"beam_width": 3, "max_depth": 5}	ndcg@10	0.6467429303328278
-2026-03-29T15:51:32+00:00	routing	turborepo	srt-cold	q01	{"beam_width": 3, "max_depth": 5}	latency_s	0.09075745900000001
-2026-03-29T15:51:32+00:00	routing	turborepo	srt-cold	q01	{"beam_width": 5, "max_depth": 3}	ndcg@10	0.0
-2026-03-29T15:51:32+00:00	routing	turborepo	srt-cold	q01	{"beam_width": 5, "max_depth": 3}	latency_s	0.08609287499999999
-2026-03-29T15:51:32+00:00	routing	turborepo	srt-cold	q01	{"beam_width": 5, "max_depth": 5}	ndcg@10	0.6824849757840203
-2026-03-29T15:51:32+00:00	routing	turborepo	srt-cold	q01	{"beam_width": 5, "max_depth": 5}	latency_s	0.09136491699999999
-2026-03-29T15:51:32+00:00	routing	turborepo	srt-cold	q02	{"beam_width": 3, "max_depth": 3}	ndcg@10	0.0
-2026-03-29T15:51:32+00:00	routing	turborepo	srt-cold	q02	{"beam_width": 3, "max_depth": 3}	latency_s	0.08933237499999996
-2026-03-29T15:51:32+00:00	routing	turborepo	srt-cold	q02	{"beam_width": 3, "max_depth": 5}	ndcg@10	0.9512553021449335
-2026-03-29T15:51:32+00:00	routing	turborepo	srt-cold	q02	{"beam_width": 3, "max_depth": 5}	latency_s	0.09530120800000008
-2026-03-29T15:51:32+00:00	routing	turborepo	srt-cold	q02	{"beam_width": 5, "max_depth": 3}	ndcg@10	0.0
-2026-03-29T15:51:32+00:00	routing	turborepo	srt-cold	q02	{"beam_width": 5, "max_depth": 3}	latency_s	0.08514133400000001
-2026-03-29T15:51:32+00:00	routing	turborepo	srt-cold	q02	{"beam_width": 5, "max_depth": 5}	ndcg@10	0.8678171500675899
-2026-03-29T15:51:32+00:00	routing	turborepo	srt-cold	q02	{"beam_width": 5, "max_depth": 5}	latency_s	0.10851154200000002
-2026-03-29T15:51:32+00:00	routing	turborepo	srt-cold	q03	{"beam_width": 3, "max_depth": 3}	ndcg@10	0.0
-2026-03-29T15:51:32+00:00	routing	turborepo	srt-cold	q03	{"beam_width": 3, "max_depth": 3}	latency_s	0.08323387500000001
-2026-03-29T15:51:32+00:00	routing	turborepo	srt-cold	q03	{"beam_width": 3, "max_depth": 5}	ndcg@10	0.0
-2026-03-29T15:51:32+00:00	routing	turborepo	srt-cold	q03	{"beam_width": 3, "max_depth": 5}	latency_s	0.084946666
-2026-03-29T15:51:32+00:00	routing	turborepo	srt-cold	q03	{"beam_width": 5, "max_depth": 3}	ndcg@10	0.0
-2026-03-29T15:51:32+00:00	routing	turborepo	srt-cold	q03	{"beam_width": 5, "max_depth": 3}	latency_s	0.09292441700000009
-2026-03-29T15:51:33+00:00	routing	turborepo	srt-cold	q03	{"beam_width": 5, "max_depth": 5}	ndcg@10	0.8517171819727973
-2026-03-29T15:51:33+00:00	routing	turborepo	srt-cold	q03	{"beam_width": 5, "max_depth": 5}	latency_s	0.13133070800000013
-2026-03-29T15:51:33+00:00	routing	turborepo	srt-cold	q04	{"beam_width": 3, "max_depth": 3}	ndcg@10	0.0
-2026-03-29T15:51:33+00:00	routing	turborepo	srt-cold	q04	{"beam_width": 3, "max_depth": 3}	latency_s	0.08098637499999994
-2026-03-29T15:51:33+00:00	routing	turborepo	srt-cold	q04	{"beam_width": 3, "max_depth": 5}	ndcg@10	0.0
-2026-03-29T15:51:33+00:00	routing	turborepo	srt-cold	q04	{"beam_width": 3, "max_depth": 5}	latency_s	0.08332741700000001
-2026-03-29T15:51:33+00:00	routing	turborepo	srt-cold	q04	{"beam_width": 5, "max_depth": 3}	ndcg@10	0.0
-2026-03-29T15:51:33+00:00	routing	turborepo	srt-cold	q04	{"beam_width": 5, "max_depth": 3}	latency_s	0.08502995800000002
-2026-03-29T15:51:33+00:00	routing	turborepo	srt-cold	q04	{"beam_width": 5, "max_depth": 5}	ndcg@10	0.0
-2026-03-29T15:51:33+00:00	routing	turborepo	srt-cold	q04	{"beam_width": 5, "max_depth": 5}	latency_s	0.09387024999999993
-2026-03-29T15:51:33+00:00	routing	turborepo	srt-cold	q05	{"beam_width": 3, "max_depth": 3}	ndcg@10	0.0
-2026-03-29T15:51:33+00:00	routing	turborepo	srt-cold	q05	{"beam_width": 3, "max_depth": 3}	latency_s	0.08309850000000019
-2026-03-29T15:51:33+00:00	routing	turborepo	srt-cold	q05	{"beam_width": 3, "max_depth": 5}	ndcg@10	0.0
-2026-03-29T15:51:33+00:00	routing	turborepo	srt-cold	q05	{"beam_width": 3, "max_depth": 5}	latency_s	0.08140004200000006
-2026-03-29T15:51:33+00:00	routing	turborepo	srt-cold	q05	{"beam_width": 5, "max_depth": 3}	ndcg@10	0.0
-2026-03-29T15:51:33+00:00	routing	turborepo	srt-cold	q05	{"beam_width": 5, "max_depth": 3}	latency_s	0.09207891699999982
-2026-03-29T15:51:33+00:00	routing	turborepo	srt-cold	q05	{"beam_width": 5, "max_depth": 5}	ndcg@10	0.0
-2026-03-29T15:51:33+00:00	routing	turborepo	srt-cold	q05	{"beam_width": 5, "max_depth": 5}	latency_s	0.0947546669999999
-2026-03-29T15:51:33+00:00	routing	turborepo	srt-cold	q06	{"beam_width": 3, "max_depth": 3}	ndcg@10	0.0
-2026-03-29T15:51:33+00:00	routing	turborepo	srt-cold	q06	{"beam_width": 3, "max_depth": 3}	latency_s	0.08595937500000006
-2026-03-29T15:51:33+00:00	routing	turborepo	srt-cold	q06	{"beam_width": 3, "max_depth": 5}	ndcg@10	0.8825858394267849
-2026-03-29T15:51:33+00:00	routing	turborepo	srt-cold	q06	{"beam_width": 3, "max_depth": 5}	latency_s	0.08803800000000006
-2026-03-29T15:51:34+00:00	routing	turborepo	srt-cold	q06	{"beam_width": 5, "max_depth": 3}	ndcg@10	0.0
-2026-03-29T15:51:34+00:00	routing	turborepo	srt-cold	q06	{"beam_width": 5, "max_depth": 3}	latency_s	0.08604187499999982
-2026-03-29T15:51:34+00:00	routing	turborepo	srt-cold	q06	{"beam_width": 5, "max_depth": 5}	ndcg@10	0.8787642368078041
-2026-03-29T15:51:34+00:00	routing	turborepo	srt-cold	q06	{"beam_width": 5, "max_depth": 5}	latency_s	0.09100337500000011
-2026-03-29T15:51:34+00:00	routing	turborepo	srt-cold	q07	{"beam_width": 3, "max_depth": 3}	ndcg@10	0.045851828048001766
-2026-03-29T15:51:34+00:00	routing	turborepo	srt-cold	q07	{"beam_width": 3, "max_depth": 3}	latency_s	0.08465512500000028
-2026-03-29T15:51:34+00:00	routing	turborepo	srt-cold	q07	{"beam_width": 3, "max_depth": 5}	ndcg@10	0.9148570708197291
-2026-03-29T15:51:34+00:00	routing	turborepo	srt-cold	q07	{"beam_width": 3, "max_depth": 5}	latency_s	0.0906302499999998
-2026-03-29T15:51:34+00:00	routing	turborepo	srt-cold	q07	{"beam_width": 5, "max_depth": 3}	ndcg@10	0.045851828048001766
-2026-03-29T15:51:34+00:00	routing	turborepo	srt-cold	q07	{"beam_width": 5, "max_depth": 3}	latency_s	0.0858953330000003
-2026-03-29T15:51:34+00:00	routing	turborepo	srt-cold	q07	{"beam_width": 5, "max_depth": 5}	ndcg@10	0.913583203280069
-2026-03-29T15:51:34+00:00	routing	turborepo	srt-cold	q07	{"beam_width": 5, "max_depth": 5}	latency_s	0.09228854199999992
-2026-03-29T15:51:34+00:00	routing	turborepo	srt-cold	q08	{"beam_width": 3, "max_depth": 3}	ndcg@10	0.0
-2026-03-29T15:51:34+00:00	routing	turborepo	srt-cold	q08	{"beam_width": 3, "max_depth": 3}	latency_s	0.08211320899999963
-2026-03-29T15:51:34+00:00	routing	turborepo	srt-cold	q08	{"beam_width": 3, "max_depth": 5}	ndcg@10	0.7035351153112575
-2026-03-29T15:51:34+00:00	routing	turborepo	srt-cold	q08	{"beam_width": 3, "max_depth": 5}	latency_s	0.08535683399999971
-2026-03-29T15:51:34+00:00	routing	turborepo	srt-cold	q08	{"beam_width": 5, "max_depth": 3}	ndcg@10	0.0
-2026-03-29T15:51:34+00:00	routing	turborepo	srt-cold	q08	{"beam_width": 5, "max_depth": 3}	latency_s	0.08689441599999981
-2026-03-29T15:51:34+00:00	routing	turborepo	srt-cold	q08	{"beam_width": 5, "max_depth": 5}	ndcg@10	0.6870739308105855
-2026-03-29T15:51:34+00:00	routing	turborepo	srt-cold	q08	{"beam_width": 5, "max_depth": 5}	latency_s	0.0964777080000001
-2026-03-29T15:51:34+00:00	routing	turborepo	srt-cold	q09	{"beam_width": 3, "max_depth": 3}	ndcg@10	0.0
-2026-03-29T15:51:34+00:00	routing	turborepo	srt-cold	q09	{"beam_width": 3, "max_depth": 3}	latency_s	0.08554095800000017
-2026-03-29T15:51:35+00:00	routing	turborepo	srt-cold	q09	{"beam_width": 3, "max_depth": 5}	ndcg@10	0.6038384577491301
-2026-03-29T15:51:35+00:00	routing	turborepo	srt-cold	q09	{"beam_width": 3, "max_depth": 5}	latency_s	0.08872058300000019
-2026-03-29T15:51:35+00:00	routing	turborepo	srt-cold	q09	{"beam_width": 5, "max_depth": 3}	ndcg@10	0.0
-2026-03-29T15:51:35+00:00	routing	turborepo	srt-cold	q09	{"beam_width": 5, "max_depth": 3}	latency_s	0.09152408299999992
-2026-03-29T15:51:35+00:00	routing	turborepo	srt-cold	q09	{"beam_width": 5, "max_depth": 5}	ndcg@10	0.6038384577491301
-2026-03-29T15:51:35+00:00	routing	turborepo	srt-cold	q09	{"beam_width": 5, "max_depth": 5}	latency_s	0.11648670800000005
-2026-03-29T15:51:35+00:00	routing	turborepo	srt-cold	q10	{"beam_width": 3, "max_depth": 3}	ndcg@10	0.0
-2026-03-29T15:51:35+00:00	routing	turborepo	srt-cold	q10	{"beam_width": 3, "max_depth": 3}	latency_s	0.0840149160000001
-2026-03-29T15:51:35+00:00	routing	turborepo	srt-cold	q10	{"beam_width": 3, "max_depth": 5}	ndcg@10	0.0
-2026-03-29T15:51:35+00:00	routing	turborepo	srt-cold	q10	{"beam_width": 3, "max_depth": 5}	latency_s	0.08536295800000016
-2026-03-29T15:51:35+00:00	routing	turborepo	srt-cold	q10	{"beam_width": 5, "max_depth": 3}	ndcg@10	0.0
-2026-03-29T15:51:35+00:00	routing	turborepo	srt-cold	q10	{"beam_width": 5, "max_depth": 3}	latency_s	0.08519666699999995
-2026-03-29T15:51:35+00:00	routing	turborepo	srt-cold	q10	{"beam_width": 5, "max_depth": 5}	ndcg@10	0.0
-2026-03-29T15:51:35+00:00	routing	turborepo	srt-cold	q10	{"beam_width": 5, "max_depth": 5}	latency_s	0.09628720800000012
-2026-03-29T15:51:35+00:00	routing	turborepo	srt-cold	q11	{"beam_width": 3, "max_depth": 3}	ndcg@10	0.0
-2026-03-29T15:51:35+00:00	routing	turborepo	srt-cold	q11	{"beam_width": 3, "max_depth": 3}	latency_s	0.08642970799999983
-2026-03-29T15:51:35+00:00	routing	turborepo	srt-cold	q11	{"beam_width": 3, "max_depth": 5}	ndcg@10	0.7226477789655257
-2026-03-29T15:51:35+00:00	routing	turborepo	srt-cold	q11	{"beam_width": 3, "max_depth": 5}	latency_s	0.08838883300000022
-2026-03-29T15:51:35+00:00	routing	turborepo	srt-cold	q11	{"beam_width": 5, "max_depth": 3}	ndcg@10	0.0
-2026-03-29T15:51:35+00:00	routing	turborepo	srt-cold	q11	{"beam_width": 5, "max_depth": 3}	latency_s	0.08575225000000009
-2026-03-29T15:51:35+00:00	routing	turborepo	srt-cold	q11	{"beam_width": 5, "max_depth": 5}	ndcg@10	0.7226477789655257
-2026-03-29T15:51:35+00:00	routing	turborepo	srt-cold	q11	{"beam_width": 5, "max_depth": 5}	latency_s	0.09835450000000012
-2026-03-29T15:51:36+00:00	routing	turborepo	srt-cold	q12	{"beam_width": 3, "max_depth": 3}	ndcg@10	0.0
-2026-03-29T15:51:36+00:00	routing	turborepo	srt-cold	q12	{"beam_width": 3, "max_depth": 3}	latency_s	0.08319587500000036
-2026-03-29T15:51:36+00:00	routing	turborepo	srt-cold	q12	{"beam_width": 3, "max_depth": 5}	ndcg@10	0.4800094558075716
-2026-03-29T15:51:36+00:00	routing	turborepo	srt-cold	q12	{"beam_width": 3, "max_depth": 5}	latency_s	0.09138658299999936
-2026-03-29T15:51:36+00:00	routing	turborepo	srt-cold	q12	{"beam_width": 5, "max_depth": 3}	ndcg@10	0.0
-2026-03-29T15:51:36+00:00	routing	turborepo	srt-cold	q12	{"beam_width": 5, "max_depth": 3}	latency_s	0.08662900000000029
-2026-03-29T15:51:36+00:00	routing	turborepo	srt-cold	q12	{"beam_width": 5, "max_depth": 5}	ndcg@10	0.39476768271066054
-2026-03-29T15:51:36+00:00	routing	turborepo	srt-cold	q12	{"beam_width": 5, "max_depth": 5}	latency_s	0.10459495799999985
-2026-03-29T15:51:36+00:00	routing	turborepo	srt-cold	q13	{"beam_width": 3, "max_depth": 3}	ndcg@10	0.0
-2026-03-29T15:51:36+00:00	routing	turborepo	srt-cold	q13	{"beam_width": 3, "max_depth": 3}	latency_s	0.08163762499999994
-2026-03-29T15:51:36+00:00	routing	turborepo	srt-cold	q13	{"beam_width": 3, "max_depth": 5}	ndcg@10	0.0
-2026-03-29T15:51:36+00:00	routing	turborepo	srt-cold	q13	{"beam_width": 3, "max_depth": 5}	latency_s	0.08499837499999963
-2026-03-29T15:51:36+00:00	routing	turborepo	srt-cold	q13	{"beam_width": 5, "max_depth": 3}	ndcg@10	0.0
-2026-03-29T15:51:36+00:00	routing	turborepo	srt-cold	q13	{"beam_width": 5, "max_depth": 3}	latency_s	0.08737633299999992
-2026-03-29T15:51:36+00:00	routing	turborepo	srt-cold	q13	{"beam_width": 5, "max_depth": 5}	ndcg@10	0.4865033125582941
-2026-03-29T15:51:36+00:00	routing	turborepo	srt-cold	q13	{"beam_width": 5, "max_depth": 5}	latency_s	0.11070291700000023
-2026-03-29T15:51:36+00:00	routing	turborepo	srt-cold	q14	{"beam_width": 3, "max_depth": 3}	ndcg@10	0.0
-2026-03-29T15:51:36+00:00	routing	turborepo	srt-cold	q14	{"beam_width": 3, "max_depth": 3}	latency_s	0.08230566599999989
-2026-03-29T15:51:36+00:00	routing	turborepo	srt-cold	q14	{"beam_width": 3, "max_depth": 5}	ndcg@10	0.0
-2026-03-29T15:51:36+00:00	routing	turborepo	srt-cold	q14	{"beam_width": 3, "max_depth": 5}	latency_s	0.10386308300000024
-2026-03-29T15:51:36+00:00	routing	turborepo	srt-cold	q14	{"beam_width": 5, "max_depth": 3}	ndcg@10	0.0
-2026-03-29T15:51:36+00:00	routing	turborepo	srt-cold	q14	{"beam_width": 5, "max_depth": 3}	latency_s	0.08654925000000002
-2026-03-29T15:51:37+00:00	routing	turborepo	srt-cold	q14	{"beam_width": 5, "max_depth": 5}	ndcg@10	0.0
-2026-03-29T15:51:37+00:00	routing	turborepo	srt-cold	q14	{"beam_width": 5, "max_depth": 5}	latency_s	0.10817641699999925
-2026-03-29T15:51:37+00:00	routing	turborepo	srt-cold	q15	{"beam_width": 3, "max_depth": 3}	ndcg@10	0.0
-2026-03-29T15:51:37+00:00	routing	turborepo	srt-cold	q15	{"beam_width": 3, "max_depth": 3}	latency_s	0.08488883299999994
-2026-03-29T15:51:37+00:00	routing	turborepo	srt-cold	q15	{"beam_width": 3, "max_depth": 5}	ndcg@10	0.4094543838032698
-2026-03-29T15:51:37+00:00	routing	turborepo	srt-cold	q15	{"beam_width": 3, "max_depth": 5}	latency_s	0.0885651670000005
-2026-03-29T15:51:37+00:00	routing	turborepo	srt-cold	q15	{"beam_width": 5, "max_depth": 3}	ndcg@10	0.0
-2026-03-29T15:51:37+00:00	routing	turborepo	srt-cold	q15	{"beam_width": 5, "max_depth": 3}	latency_s	0.08868729100000028
-2026-03-29T15:51:37+00:00	routing	turborepo	srt-cold	q15	{"beam_width": 5, "max_depth": 5}	ndcg@10	0.3477237584304432
-2026-03-29T15:51:37+00:00	routing	turborepo	srt-cold	q15	{"beam_width": 5, "max_depth": 5}	latency_s	0.09604295799999996
-2026-03-29T15:51:37+00:00	routing	turborepo	srt-cold	q16	{"beam_width": 3, "max_depth": 3}	ndcg@10	0.0
-2026-03-29T15:51:37+00:00	routing	turborepo	srt-cold	q16	{"beam_width": 3, "max_depth": 3}	latency_s	0.08332337499999998
-2026-03-29T15:51:37+00:00	routing	turborepo	srt-cold	q16	{"beam_width": 3, "max_depth": 5}	ndcg@10	0.0
-2026-03-29T15:51:37+00:00	routing	turborepo	srt-cold	q16	{"beam_width": 3, "max_depth": 5}	latency_s	0.08506249999999937
-2026-03-29T15:51:37+00:00	routing	turborepo	srt-cold	q16	{"beam_width": 5, "max_depth": 3}	ndcg@10	0.0
-2026-03-29T15:51:37+00:00	routing	turborepo	srt-cold	q16	{"beam_width": 5, "max_depth": 3}	latency_s	0.08898691700000061
-2026-03-29T15:51:37+00:00	routing	turborepo	srt-cold	q16	{"beam_width": 5, "max_depth": 5}	ndcg@10	0.0
-2026-03-29T15:51:37+00:00	routing	turborepo	srt-cold	q16	{"beam_width": 5, "max_depth": 5}	latency_s	0.09002233399999948
-2026-03-29T15:51:37+00:00	routing	turborepo	srt-cold	q17	{"beam_width": 3, "max_depth": 3}	ndcg@10	0.0
-2026-03-29T15:51:37+00:00	routing	turborepo	srt-cold	q17	{"beam_width": 3, "max_depth": 3}	latency_s	0.08439554199999932
-2026-03-29T15:51:37+00:00	routing	turborepo	srt-cold	q17	{"beam_width": 3, "max_depth": 5}	ndcg@10	0.6239784957877976
-2026-03-29T15:51:37+00:00	routing	turborepo	srt-cold	q17	{"beam_width": 3, "max_depth": 5}	latency_s	0.09728758299999996
-2026-03-29T15:51:38+00:00	routing	turborepo	srt-cold	q17	{"beam_width": 5, "max_depth": 3}	ndcg@10	0.0
-2026-03-29T15:51:38+00:00	routing	turborepo	srt-cold	q17	{"beam_width": 5, "max_depth": 3}	latency_s	0.09058012500000068
-2026-03-29T15:51:38+00:00	routing	turborepo	srt-cold	q17	{"beam_width": 5, "max_depth": 5}	ndcg@10	0.302596096856603
-2026-03-29T15:51:38+00:00	routing	turborepo	srt-cold	q17	{"beam_width": 5, "max_depth": 5}	latency_s	0.10930166699999955
-2026-03-29T15:51:38+00:00	routing	turborepo	srt-cold	q18	{"beam_width": 3, "max_depth": 3}	ndcg@10	0.0
-2026-03-29T15:51:38+00:00	routing	turborepo	srt-cold	q18	{"beam_width": 3, "max_depth": 3}	latency_s	0.08276150000000015
-2026-03-29T15:51:38+00:00	routing	turborepo	srt-cold	q18	{"beam_width": 3, "max_depth": 5}	ndcg@10	0.2065539701415984
-2026-03-29T15:51:38+00:00	routing	turborepo	srt-cold	q18	{"beam_width": 3, "max_depth": 5}	latency_s	0.08776108300000018
-2026-03-29T15:51:38+00:00	routing	turborepo	srt-cold	q18	{"beam_width": 5, "max_depth": 3}	ndcg@10	0.0
-2026-03-29T15:51:38+00:00	routing	turborepo	srt-cold	q18	{"beam_width": 5, "max_depth": 3}	latency_s	0.08637320799999948
-2026-03-29T15:51:38+00:00	routing	turborepo	srt-cold	q18	{"beam_width": 5, "max_depth": 5}	ndcg@10	0.1512980484283015
-2026-03-29T15:51:38+00:00	routing	turborepo	srt-cold	q18	{"beam_width": 5, "max_depth": 5}	latency_s	0.10549900000000001
-2026-03-29T15:51:38+00:00	routing	turborepo	srt-cold	q19	{"beam_width": 3, "max_depth": 3}	ndcg@10	0.0
-2026-03-29T15:51:38+00:00	routing	turborepo	srt-cold	q19	{"beam_width": 3, "max_depth": 3}	latency_s	0.08349558400000046
-2026-03-29T15:51:38+00:00	routing	turborepo	srt-cold	q19	{"beam_width": 3, "max_depth": 5}	ndcg@10	0.855349530090474
-2026-03-29T15:51:38+00:00	routing	turborepo	srt-cold	q19	{"beam_width": 3, "max_depth": 5}	latency_s	0.09573524999999972
-2026-03-29T15:51:38+00:00	routing	turborepo	srt-cold	q19	{"beam_width": 5, "max_depth": 3}	ndcg@10	0.0
-2026-03-29T15:51:38+00:00	routing	turborepo	srt-cold	q19	{"beam_width": 5, "max_depth": 3}	latency_s	0.08945945800000032
-2026-03-29T15:51:38+00:00	routing	turborepo	srt-cold	q19	{"beam_width": 5, "max_depth": 5}	ndcg@10	0.855349530090474
-2026-03-29T15:51:38+00:00	routing	turborepo	srt-cold	q19	{"beam_width": 5, "max_depth": 5}	latency_s	0.1043872910000001
-2026-03-29T15:51:39+00:00	routing	turborepo	srt-cold	q20	{"beam_width": 3, "max_depth": 3}	ndcg@10	0.02006097215367257
-2026-03-29T15:51:39+00:00	routing	turborepo	srt-cold	q20	{"beam_width": 3, "max_depth": 3}	latency_s	0.08478862499999984
-2026-03-29T15:51:39+00:00	routing	turborepo	srt-cold	q20	{"beam_width": 3, "max_depth": 5}	ndcg@10	0.17220460264238518
-2026-03-29T15:51:39+00:00	routing	turborepo	srt-cold	q20	{"beam_width": 3, "max_depth": 5}	latency_s	0.08864925000000046
-2026-03-29T15:51:39+00:00	routing	turborepo	srt-cold	q20	{"beam_width": 5, "max_depth": 3}	ndcg@10	0.01914303240971293
-2026-03-29T15:51:39+00:00	routing	turborepo	srt-cold	q20	{"beam_width": 5, "max_depth": 3}	latency_s	0.08792816700000028
-2026-03-29T15:51:39+00:00	routing	turborepo	srt-cold	q20	{"beam_width": 5, "max_depth": 5}	ndcg@10	0.17220460264238518
-2026-03-29T15:51:39+00:00	routing	turborepo	srt-cold	q20	{"beam_width": 5, "max_depth": 5}	latency_s	0.09048400000000001
-2026-03-29T15:51:39+00:00	routing	turborepo	ripgrep	q01	{"max_files": 5}	ndcg@10	0.3233714651664139
-2026-03-29T15:51:39+00:00	routing	turborepo	ripgrep	q01	{"max_files": 5}	latency_s	0.309415875
-2026-03-29T15:51:39+00:00	routing	turborepo	ripgrep	q01	{"max_files": 10}	ndcg@10	0.19468902151380166
-2026-03-29T15:51:39+00:00	routing	turborepo	ripgrep	q01	{"max_files": 10}	latency_s	0.27254545800000063
-2026-03-29T15:51:40+00:00	routing	turborepo	ripgrep	q01	{"max_files": 20}	ndcg@10	0.19468902151380166
-2026-03-29T15:51:40+00:00	routing	turborepo	ripgrep	q01	{"max_files": 20}	latency_s	0.2628607089999999
-2026-03-29T15:51:40+00:00	routing	turborepo	ripgrep	q02	{"max_files": 5}	ndcg@10	0.0
-2026-03-29T15:51:40+00:00	routing	turborepo	ripgrep	q02	{"max_files": 5}	latency_s	0.2606645840000006
-2026-03-29T15:51:40+00:00	routing	turborepo	ripgrep	q02	{"max_files": 10}	ndcg@10	0.0
-2026-03-29T15:51:40+00:00	routing	turborepo	ripgrep	q02	{"max_files": 10}	latency_s	0.2670611249999997
-2026-03-29T15:51:40+00:00	routing	turborepo	ripgrep	q02	{"max_files": 20}	ndcg@10	0.0
-2026-03-29T15:51:40+00:00	routing	turborepo	ripgrep	q02	{"max_files": 20}	latency_s	0.26432170800000065
-2026-03-29T15:51:41+00:00	routing	turborepo	ripgrep	q03	{"max_files": 5}	ndcg@10	0.7452525342261976
-2026-03-29T15:51:41+00:00	routing	turborepo	ripgrep	q03	{"max_files": 5}	latency_s	0.22181258300000017
-2026-03-29T15:51:41+00:00	routing	turborepo	ripgrep	q03	{"max_files": 10}	ndcg@10	0.5709595687180903
-2026-03-29T15:51:41+00:00	routing	turborepo	ripgrep	q03	{"max_files": 10}	latency_s	0.2181216250000002
-2026-03-29T15:51:41+00:00	routing	turborepo	ripgrep	q03	{"max_files": 20}	ndcg@10	0.47020199776783905
-2026-03-29T15:51:41+00:00	routing	turborepo	ripgrep	q03	{"max_files": 20}	latency_s	0.2210003339999993
-2026-03-29T15:51:41+00:00	routing	turborepo	ripgrep	q04	{"max_files": 5}	ndcg@10	0.0
-2026-03-29T15:51:41+00:00	routing	turborepo	ripgrep	q04	{"max_files": 5}	latency_s	0.3230205420000001
-2026-03-29T15:51:42+00:00	routing	turborepo	ripgrep	q04	{"max_files": 10}	ndcg@10	0.20924336661496698
-2026-03-29T15:51:42+00:00	routing	turborepo	ripgrep	q04	{"max_files": 10}	latency_s	0.32051145900000044
-2026-03-29T15:51:42+00:00	routing	turborepo	ripgrep	q04	{"max_files": 20}	ndcg@10	0.20924336661496698
-2026-03-29T15:51:42+00:00	routing	turborepo	ripgrep	q04	{"max_files": 20}	latency_s	0.325154834000001
-2026-03-29T15:51:42+00:00	routing	turborepo	ripgrep	q05	{"max_files": 5}	ndcg@10	0.7452525342261976
-2026-03-29T15:51:42+00:00	routing	turborepo	ripgrep	q05	{"max_files": 5}	latency_s	0.26515112500000093
-2026-03-29T15:51:43+00:00	routing	turborepo	ripgrep	q05	{"max_files": 10}	ndcg@10	0.7452525342261976
-2026-03-29T15:51:43+00:00	routing	turborepo	ripgrep	q05	{"max_files": 10}	latency_s	0.2638864999999999
-2026-03-29T15:51:43+00:00	routing	turborepo	ripgrep	q05	{"max_files": 20}	ndcg@10	0.7452525342261976
-2026-03-29T15:51:43+00:00	routing	turborepo	ripgrep	q05	{"max_files": 20}	latency_s	0.266903082999999
-2026-03-29T15:51:43+00:00	routing	turborepo	ripgrep	q06	{"max_files": 5}	ndcg@10	0.6077574819118444
-2026-03-29T15:51:43+00:00	routing	turborepo	ripgrep	q06	{"max_files": 5}	latency_s	0.17878533400000052
-2026-03-29T15:51:43+00:00	routing	turborepo	ripgrep	q06	{"max_files": 10}	ndcg@10	0.6298989693877386
-2026-03-29T15:51:43+00:00	routing	turborepo	ripgrep	q06	{"max_files": 10}	latency_s	0.1744914169999987
-2026-03-29T15:51:43+00:00	routing	turborepo	ripgrep	q06	{"max_files": 20}	ndcg@10	0.6298989693877386
-2026-03-29T15:51:43+00:00	routing	turborepo	ripgrep	q06	{"max_files": 20}	latency_s	0.17203170799999867
-2026-03-29T15:51:44+00:00	routing	turborepo	ripgrep	q07	{"max_files": 5}	ndcg@10	0.7452525342261976
-2026-03-29T15:51:44+00:00	routing	turborepo	ripgrep	q07	{"max_files": 5}	latency_s	0.17494708299999928
-2026-03-29T15:51:44+00:00	routing	turborepo	ripgrep	q07	{"max_files": 10}	ndcg@10	0.7452525342261976
-2026-03-29T15:51:44+00:00	routing	turborepo	ripgrep	q07	{"max_files": 10}	latency_s	0.17218066699999923
-2026-03-29T15:51:44+00:00	routing	turborepo	ripgrep	q07	{"max_files": 20}	ndcg@10	0.7452525342261976
-2026-03-29T15:51:44+00:00	routing	turborepo	ripgrep	q07	{"max_files": 20}	latency_s	0.17648458400000067
-2026-03-29T15:51:44+00:00	routing	turborepo	ripgrep	q08	{"max_files": 5}	ndcg@10	0.3122123569151294
-2026-03-29T15:51:44+00:00	routing	turborepo	ripgrep	q08	{"max_files": 5}	latency_s	0.3558872090000005
-2026-03-29T15:51:45+00:00	routing	turborepo	ripgrep	q08	{"max_files": 10}	ndcg@10	0.2689250865283793
-2026-03-29T15:51:45+00:00	routing	turborepo	ripgrep	q08	{"max_files": 10}	latency_s	0.35304920799999984
-2026-03-29T15:51:45+00:00	routing	turborepo	ripgrep	q08	{"max_files": 20}	ndcg@10	0.24156045345186092
-2026-03-29T15:51:45+00:00	routing	turborepo	ripgrep	q08	{"max_files": 20}	latency_s	0.35881425
-2026-03-29T15:51:45+00:00	routing	turborepo	ripgrep	q09	{"max_files": 5}	ndcg@10	0.0
-2026-03-29T15:51:45+00:00	routing	turborepo	ripgrep	q09	{"max_files": 5}	latency_s	0.2613278749999992
-2026-03-29T15:51:45+00:00	routing	turborepo	ripgrep	q09	{"max_files": 10}	ndcg@10	0.24156045345186092
-2026-03-29T15:51:45+00:00	routing	turborepo	ripgrep	q09	{"max_files": 10}	latency_s	0.26115575000000035
-2026-03-29T15:51:46+00:00	routing	turborepo	ripgrep	q09	{"max_files": 20}	ndcg@10	0.0
-2026-03-29T15:51:46+00:00	routing	turborepo	ripgrep	q09	{"max_files": 20}	latency_s	0.25879554199999966
-2026-03-29T15:51:46+00:00	routing	turborepo	ripgrep	q10	{"max_files": 5}	ndcg@10	0.0
-2026-03-29T15:51:46+00:00	routing	turborepo	ripgrep	q10	{"max_files": 5}	latency_s	0.3130668330000006
-2026-03-29T15:51:46+00:00	routing	turborepo	ripgrep	q10	{"max_files": 10}	ndcg@10	0.1512980484283015
-2026-03-29T15:51:46+00:00	routing	turborepo	ripgrep	q10	{"max_files": 10}	latency_s	0.31860616700000044
-2026-03-29T15:51:47+00:00	routing	turborepo	ripgrep	q10	{"max_files": 20}	ndcg@10	0.3042428515329291
-2026-03-29T15:51:47+00:00	routing	turborepo	ripgrep	q10	{"max_files": 20}	latency_s	0.3155351660000001
-2026-03-29T15:51:47+00:00	routing	turborepo	ripgrep	q11	{"max_files": 5}	ndcg@10	0.246330763412012
-2026-03-29T15:51:47+00:00	routing	turborepo	ripgrep	q11	{"max_files": 5}	latency_s	0.31853320899999993
-2026-03-29T15:51:47+00:00	routing	turborepo	ripgrep	q11	{"max_files": 10}	ndcg@10	0.541462042141113
-2026-03-29T15:51:47+00:00	routing	turborepo	ripgrep	q11	{"max_files": 10}	latency_s	0.31783954100000145
-2026-03-29T15:51:48+00:00	routing	turborepo	ripgrep	q11	{"max_files": 20}	ndcg@10	0.541462042141113
-2026-03-29T15:51:48+00:00	routing	turborepo	ripgrep	q11	{"max_files": 20}	latency_s	0.31552145900000106
-2026-03-29T15:51:48+00:00	routing	turborepo	ripgrep	q12	{"max_files": 5}	ndcg@10	0.31939394323979897
-2026-03-29T15:51:48+00:00	routing	turborepo	ripgrep	q12	{"max_files": 5}	latency_s	0.3535935830000021
-2026-03-29T15:51:48+00:00	routing	turborepo	ripgrep	q12	{"max_files": 10}	ndcg@10	0.5848582521416379
-2026-03-29T15:51:48+00:00	routing	turborepo	ripgrep	q12	{"max_files": 10}	latency_s	0.3556922500000006
-2026-03-29T15:51:49+00:00	routing	turborepo	ripgrep	q12	{"max_files": 20}	ndcg@10	0.5437373103864823
-2026-03-29T15:51:49+00:00	routing	turborepo	ripgrep	q12	{"max_files": 20}	latency_s	0.3545763339999972
-2026-03-29T15:51:49+00:00	routing	turborepo	ripgrep	q13	{"max_files": 5}	ndcg@10	0.2622275816041141
-2026-03-29T15:51:49+00:00	routing	turborepo	ripgrep	q13	{"max_files": 5}	latency_s	0.4498394999999995
-2026-03-29T15:51:50+00:00	routing	turborepo	ripgrep	q13	{"max_files": 10}	ndcg@10	0.5244551632082282
-2026-03-29T15:51:50+00:00	routing	turborepo	ripgrep	q13	{"max_files": 10}	latency_s	0.4520605419999981
-2026-03-29T15:51:50+00:00	routing	turborepo	ripgrep	q13	{"max_files": 20}	ndcg@10	0.5244551632082282
-2026-03-29T15:51:50+00:00	routing	turborepo	ripgrep	q13	{"max_files": 20}	latency_s	0.4511112500000003
-2026-03-29T15:51:50+00:00	routing	turborepo	ripgrep	q14	{"max_files": 5}	ndcg@10	0.0
-2026-03-29T15:51:50+00:00	routing	turborepo	ripgrep	q14	{"max_files": 5}	latency_s	0.2659340840000013
-2026-03-29T15:51:51+00:00	routing	turborepo	ripgrep	q14	{"max_files": 10}	ndcg@10	0.0
-2026-03-29T15:51:51+00:00	routing	turborepo	ripgrep	q14	{"max_files": 10}	latency_s	0.26639979100000133
-2026-03-29T15:51:51+00:00	routing	turborepo	ripgrep	q14	{"max_files": 20}	ndcg@10	0.0
-2026-03-29T15:51:51+00:00	routing	turborepo	ripgrep	q14	{"max_files": 20}	latency_s	0.26778262499999883
-2026-03-29T15:51:51+00:00	routing	turborepo	ripgrep	q15	{"max_files": 5}	ndcg@10	0.06851478091175753
-2026-03-29T15:51:51+00:00	routing	turborepo	ripgrep	q15	{"max_files": 5}	latency_s	0.45746179200000014
-2026-03-29T15:51:52+00:00	routing	turborepo	ripgrep	q15	{"max_files": 10}	ndcg@10	0.02440545738389956
-2026-03-29T15:51:52+00:00	routing	turborepo	ripgrep	q15	{"max_files": 10}	latency_s	0.4615657920000018
-2026-03-29T15:51:52+00:00	routing	turborepo	ripgrep	q15	{"max_files": 20}	ndcg@10	0.02440545738389956
-2026-03-29T15:51:52+00:00	routing	turborepo	ripgrep	q15	{"max_files": 20}	latency_s	0.46292774999999864
-2026-03-29T15:51:53+00:00	routing	turborepo	ripgrep	q16	{"max_files": 5}	ndcg@10	0.47960346638230267
-2026-03-29T15:51:53+00:00	routing	turborepo	ripgrep	q16	{"max_files": 5}	latency_s	0.4127055000000013
-2026-03-29T15:51:53+00:00	routing	turborepo	ripgrep	q16	{"max_files": 10}	ndcg@10	0.47960346638230267
-2026-03-29T15:51:53+00:00	routing	turborepo	ripgrep	q16	{"max_files": 10}	latency_s	0.4146394999999998
-2026-03-29T15:51:53+00:00	routing	turborepo	ripgrep	q16	{"max_files": 20}	ndcg@10	0.23980173319115133
-2026-03-29T15:51:53+00:00	routing	turborepo	ripgrep	q16	{"max_files": 20}	latency_s	0.41099508299999954
-2026-03-29T15:51:54+00:00	routing	turborepo	ripgrep	q17	{"max_files": 5}	ndcg@10	0.5138608568381814
-2026-03-29T15:51:54+00:00	routing	turborepo	ripgrep	q17	{"max_files": 5}	latency_s	0.31271379200000027
-2026-03-29T15:51:54+00:00	routing	turborepo	ripgrep	q17	{"max_files": 10}	ndcg@10	0.5138608568381814
-2026-03-29T15:51:54+00:00	routing	turborepo	ripgrep	q17	{"max_files": 10}	latency_s	0.3151623749999999
-2026-03-29T15:51:54+00:00	routing	turborepo	ripgrep	q17	{"max_files": 20}	ndcg@10	0.5138608568381814
-2026-03-29T15:51:54+00:00	routing	turborepo	ripgrep	q17	{"max_files": 20}	latency_s	0.31049012500000117
-2026-03-29T15:51:55+00:00	routing	turborepo	ripgrep	q18	{"max_files": 5}	ndcg@10	0.0
-2026-03-29T15:51:55+00:00	routing	turborepo	ripgrep	q18	{"max_files": 5}	latency_s	0.4922199169999999
-2026-03-29T15:51:55+00:00	routing	turborepo	ripgrep	q18	{"max_files": 10}	ndcg@10	0.0
-2026-03-29T15:51:55+00:00	routing	turborepo	ripgrep	q18	{"max_files": 10}	latency_s	0.4954330419999984
-2026-03-29T15:51:56+00:00	routing	turborepo	ripgrep	q18	{"max_files": 20}	ndcg@10	0.0
-2026-03-29T15:51:56+00:00	routing	turborepo	ripgrep	q18	{"max_files": 20}	latency_s	0.4908522919999996
-2026-03-29T15:51:56+00:00	routing	turborepo	ripgrep	q19	{"max_files": 5}	ndcg@10	0.0
-2026-03-29T15:51:56+00:00	routing	turborepo	ripgrep	q19	{"max_files": 5}	latency_s	0.4433897920000014
-2026-03-29T15:51:57+00:00	routing	turborepo	ripgrep	q19	{"max_files": 10}	ndcg@10	0.17481838773607605
-2026-03-29T15:51:57+00:00	routing	turborepo	ripgrep	q19	{"max_files": 10}	latency_s	0.43983162500000006
-2026-03-29T15:51:57+00:00	routing	turborepo	ripgrep	q19	{"max_files": 20}	ndcg@10	0.15787673550652545
-2026-03-29T15:51:57+00:00	routing	turborepo	ripgrep	q19	{"max_files": 20}	latency_s	0.4378256250000021
-2026-03-29T15:51:58+00:00	routing	turborepo	ripgrep	q20	{"max_files": 5}	ndcg@10	0.0
-2026-03-29T15:51:58+00:00	routing	turborepo	ripgrep	q20	{"max_files": 5}	latency_s	0.4045329580000008
-2026-03-29T15:51:58+00:00	routing	turborepo	ripgrep	q20	{"max_files": 10}	ndcg@10	0.0
-2026-03-29T15:51:58+00:00	routing	turborepo	ripgrep	q20	{"max_files": 10}	latency_s	0.40335633399999793
-2026-03-29T15:51:58+00:00	routing	turborepo	ripgrep	q20	{"max_files": 20}	ndcg@10	0.0
-2026-03-29T15:51:58+00:00	routing	turborepo	ripgrep	q20	{"max_files": 20}	latency_s	0.40165420800000007
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q01	{"limit": 10, "strategy": "symbols"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q01	{"limit": 10, "strategy": "symbols"}	latency_s	0.01307029200000187
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q01	{"limit": 20, "strategy": "symbols"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q01	{"limit": 20, "strategy": "symbols"}	latency_s	0.0091842910000004
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q01	{"limit": 10, "strategy": "files"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q01	{"limit": 10, "strategy": "files"}	latency_s	0.0011147909999991157
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q01	{"limit": 20, "strategy": "files"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q01	{"limit": 20, "strategy": "files"}	latency_s	0.0001046250000023008
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q01	{"limit": 10, "strategy": "combined"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q01	{"limit": 10, "strategy": "combined"}	latency_s	0.005565583999999291
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q01	{"limit": 20, "strategy": "combined"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q01	{"limit": 20, "strategy": "combined"}	latency_s	0.0063787499999996555
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q02	{"limit": 10, "strategy": "symbols"}	ndcg@10	0.6467429303328278
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q02	{"limit": 10, "strategy": "symbols"}	latency_s	0.007551415999998312
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q02	{"limit": 20, "strategy": "symbols"}	ndcg@10	0.6467429303328278
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q02	{"limit": 20, "strategy": "symbols"}	latency_s	0.008162124999998355
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q02	{"limit": 10, "strategy": "files"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q02	{"limit": 10, "strategy": "files"}	latency_s	0.00025662499999867805
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q02	{"limit": 20, "strategy": "files"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q02	{"limit": 20, "strategy": "files"}	latency_s	0.00012583300000201803
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q02	{"limit": 10, "strategy": "combined"}	ndcg@10	0.6467429303328278
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q02	{"limit": 10, "strategy": "combined"}	latency_s	0.006009083000002136
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q02	{"limit": 20, "strategy": "combined"}	ndcg@10	0.6467429303328278
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q02	{"limit": 20, "strategy": "combined"}	latency_s	0.007701582999999346
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q03	{"limit": 10, "strategy": "symbols"}	ndcg@10	0.47020199776783905
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q03	{"limit": 10, "strategy": "symbols"}	latency_s	0.007145624999999711
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q03	{"limit": 20, "strategy": "symbols"}	ndcg@10	0.47020199776783905
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q03	{"limit": 20, "strategy": "symbols"}	latency_s	0.00499145899999931
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q03	{"limit": 10, "strategy": "files"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q03	{"limit": 10, "strategy": "files"}	latency_s	0.000159083999999865
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q03	{"limit": 20, "strategy": "files"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q03	{"limit": 20, "strategy": "files"}	latency_s	9.641699999818343e-05
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q03	{"limit": 10, "strategy": "combined"}	ndcg@10	0.47020199776783905
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q03	{"limit": 10, "strategy": "combined"}	latency_s	0.008949874999998997
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q03	{"limit": 20, "strategy": "combined"}	ndcg@10	0.47020199776783905
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q03	{"limit": 20, "strategy": "combined"}	latency_s	0.0072243749999998386
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q04	{"limit": 10, "strategy": "symbols"}	ndcg@10	0.5874203951744313
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q04	{"limit": 10, "strategy": "symbols"}	latency_s	0.009933707999998376
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q04	{"limit": 20, "strategy": "symbols"}	ndcg@10	0.5874203951744313
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q04	{"limit": 20, "strategy": "symbols"}	latency_s	0.005800416999999669
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q04	{"limit": 10, "strategy": "files"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q04	{"limit": 10, "strategy": "files"}	latency_s	0.0001665419999987705
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q04	{"limit": 20, "strategy": "files"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q04	{"limit": 20, "strategy": "files"}	latency_s	0.0001444580000011797
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q04	{"limit": 10, "strategy": "combined"}	ndcg@10	0.5874203951744313
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q04	{"limit": 10, "strategy": "combined"}	latency_s	0.004871707999999586
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q04	{"limit": 20, "strategy": "combined"}	ndcg@10	0.5874203951744313
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q04	{"limit": 20, "strategy": "combined"}	latency_s	0.006446749999998502
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q05	{"limit": 10, "strategy": "symbols"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q05	{"limit": 10, "strategy": "symbols"}	latency_s	0.0045064169999982084
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q05	{"limit": 20, "strategy": "symbols"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q05	{"limit": 20, "strategy": "symbols"}	latency_s	0.006643332999999529
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q05	{"limit": 10, "strategy": "files"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q05	{"limit": 10, "strategy": "files"}	latency_s	0.00026604199999979983
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q05	{"limit": 20, "strategy": "files"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q05	{"limit": 20, "strategy": "files"}	latency_s	0.00011391700000018545
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q05	{"limit": 10, "strategy": "combined"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q05	{"limit": 10, "strategy": "combined"}	latency_s	0.0053482500000008315
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q05	{"limit": 20, "strategy": "combined"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q05	{"limit": 20, "strategy": "combined"}	latency_s	0.005966999999998279
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q06	{"limit": 10, "strategy": "symbols"}	ndcg@10	0.7452525342261976
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q06	{"limit": 10, "strategy": "symbols"}	latency_s	0.004593666000001662
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q06	{"limit": 20, "strategy": "symbols"}	ndcg@10	0.7452525342261976
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q06	{"limit": 20, "strategy": "symbols"}	latency_s	0.0075108749999976965
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q06	{"limit": 10, "strategy": "files"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q06	{"limit": 10, "strategy": "files"}	latency_s	0.00019695800000008035
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q06	{"limit": 20, "strategy": "files"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q06	{"limit": 20, "strategy": "files"}	latency_s	7.962499999791817e-05
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q06	{"limit": 10, "strategy": "combined"}	ndcg@10	0.7452525342261976
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q06	{"limit": 10, "strategy": "combined"}	latency_s	0.006392166000001254
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q06	{"limit": 20, "strategy": "combined"}	ndcg@10	0.7452525342261976
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q06	{"limit": 20, "strategy": "combined"}	latency_s	0.007864750000003085
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q07	{"limit": 10, "strategy": "symbols"}	ndcg@10	0.47020199776783905
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q07	{"limit": 10, "strategy": "symbols"}	latency_s	0.006089750000001004
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q07	{"limit": 20, "strategy": "symbols"}	ndcg@10	0.47020199776783905
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q07	{"limit": 20, "strategy": "symbols"}	latency_s	0.005750459000001484
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q07	{"limit": 10, "strategy": "files"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q07	{"limit": 10, "strategy": "files"}	latency_s	0.00020258300000008944
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q07	{"limit": 20, "strategy": "files"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q07	{"limit": 20, "strategy": "files"}	latency_s	0.00010412500000001046
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q07	{"limit": 10, "strategy": "combined"}	ndcg@10	0.47020199776783905
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q07	{"limit": 10, "strategy": "combined"}	latency_s	0.006436084000000619
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q07	{"limit": 20, "strategy": "combined"}	ndcg@10	0.47020199776783905
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q07	{"limit": 20, "strategy": "combined"}	latency_s	0.0084530419999993
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q08	{"limit": 10, "strategy": "symbols"}	ndcg@10	0.3122123569151294
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q08	{"limit": 10, "strategy": "symbols"}	latency_s	0.00491641700000045
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q08	{"limit": 20, "strategy": "symbols"}	ndcg@10	0.3122123569151294
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q08	{"limit": 20, "strategy": "symbols"}	latency_s	0.007498667000000125
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q08	{"limit": 10, "strategy": "files"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q08	{"limit": 10, "strategy": "files"}	latency_s	0.000285917000002911
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q08	{"limit": 20, "strategy": "files"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q08	{"limit": 20, "strategy": "files"}	latency_s	0.00014016700000141213
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q08	{"limit": 10, "strategy": "combined"}	ndcg@10	0.3122123569151294
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q08	{"limit": 10, "strategy": "combined"}	latency_s	0.005116582999999508
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q08	{"limit": 20, "strategy": "combined"}	ndcg@10	0.3122123569151294
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q08	{"limit": 20, "strategy": "combined"}	latency_s	0.004698374999996702
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q09	{"limit": 10, "strategy": "symbols"}	ndcg@10	0.044601765273589916
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q09	{"limit": 10, "strategy": "symbols"}	latency_s	0.006026041999998455
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q09	{"limit": 20, "strategy": "symbols"}	ndcg@10	0.044601765273589916
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q09	{"limit": 20, "strategy": "symbols"}	latency_s	0.006872957999998874
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q09	{"limit": 10, "strategy": "files"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q09	{"limit": 10, "strategy": "files"}	latency_s	0.00026450000000011187
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q09	{"limit": 20, "strategy": "files"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q09	{"limit": 20, "strategy": "files"}	latency_s	0.00014204200000023093
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q09	{"limit": 10, "strategy": "combined"}	ndcg@10	0.044601765273589916
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q09	{"limit": 10, "strategy": "combined"}	latency_s	0.005913459000002064
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q09	{"limit": 20, "strategy": "combined"}	ndcg@10	0.044601765273589916
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q09	{"limit": 20, "strategy": "combined"}	latency_s	0.005321500000000867
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q10	{"limit": 10, "strategy": "symbols"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q10	{"limit": 10, "strategy": "symbols"}	latency_s	0.004913207999997837
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q10	{"limit": 20, "strategy": "symbols"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q10	{"limit": 20, "strategy": "symbols"}	latency_s	0.007301250000001147
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q10	{"limit": 10, "strategy": "files"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q10	{"limit": 10, "strategy": "files"}	latency_s	0.00012841599999902087
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q10	{"limit": 20, "strategy": "files"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q10	{"limit": 20, "strategy": "files"}	latency_s	8.00000000005241e-05
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q10	{"limit": 10, "strategy": "combined"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q10	{"limit": 10, "strategy": "combined"}	latency_s	0.005105125000000044
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q10	{"limit": 20, "strategy": "combined"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q10	{"limit": 20, "strategy": "combined"}	latency_s	0.008062249999998272
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q11	{"limit": 10, "strategy": "symbols"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q11	{"limit": 10, "strategy": "symbols"}	latency_s	0.005781583000000978
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q11	{"limit": 20, "strategy": "symbols"}	ndcg@10	0.246330763412012
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q11	{"limit": 20, "strategy": "symbols"}	latency_s	0.006899209000000184
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q11	{"limit": 10, "strategy": "files"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q11	{"limit": 10, "strategy": "files"}	latency_s	0.00012179200000161927
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q11	{"limit": 20, "strategy": "files"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q11	{"limit": 20, "strategy": "files"}	latency_s	6.737500000042473e-05
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q11	{"limit": 10, "strategy": "combined"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q11	{"limit": 10, "strategy": "combined"}	latency_s	0.005756999999999124
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q11	{"limit": 20, "strategy": "combined"}	ndcg@10	0.246330763412012
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q11	{"limit": 20, "strategy": "combined"}	latency_s	0.007421582999999288
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q12	{"limit": 10, "strategy": "symbols"}	ndcg@10	0.7452525342261976
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q12	{"limit": 10, "strategy": "symbols"}	latency_s	0.0070312909999969975
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q12	{"limit": 20, "strategy": "symbols"}	ndcg@10	0.7452525342261976
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q12	{"limit": 20, "strategy": "symbols"}	latency_s	0.004401334000000645
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q12	{"limit": 10, "strategy": "files"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q12	{"limit": 10, "strategy": "files"}	latency_s	0.00031800000000004047
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q12	{"limit": 20, "strategy": "files"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q12	{"limit": 20, "strategy": "files"}	latency_s	0.0002524169999986725
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q12	{"limit": 10, "strategy": "combined"}	ndcg@10	0.7452525342261976
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q12	{"limit": 10, "strategy": "combined"}	latency_s	0.006000124999999912
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q12	{"limit": 20, "strategy": "combined"}	ndcg@10	0.7452525342261976
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q12	{"limit": 20, "strategy": "combined"}	latency_s	0.006909667000002173
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q13	{"limit": 10, "strategy": "symbols"}	ndcg@10	0.20288695215575275
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q13	{"limit": 10, "strategy": "symbols"}	latency_s	0.009458041999998557
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q13	{"limit": 20, "strategy": "symbols"}	ndcg@10	0.20288695215575275
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q13	{"limit": 20, "strategy": "symbols"}	latency_s	0.006613250000000903
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q13	{"limit": 10, "strategy": "files"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q13	{"limit": 10, "strategy": "files"}	latency_s	0.0002609999999982904
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q13	{"limit": 20, "strategy": "files"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q13	{"limit": 20, "strategy": "files"}	latency_s	0.0001577080000032538
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q13	{"limit": 10, "strategy": "combined"}	ndcg@10	0.20288695215575275
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q13	{"limit": 10, "strategy": "combined"}	latency_s	0.005933250000001777
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q13	{"limit": 20, "strategy": "combined"}	ndcg@10	0.20288695215575275
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q13	{"limit": 20, "strategy": "combined"}	latency_s	0.009376166000002684
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q14	{"limit": 10, "strategy": "symbols"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q14	{"limit": 10, "strategy": "symbols"}	latency_s	0.006098334000000705
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q14	{"limit": 20, "strategy": "symbols"}	ndcg@10	0.3726262671130988
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q14	{"limit": 20, "strategy": "symbols"}	latency_s	0.006611208999999008
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q14	{"limit": 10, "strategy": "files"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q14	{"limit": 10, "strategy": "files"}	latency_s	0.0001531670000005647
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q14	{"limit": 20, "strategy": "files"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q14	{"limit": 20, "strategy": "files"}	latency_s	8.454199999974321e-05
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q14	{"limit": 10, "strategy": "combined"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q14	{"limit": 10, "strategy": "combined"}	latency_s	0.005314083000001801
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q14	{"limit": 20, "strategy": "combined"}	ndcg@10	0.3726262671130988
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q14	{"limit": 20, "strategy": "combined"}	latency_s	0.006247833999999841
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q15	{"limit": 10, "strategy": "symbols"}	ndcg@10	0.20554434273527256
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q15	{"limit": 10, "strategy": "symbols"}	latency_s	0.005671791000001036
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q15	{"limit": 20, "strategy": "symbols"}	ndcg@10	0.20554434273527256
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q15	{"limit": 20, "strategy": "symbols"}	latency_s	0.0074900840000005076
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q15	{"limit": 10, "strategy": "files"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q15	{"limit": 10, "strategy": "files"}	latency_s	0.00015745900000041502
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q15	{"limit": 20, "strategy": "files"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q15	{"limit": 20, "strategy": "files"}	latency_s	7.833299999759902e-05
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q15	{"limit": 10, "strategy": "combined"}	ndcg@10	0.20554434273527256
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q15	{"limit": 10, "strategy": "combined"}	latency_s	0.005582083000000182
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q15	{"limit": 20, "strategy": "combined"}	ndcg@10	0.20554434273527256
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q15	{"limit": 20, "strategy": "combined"}	latency_s	0.0069321670000022095
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q16	{"limit": 10, "strategy": "symbols"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q16	{"limit": 10, "strategy": "symbols"}	latency_s	0.0048194170000002146
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q16	{"limit": 20, "strategy": "symbols"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q16	{"limit": 20, "strategy": "symbols"}	latency_s	0.006318084000000113
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q16	{"limit": 10, "strategy": "files"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q16	{"limit": 10, "strategy": "files"}	latency_s	0.00013999999999825263
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q16	{"limit": 20, "strategy": "files"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q16	{"limit": 20, "strategy": "files"}	latency_s	8.35829999985549e-05
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q16	{"limit": 10, "strategy": "combined"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q16	{"limit": 10, "strategy": "combined"}	latency_s	0.005835874999998936
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q16	{"limit": 20, "strategy": "combined"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q16	{"limit": 20, "strategy": "combined"}	latency_s	0.006438083000002592
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q17	{"limit": 10, "strategy": "symbols"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q17	{"limit": 10, "strategy": "symbols"}	latency_s	0.005261957999998401
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q17	{"limit": 20, "strategy": "symbols"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q17	{"limit": 20, "strategy": "symbols"}	latency_s	0.006656124999999236
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q17	{"limit": 10, "strategy": "files"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q17	{"limit": 10, "strategy": "files"}	latency_s	0.00019762499999842476
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q17	{"limit": 20, "strategy": "files"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q17	{"limit": 20, "strategy": "files"}	latency_s	0.00013441700000171863
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q17	{"limit": 10, "strategy": "combined"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q17	{"limit": 10, "strategy": "combined"}	latency_s	0.006060334000000722
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q17	{"limit": 20, "strategy": "combined"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q17	{"limit": 20, "strategy": "combined"}	latency_s	0.005575125000000014
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q18	{"limit": 10, "strategy": "symbols"}	ndcg@10	0.47960346638230267
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q18	{"limit": 10, "strategy": "symbols"}	latency_s	0.005268083000000701
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q18	{"limit": 20, "strategy": "symbols"}	ndcg@10	0.47960346638230267
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q18	{"limit": 20, "strategy": "symbols"}	latency_s	0.005546959000000129
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q18	{"limit": 10, "strategy": "files"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q18	{"limit": 10, "strategy": "files"}	latency_s	0.00035787499999884176
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q18	{"limit": 20, "strategy": "files"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q18	{"limit": 20, "strategy": "files"}	latency_s	7.854100000059816e-05
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q18	{"limit": 10, "strategy": "combined"}	ndcg@10	0.47960346638230267
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q18	{"limit": 10, "strategy": "combined"}	latency_s	0.008081291000003432
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q18	{"limit": 20, "strategy": "combined"}	ndcg@10	0.47960346638230267
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q18	{"limit": 20, "strategy": "combined"}	latency_s	0.007060374999998231
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q19	{"limit": 10, "strategy": "symbols"}	ndcg@10	0.5244551632082282
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q19	{"limit": 10, "strategy": "symbols"}	latency_s	0.0075525409999990245
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q19	{"limit": 20, "strategy": "symbols"}	ndcg@10	0.5244551632082282
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q19	{"limit": 20, "strategy": "symbols"}	latency_s	0.007036958000000482
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q19	{"limit": 10, "strategy": "files"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q19	{"limit": 10, "strategy": "files"}	latency_s	0.00014074999999991178
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q19	{"limit": 20, "strategy": "files"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q19	{"limit": 20, "strategy": "files"}	latency_s	9.587499999952342e-05
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q19	{"limit": 10, "strategy": "combined"}	ndcg@10	0.5244551632082282
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q19	{"limit": 10, "strategy": "combined"}	latency_s	0.004641040999999291
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q19	{"limit": 20, "strategy": "combined"}	ndcg@10	0.5244551632082282
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q19	{"limit": 20, "strategy": "combined"}	latency_s	0.007321166000000545
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q20	{"limit": 10, "strategy": "symbols"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q20	{"limit": 10, "strategy": "symbols"}	latency_s	0.006725541000001556
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q20	{"limit": 20, "strategy": "symbols"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q20	{"limit": 20, "strategy": "symbols"}	latency_s	0.0053817499999979646
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q20	{"limit": 10, "strategy": "files"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q20	{"limit": 10, "strategy": "files"}	latency_s	0.00011979199999956336
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q20	{"limit": 20, "strategy": "files"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q20	{"limit": 20, "strategy": "files"}	latency_s	0.00014366599999959817
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q20	{"limit": 10, "strategy": "combined"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q20	{"limit": 10, "strategy": "combined"}	latency_s	0.008192166000000611
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q20	{"limit": 20, "strategy": "combined"}	ndcg@10	0.0
-2026-03-29T15:51:59+00:00	routing	turborepo	shire	q20	{"limit": 20, "strategy": "combined"}	latency_s	0.007590374999999483
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q01	{"beam_width": 3, "max_depth": 3}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q01	{"beam_width": 3, "max_depth": 3}	latency_s	0.010770541999999939
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q01	{"beam_width": 3, "max_depth": 5}	ndcg@10	0.6467429303328278
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q01	{"beam_width": 3, "max_depth": 5}	latency_s	0.008825666999999981
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q01	{"beam_width": 5, "max_depth": 3}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q01	{"beam_width": 5, "max_depth": 3}	latency_s	0.010223166999999922
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q01	{"beam_width": 5, "max_depth": 5}	ndcg@10	0.6824849757840203
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q01	{"beam_width": 5, "max_depth": 5}	latency_s	0.010996041999999928
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q02	{"beam_width": 3, "max_depth": 3}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q02	{"beam_width": 3, "max_depth": 3}	latency_s	0.009276124999999968
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q02	{"beam_width": 3, "max_depth": 5}	ndcg@10	0.9512553021449335
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q02	{"beam_width": 3, "max_depth": 5}	latency_s	0.012702250000000248
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q02	{"beam_width": 5, "max_depth": 3}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q02	{"beam_width": 5, "max_depth": 3}	latency_s	0.012314875000000391
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q02	{"beam_width": 5, "max_depth": 5}	ndcg@10	0.8678171500675899
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q02	{"beam_width": 5, "max_depth": 5}	latency_s	0.01994020799999996
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q03	{"beam_width": 3, "max_depth": 3}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q03	{"beam_width": 3, "max_depth": 3}	latency_s	0.008204042000000022
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q03	{"beam_width": 3, "max_depth": 5}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q03	{"beam_width": 3, "max_depth": 5}	latency_s	0.0064887920000002985
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q03	{"beam_width": 5, "max_depth": 3}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q03	{"beam_width": 5, "max_depth": 3}	latency_s	0.011659249999999677
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q03	{"beam_width": 5, "max_depth": 5}	ndcg@10	0.8517171819727973
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q03	{"beam_width": 5, "max_depth": 5}	latency_s	0.03543758299999977
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q04	{"beam_width": 3, "max_depth": 3}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q04	{"beam_width": 3, "max_depth": 3}	latency_s	0.006250000000000089
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q04	{"beam_width": 3, "max_depth": 5}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q04	{"beam_width": 3, "max_depth": 5}	latency_s	0.004828041999999755
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q04	{"beam_width": 5, "max_depth": 3}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q04	{"beam_width": 5, "max_depth": 3}	latency_s	0.01094391700000008
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q04	{"beam_width": 5, "max_depth": 5}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q04	{"beam_width": 5, "max_depth": 5}	latency_s	0.01296254199999991
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q05	{"beam_width": 3, "max_depth": 3}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q05	{"beam_width": 3, "max_depth": 3}	latency_s	0.00495258399999976
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q05	{"beam_width": 3, "max_depth": 5}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q05	{"beam_width": 3, "max_depth": 5}	latency_s	0.009255500000000083
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q05	{"beam_width": 5, "max_depth": 3}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q05	{"beam_width": 5, "max_depth": 3}	latency_s	0.010158458999999898
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q05	{"beam_width": 5, "max_depth": 5}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q05	{"beam_width": 5, "max_depth": 5}	latency_s	0.017394625000000108
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q06	{"beam_width": 3, "max_depth": 3}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q06	{"beam_width": 3, "max_depth": 3}	latency_s	0.007577500000000015
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q06	{"beam_width": 3, "max_depth": 5}	ndcg@10	0.8825858394267849
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q06	{"beam_width": 3, "max_depth": 5}	latency_s	0.011844500000000036
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q06	{"beam_width": 5, "max_depth": 3}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q06	{"beam_width": 5, "max_depth": 3}	latency_s	0.0096411660000002
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q06	{"beam_width": 5, "max_depth": 5}	ndcg@10	0.8787642368078041
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q06	{"beam_width": 5, "max_depth": 5}	latency_s	0.010360292000000104
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q07	{"beam_width": 3, "max_depth": 3}	ndcg@10	0.045851828048001766
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q07	{"beam_width": 3, "max_depth": 3}	latency_s	0.011174292000000197
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q07	{"beam_width": 3, "max_depth": 5}	ndcg@10	0.9148570708197291
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q07	{"beam_width": 3, "max_depth": 5}	latency_s	0.012735957999999936
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q07	{"beam_width": 5, "max_depth": 3}	ndcg@10	0.045851828048001766
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q07	{"beam_width": 5, "max_depth": 3}	latency_s	0.007670207999999956
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q07	{"beam_width": 5, "max_depth": 5}	ndcg@10	0.913583203280069
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q07	{"beam_width": 5, "max_depth": 5}	latency_s	0.01252658399999973
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q08	{"beam_width": 3, "max_depth": 3}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q08	{"beam_width": 3, "max_depth": 3}	latency_s	0.006849499999999953
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q08	{"beam_width": 3, "max_depth": 5}	ndcg@10	0.7035351153112575
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q08	{"beam_width": 3, "max_depth": 5}	latency_s	0.009369707999999921
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q08	{"beam_width": 5, "max_depth": 3}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q08	{"beam_width": 5, "max_depth": 3}	latency_s	0.008570417000000052
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q08	{"beam_width": 5, "max_depth": 5}	ndcg@10	0.6870739308105855
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q08	{"beam_width": 5, "max_depth": 5}	latency_s	0.016011499999999845
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q09	{"beam_width": 3, "max_depth": 3}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q09	{"beam_width": 3, "max_depth": 3}	latency_s	0.006816709000000198
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q09	{"beam_width": 3, "max_depth": 5}	ndcg@10	0.6038384577491301
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q09	{"beam_width": 3, "max_depth": 5}	latency_s	0.010518333999999907
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q09	{"beam_width": 5, "max_depth": 3}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q09	{"beam_width": 5, "max_depth": 3}	latency_s	0.013546124999999964
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q09	{"beam_width": 5, "max_depth": 5}	ndcg@10	0.6038384577491301
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q09	{"beam_width": 5, "max_depth": 5}	latency_s	0.033853249999999946
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q10	{"beam_width": 3, "max_depth": 3}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q10	{"beam_width": 3, "max_depth": 3}	latency_s	0.007179500000000338
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q10	{"beam_width": 3, "max_depth": 5}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q10	{"beam_width": 3, "max_depth": 5}	latency_s	0.008442375000000002
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q10	{"beam_width": 5, "max_depth": 3}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q10	{"beam_width": 5, "max_depth": 3}	latency_s	0.007943040999999873
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q10	{"beam_width": 5, "max_depth": 5}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q10	{"beam_width": 5, "max_depth": 5}	latency_s	0.014538750000000267
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q11	{"beam_width": 3, "max_depth": 3}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q11	{"beam_width": 3, "max_depth": 3}	latency_s	0.008151540999999707
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q11	{"beam_width": 3, "max_depth": 5}	ndcg@10	0.7226477789655257
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q11	{"beam_width": 3, "max_depth": 5}	latency_s	0.00904720800000014
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q11	{"beam_width": 5, "max_depth": 3}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q11	{"beam_width": 5, "max_depth": 3}	latency_s	0.009465167000000108
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q11	{"beam_width": 5, "max_depth": 5}	ndcg@10	0.7226477789655257
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q11	{"beam_width": 5, "max_depth": 5}	latency_s	0.015615791000000101
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q12	{"beam_width": 3, "max_depth": 3}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q12	{"beam_width": 3, "max_depth": 3}	latency_s	0.008955832999999913
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q12	{"beam_width": 3, "max_depth": 5}	ndcg@10	0.4800094558075716
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q12	{"beam_width": 3, "max_depth": 5}	latency_s	0.016495833000000015
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q12	{"beam_width": 5, "max_depth": 3}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q12	{"beam_width": 5, "max_depth": 3}	latency_s	0.011630166999999858
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q12	{"beam_width": 5, "max_depth": 5}	ndcg@10	0.39476768271066054
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q12	{"beam_width": 5, "max_depth": 5}	latency_s	0.024264000000000063
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q13	{"beam_width": 3, "max_depth": 3}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q13	{"beam_width": 3, "max_depth": 3}	latency_s	0.009235583999999797
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q13	{"beam_width": 3, "max_depth": 5}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q13	{"beam_width": 3, "max_depth": 5}	latency_s	0.01210325000000001
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q13	{"beam_width": 5, "max_depth": 3}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q13	{"beam_width": 5, "max_depth": 3}	latency_s	0.012443209000000177
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q13	{"beam_width": 5, "max_depth": 5}	ndcg@10	0.4865033125582941
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q13	{"beam_width": 5, "max_depth": 5}	latency_s	0.024267292000000218
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q14	{"beam_width": 3, "max_depth": 3}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q14	{"beam_width": 3, "max_depth": 3}	latency_s	0.00955108299999985
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q14	{"beam_width": 3, "max_depth": 5}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q14	{"beam_width": 3, "max_depth": 5}	latency_s	0.02038937499999971
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q14	{"beam_width": 5, "max_depth": 3}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q14	{"beam_width": 5, "max_depth": 3}	latency_s	0.009379499999999652
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q14	{"beam_width": 5, "max_depth": 5}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q14	{"beam_width": 5, "max_depth": 5}	latency_s	0.024267083000000245
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q15	{"beam_width": 3, "max_depth": 3}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q15	{"beam_width": 3, "max_depth": 3}	latency_s	0.010557125000000056
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q15	{"beam_width": 3, "max_depth": 5}	ndcg@10	0.4094543838032698
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q15	{"beam_width": 3, "max_depth": 5}	latency_s	0.009715499999999988
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q15	{"beam_width": 5, "max_depth": 3}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q15	{"beam_width": 5, "max_depth": 3}	latency_s	0.011766875000000176
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q15	{"beam_width": 5, "max_depth": 5}	ndcg@10	0.3477237584304432
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q15	{"beam_width": 5, "max_depth": 5}	latency_s	0.017552042000000156
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q16	{"beam_width": 3, "max_depth": 3}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q16	{"beam_width": 3, "max_depth": 3}	latency_s	0.008700209000000125
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q16	{"beam_width": 3, "max_depth": 5}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q16	{"beam_width": 3, "max_depth": 5}	latency_s	0.009123584000000129
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q16	{"beam_width": 5, "max_depth": 3}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q16	{"beam_width": 5, "max_depth": 3}	latency_s	0.008625832999999972
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q16	{"beam_width": 5, "max_depth": 5}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q16	{"beam_width": 5, "max_depth": 5}	latency_s	0.012712875000000068
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q17	{"beam_width": 3, "max_depth": 3}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q17	{"beam_width": 3, "max_depth": 3}	latency_s	0.008718625000000202
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q17	{"beam_width": 3, "max_depth": 5}	ndcg@10	0.6239784957877976
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q17	{"beam_width": 3, "max_depth": 5}	latency_s	0.01347512499999981
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q17	{"beam_width": 5, "max_depth": 3}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q17	{"beam_width": 5, "max_depth": 3}	latency_s	0.010494208999999977
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q17	{"beam_width": 5, "max_depth": 5}	ndcg@10	0.302596096856603
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q17	{"beam_width": 5, "max_depth": 5}	latency_s	0.027899625000000317
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q18	{"beam_width": 3, "max_depth": 3}	ndcg@10	0.0
+2026-03-29T15:54:32+00:00	routing	turborepo	srt-warm	q18	{"beam_width": 3, "max_depth": 3}	latency_s	0.011530417000000348
+2026-03-29T15:54:33+00:00	routing	turborepo	srt-warm	q18	{"beam_width": 3, "max_depth": 5}	ndcg@10	0.2065539701415984
+2026-03-29T15:54:33+00:00	routing	turborepo	srt-warm	q18	{"beam_width": 3, "max_depth": 5}	latency_s	0.012013500000000121
+2026-03-29T15:54:33+00:00	routing	turborepo	srt-warm	q18	{"beam_width": 5, "max_depth": 3}	ndcg@10	0.0
+2026-03-29T15:54:33+00:00	routing	turborepo	srt-warm	q18	{"beam_width": 5, "max_depth": 3}	latency_s	0.009132832999999785
+2026-03-29T15:54:33+00:00	routing	turborepo	srt-warm	q18	{"beam_width": 5, "max_depth": 5}	ndcg@10	0.1512980484283015
+2026-03-29T15:54:33+00:00	routing	turborepo	srt-warm	q18	{"beam_width": 5, "max_depth": 5}	latency_s	0.024118875000000095
+2026-03-29T15:54:33+00:00	routing	turborepo	srt-warm	q19	{"beam_width": 3, "max_depth": 3}	ndcg@10	0.0
+2026-03-29T15:54:33+00:00	routing	turborepo	srt-warm	q19	{"beam_width": 3, "max_depth": 3}	latency_s	0.008321875000000034
+2026-03-29T15:54:33+00:00	routing	turborepo	srt-warm	q19	{"beam_width": 3, "max_depth": 5}	ndcg@10	0.855349530090474
+2026-03-29T15:54:33+00:00	routing	turborepo	srt-warm	q19	{"beam_width": 3, "max_depth": 5}	latency_s	0.01816987499999989
+2026-03-29T15:54:33+00:00	routing	turborepo	srt-warm	q19	{"beam_width": 5, "max_depth": 3}	ndcg@10	0.0
+2026-03-29T15:54:33+00:00	routing	turborepo	srt-warm	q19	{"beam_width": 5, "max_depth": 3}	latency_s	0.011876625000000196
+2026-03-29T15:54:33+00:00	routing	turborepo	srt-warm	q19	{"beam_width": 5, "max_depth": 5}	ndcg@10	0.855349530090474
+2026-03-29T15:54:33+00:00	routing	turborepo	srt-warm	q19	{"beam_width": 5, "max_depth": 5}	latency_s	0.02197262500000008
+2026-03-29T15:54:33+00:00	routing	turborepo	srt-warm	q20	{"beam_width": 3, "max_depth": 3}	ndcg@10	0.02006097215367257
+2026-03-29T15:54:33+00:00	routing	turborepo	srt-warm	q20	{"beam_width": 3, "max_depth": 3}	latency_s	0.010214374999999443
+2026-03-29T15:54:33+00:00	routing	turborepo	srt-warm	q20	{"beam_width": 3, "max_depth": 5}	ndcg@10	0.17220460264238518
+2026-03-29T15:54:33+00:00	routing	turborepo	srt-warm	q20	{"beam_width": 3, "max_depth": 5}	latency_s	0.012845333999999653
+2026-03-29T15:54:33+00:00	routing	turborepo	srt-warm	q20	{"beam_width": 5, "max_depth": 3}	ndcg@10	0.01914303240971293
+2026-03-29T15:54:33+00:00	routing	turborepo	srt-warm	q20	{"beam_width": 5, "max_depth": 3}	latency_s	0.009334584000000312
+2026-03-29T15:54:33+00:00	routing	turborepo	srt-warm	q20	{"beam_width": 5, "max_depth": 5}	ndcg@10	0.17220460264238518
+2026-03-29T15:54:33+00:00	routing	turborepo	srt-warm	q20	{"beam_width": 5, "max_depth": 5}	latency_s	0.01463716599999998
+2026-03-29T15:54:33+00:00	routing	turborepo	ripgrep	q01	{"max_files": 5}	ndcg@10	0.0
+2026-03-29T15:54:33+00:00	routing	turborepo	ripgrep	q01	{"max_files": 5}	latency_s	0.3301821659999993
+2026-03-29T15:54:33+00:00	routing	turborepo	ripgrep	q01	{"max_files": 10}	ndcg@10	0.19468902151380166
+2026-03-29T15:54:33+00:00	routing	turborepo	ripgrep	q01	{"max_files": 10}	latency_s	0.2717665829999998
+2026-03-29T15:54:34+00:00	routing	turborepo	ripgrep	q01	{"max_files": 20}	ndcg@10	0.19468902151380166
+2026-03-29T15:54:34+00:00	routing	turborepo	ripgrep	q01	{"max_files": 20}	latency_s	0.27287324999999996
+2026-03-29T15:54:34+00:00	routing	turborepo	ripgrep	q02	{"max_files": 5}	ndcg@10	0.0
+2026-03-29T15:54:34+00:00	routing	turborepo	ripgrep	q02	{"max_files": 5}	latency_s	0.26028762500000013
+2026-03-29T15:54:34+00:00	routing	turborepo	ripgrep	q02	{"max_files": 10}	ndcg@10	0.0
+2026-03-29T15:54:34+00:00	routing	turborepo	ripgrep	q02	{"max_files": 10}	latency_s	0.26546016600000044
+2026-03-29T15:54:34+00:00	routing	turborepo	ripgrep	q02	{"max_files": 20}	ndcg@10	0.0
+2026-03-29T15:54:34+00:00	routing	turborepo	ripgrep	q02	{"max_files": 20}	latency_s	0.2683568750000003
+2026-03-29T15:54:35+00:00	routing	turborepo	ripgrep	q03	{"max_files": 5}	ndcg@10	0.7452525342261976
+2026-03-29T15:54:35+00:00	routing	turborepo	ripgrep	q03	{"max_files": 5}	latency_s	0.2221316670000002
+2026-03-29T15:54:35+00:00	routing	turborepo	ripgrep	q03	{"max_files": 10}	ndcg@10	0.7452525342261976
+2026-03-29T15:54:35+00:00	routing	turborepo	ripgrep	q03	{"max_files": 10}	latency_s	0.22096958400000055
+2026-03-29T15:54:35+00:00	routing	turborepo	ripgrep	q03	{"max_files": 20}	ndcg@10	0.47020199776783905
+2026-03-29T15:54:35+00:00	routing	turborepo	ripgrep	q03	{"max_files": 20}	latency_s	0.22661075000000075
+2026-03-29T15:54:35+00:00	routing	turborepo	ripgrep	q04	{"max_files": 5}	ndcg@10	0.0
+2026-03-29T15:54:35+00:00	routing	turborepo	ripgrep	q04	{"max_files": 5}	latency_s	0.33071908299999997
+2026-03-29T15:54:36+00:00	routing	turborepo	ripgrep	q04	{"max_files": 10}	ndcg@10	0.22724522890005255
+2026-03-29T15:54:36+00:00	routing	turborepo	ripgrep	q04	{"max_files": 10}	latency_s	0.39107704099999996
+2026-03-29T15:54:36+00:00	routing	turborepo	ripgrep	q04	{"max_files": 20}	ndcg@10	0.0
+2026-03-29T15:54:36+00:00	routing	turborepo	ripgrep	q04	{"max_files": 20}	latency_s	0.338553042
+2026-03-29T15:54:36+00:00	routing	turborepo	ripgrep	q05	{"max_files": 5}	ndcg@10	0.7452525342261976
+2026-03-29T15:54:36+00:00	routing	turborepo	ripgrep	q05	{"max_files": 5}	latency_s	0.2679134999999997
+2026-03-29T15:54:37+00:00	routing	turborepo	ripgrep	q05	{"max_files": 10}	ndcg@10	0.7452525342261976
+2026-03-29T15:54:37+00:00	routing	turborepo	ripgrep	q05	{"max_files": 10}	latency_s	0.265118459
+2026-03-29T15:54:37+00:00	routing	turborepo	ripgrep	q05	{"max_files": 20}	ndcg@10	0.7452525342261976
+2026-03-29T15:54:37+00:00	routing	turborepo	ripgrep	q05	{"max_files": 20}	latency_s	0.2695864589999992
+2026-03-29T15:54:37+00:00	routing	turborepo	ripgrep	q06	{"max_files": 5}	ndcg@10	0.882808018370203
+2026-03-29T15:54:37+00:00	routing	turborepo	ripgrep	q06	{"max_files": 5}	latency_s	0.18019066699999975
+2026-03-29T15:54:37+00:00	routing	turborepo	ripgrep	q06	{"max_files": 10}	ndcg@10	0.6077574819118444
+2026-03-29T15:54:37+00:00	routing	turborepo	ripgrep	q06	{"max_files": 10}	latency_s	0.17707254199999944
+2026-03-29T15:54:37+00:00	routing	turborepo	ripgrep	q06	{"max_files": 20}	ndcg@10	0.6298989693877386
+2026-03-29T15:54:37+00:00	routing	turborepo	ripgrep	q06	{"max_files": 20}	latency_s	0.17498524999999887
+2026-03-29T15:54:38+00:00	routing	turborepo	ripgrep	q07	{"max_files": 5}	ndcg@10	0.7452525342261976
+2026-03-29T15:54:38+00:00	routing	turborepo	ripgrep	q07	{"max_files": 5}	latency_s	0.188406917
+2026-03-29T15:54:38+00:00	routing	turborepo	ripgrep	q07	{"max_files": 10}	ndcg@10	0.7452525342261976
+2026-03-29T15:54:38+00:00	routing	turborepo	ripgrep	q07	{"max_files": 10}	latency_s	0.1728766249999989
+2026-03-29T15:54:38+00:00	routing	turborepo	ripgrep	q07	{"max_files": 20}	ndcg@10	0.7452525342261976
+2026-03-29T15:54:38+00:00	routing	turborepo	ripgrep	q07	{"max_files": 20}	latency_s	0.173004959
+2026-03-29T15:54:38+00:00	routing	turborepo	ripgrep	q08	{"max_files": 5}	ndcg@10	0.393968130820853
+2026-03-29T15:54:38+00:00	routing	turborepo	ripgrep	q08	{"max_files": 5}	latency_s	0.3639992079999992
+2026-03-29T15:54:39+00:00	routing	turborepo	ripgrep	q08	{"max_files": 10}	ndcg@10	0.2689250865283793
+2026-03-29T15:54:39+00:00	routing	turborepo	ripgrep	q08	{"max_files": 10}	latency_s	0.3602534999999989
+2026-03-29T15:54:39+00:00	routing	turborepo	ripgrep	q08	{"max_files": 20}	ndcg@10	0.24156045345186092
+2026-03-29T15:54:39+00:00	routing	turborepo	ripgrep	q08	{"max_files": 20}	latency_s	0.3577274579999994
+2026-03-29T15:54:39+00:00	routing	turborepo	ripgrep	q09	{"max_files": 5}	ndcg@10	0.0
+2026-03-29T15:54:39+00:00	routing	turborepo	ripgrep	q09	{"max_files": 5}	latency_s	0.2635928330000006
+2026-03-29T15:54:40+00:00	routing	turborepo	ripgrep	q09	{"max_files": 10}	ndcg@10	0.24156045345186092
+2026-03-29T15:54:40+00:00	routing	turborepo	ripgrep	q09	{"max_files": 10}	latency_s	0.2611465000000006
+2026-03-29T15:54:40+00:00	routing	turborepo	ripgrep	q09	{"max_files": 20}	ndcg@10	0.20814157127675295
+2026-03-29T15:54:40+00:00	routing	turborepo	ripgrep	q09	{"max_files": 20}	latency_s	0.26321762499999934
+2026-03-29T15:54:40+00:00	routing	turborepo	ripgrep	q10	{"max_files": 5}	ndcg@10	0.0
+2026-03-29T15:54:40+00:00	routing	turborepo	ripgrep	q10	{"max_files": 5}	latency_s	0.32021300000000075
+2026-03-29T15:54:40+00:00	routing	turborepo	ripgrep	q10	{"max_files": 10}	ndcg@10	0.2985043148386915
+2026-03-29T15:54:40+00:00	routing	turborepo	ripgrep	q10	{"max_files": 10}	latency_s	0.32011012500000113
+2026-03-29T15:54:41+00:00	routing	turborepo	ripgrep	q10	{"max_files": 20}	ndcg@10	0.0
+2026-03-29T15:54:41+00:00	routing	turborepo	ripgrep	q10	{"max_files": 20}	latency_s	0.3166184579999989
+2026-03-29T15:54:41+00:00	routing	turborepo	ripgrep	q11	{"max_files": 5}	ndcg@10	0.246330763412012
+2026-03-29T15:54:41+00:00	routing	turborepo	ripgrep	q11	{"max_files": 5}	latency_s	0.32277233299999963
+2026-03-29T15:54:41+00:00	routing	turborepo	ripgrep	q11	{"max_files": 10}	ndcg@10	0.562455646960788
+2026-03-29T15:54:41+00:00	routing	turborepo	ripgrep	q11	{"max_files": 10}	latency_s	0.31989766699999933
+2026-03-29T15:54:42+00:00	routing	turborepo	ripgrep	q11	{"max_files": 20}	ndcg@10	0.4741109426177732
+2026-03-29T15:54:42+00:00	routing	turborepo	ripgrep	q11	{"max_files": 20}	latency_s	0.32364824999999975
+2026-03-29T15:54:42+00:00	routing	turborepo	ripgrep	q12	{"max_files": 5}	ndcg@10	0.31939394323979897
+2026-03-29T15:54:42+00:00	routing	turborepo	ripgrep	q12	{"max_files": 5}	latency_s	0.3588045000000015
+2026-03-29T15:54:42+00:00	routing	turborepo	ripgrep	q12	{"max_files": 10}	ndcg@10	0.6076969782038598
+2026-03-29T15:54:42+00:00	routing	turborepo	ripgrep	q12	{"max_files": 10}	latency_s	0.3520713750000013
+2026-03-29T15:54:43+00:00	routing	turborepo	ripgrep	q12	{"max_files": 20}	ndcg@10	0.5848582521416379
+2026-03-29T15:54:43+00:00	routing	turborepo	ripgrep	q12	{"max_files": 20}	latency_s	0.35380570799999944
+2026-03-29T15:54:43+00:00	routing	turborepo	ripgrep	q13	{"max_files": 5}	ndcg@10	0.2258705445543393
+2026-03-29T15:54:43+00:00	routing	turborepo	ripgrep	q13	{"max_files": 5}	latency_s	0.5479370419999992
+2026-03-29T15:54:44+00:00	routing	turborepo	ripgrep	q13	{"max_files": 10}	ndcg@10	0.2258705445543393
+2026-03-29T15:54:44+00:00	routing	turborepo	ripgrep	q13	{"max_files": 10}	latency_s	0.46204220799999973
+2026-03-29T15:54:44+00:00	routing	turborepo	ripgrep	q13	{"max_files": 20}	ndcg@10	0.24842436391241438
+2026-03-29T15:54:44+00:00	routing	turborepo	ripgrep	q13	{"max_files": 20}	latency_s	0.5392621669999986
+2026-03-29T15:54:45+00:00	routing	turborepo	ripgrep	q14	{"max_files": 5}	ndcg@10	0.0
+2026-03-29T15:54:45+00:00	routing	turborepo	ripgrep	q14	{"max_files": 5}	latency_s	0.26944829200000164
+2026-03-29T15:54:45+00:00	routing	turborepo	ripgrep	q14	{"max_files": 10}	ndcg@10	0.0
+2026-03-29T15:54:45+00:00	routing	turborepo	ripgrep	q14	{"max_files": 10}	latency_s	0.26772312499999984
+2026-03-29T15:54:45+00:00	routing	turborepo	ripgrep	q14	{"max_files": 20}	ndcg@10	0.23510099888391953
+2026-03-29T15:54:45+00:00	routing	turborepo	ripgrep	q14	{"max_files": 20}	latency_s	0.269893291999999
+2026-03-29T15:54:46+00:00	routing	turborepo	ripgrep	q15	{"max_files": 5}	ndcg@10	0.034257390455878764
+2026-03-29T15:54:46+00:00	routing	turborepo	ripgrep	q15	{"max_files": 5}	latency_s	0.44442737500000007
+2026-03-29T15:54:46+00:00	routing	turborepo	ripgrep	q15	{"max_files": 10}	ndcg@10	0.02440545738389956
+2026-03-29T15:54:46+00:00	routing	turborepo	ripgrep	q15	{"max_files": 10}	latency_s	0.45886954099999855
+2026-03-29T15:54:47+00:00	routing	turborepo	ripgrep	q15	{"max_files": 20}	ndcg@10	0.10510302643901254
+2026-03-29T15:54:47+00:00	routing	turborepo	ripgrep	q15	{"max_files": 20}	latency_s	0.4579306669999994
+2026-03-29T15:54:47+00:00	routing	turborepo	ripgrep	q16	{"max_files": 5}	ndcg@10	0.302596096856603
+2026-03-29T15:54:47+00:00	routing	turborepo	ripgrep	q16	{"max_files": 5}	latency_s	0.4084958329999999
+2026-03-29T15:54:47+00:00	routing	turborepo	ripgrep	q16	{"max_files": 10}	ndcg@10	0.23980173319115133
+2026-03-29T15:54:47+00:00	routing	turborepo	ripgrep	q16	{"max_files": 10}	latency_s	0.4130571250000017
+2026-03-29T15:54:48+00:00	routing	turborepo	ripgrep	q16	{"max_files": 20}	ndcg@10	0.23980173319115133
+2026-03-29T15:54:48+00:00	routing	turborepo	ripgrep	q16	{"max_files": 20}	latency_s	0.408101791
+2026-03-29T15:54:48+00:00	routing	turborepo	ripgrep	q17	{"max_files": 5}	ndcg@10	0.5138608568381814
+2026-03-29T15:54:48+00:00	routing	turborepo	ripgrep	q17	{"max_files": 5}	latency_s	0.3105391250000018
+2026-03-29T15:54:48+00:00	routing	turborepo	ripgrep	q17	{"max_files": 10}	ndcg@10	0.5228314802189602
+2026-03-29T15:54:48+00:00	routing	turborepo	ripgrep	q17	{"max_files": 10}	latency_s	0.3077721249999996
+2026-03-29T15:54:49+00:00	routing	turborepo	ripgrep	q17	{"max_files": 20}	ndcg@10	0.5228314802189602
+2026-03-29T15:54:49+00:00	routing	turborepo	ripgrep	q17	{"max_files": 20}	latency_s	0.307992665999997
+2026-03-29T15:54:49+00:00	routing	turborepo	ripgrep	q18	{"max_files": 5}	ndcg@10	0.0
+2026-03-29T15:54:49+00:00	routing	turborepo	ripgrep	q18	{"max_files": 5}	latency_s	0.4933929589999977
+2026-03-29T15:54:50+00:00	routing	turborepo	ripgrep	q18	{"max_files": 10}	ndcg@10	0.0
+2026-03-29T15:54:50+00:00	routing	turborepo	ripgrep	q18	{"max_files": 10}	latency_s	0.49172004100000066
+2026-03-29T15:54:50+00:00	routing	turborepo	ripgrep	q18	{"max_files": 20}	ndcg@10	0.0
+2026-03-29T15:54:50+00:00	routing	turborepo	ripgrep	q18	{"max_files": 20}	latency_s	0.487878834
+2026-03-29T15:54:51+00:00	routing	turborepo	ripgrep	q19	{"max_files": 5}	ndcg@10	0.0
+2026-03-29T15:54:51+00:00	routing	turborepo	ripgrep	q19	{"max_files": 5}	latency_s	0.43328433399999966
+2026-03-29T15:54:51+00:00	routing	turborepo	ripgrep	q19	{"max_files": 10}	ndcg@10	0.17481838773607605
+2026-03-29T15:54:51+00:00	routing	turborepo	ripgrep	q19	{"max_files": 10}	latency_s	0.44101204100000047
+2026-03-29T15:54:51+00:00	routing	turborepo	ripgrep	q19	{"max_files": 20}	ndcg@10	0.15787673550652545
+2026-03-29T15:54:51+00:00	routing	turborepo	ripgrep	q19	{"max_files": 20}	latency_s	0.44427274999999966
+2026-03-29T15:54:52+00:00	routing	turborepo	ripgrep	q20	{"max_files": 5}	ndcg@10	0.0
+2026-03-29T15:54:52+00:00	routing	turborepo	ripgrep	q20	{"max_files": 5}	latency_s	0.4094302499999998
+2026-03-29T15:54:52+00:00	routing	turborepo	ripgrep	q20	{"max_files": 10}	ndcg@10	0.0
+2026-03-29T15:54:52+00:00	routing	turborepo	ripgrep	q20	{"max_files": 10}	latency_s	0.4050556669999992
+2026-03-29T15:54:53+00:00	routing	turborepo	ripgrep	q20	{"max_files": 20}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	ripgrep	q20	{"max_files": 20}	latency_s	0.402138291
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q01	{"limit": 10, "strategy": "symbols"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q01	{"limit": 10, "strategy": "symbols"}	latency_s	0.005723875000001044
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q01	{"limit": 20, "strategy": "symbols"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q01	{"limit": 20, "strategy": "symbols"}	latency_s	0.0043304999999982385
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q01	{"limit": 10, "strategy": "files"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q01	{"limit": 10, "strategy": "files"}	latency_s	0.00048216699999770185
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q01	{"limit": 20, "strategy": "files"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q01	{"limit": 20, "strategy": "files"}	latency_s	0.00019741599999889559
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q01	{"limit": 10, "strategy": "combined"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q01	{"limit": 10, "strategy": "combined"}	latency_s	0.004653583999999711
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q01	{"limit": 20, "strategy": "combined"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q01	{"limit": 20, "strategy": "combined"}	latency_s	0.004495750000000243
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q02	{"limit": 10, "strategy": "symbols"}	ndcg@10	0.6467429303328278
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q02	{"limit": 10, "strategy": "symbols"}	latency_s	0.005730708000001528
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q02	{"limit": 20, "strategy": "symbols"}	ndcg@10	0.6467429303328278
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q02	{"limit": 20, "strategy": "symbols"}	latency_s	0.006316208000001211
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q02	{"limit": 10, "strategy": "files"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q02	{"limit": 10, "strategy": "files"}	latency_s	0.00014287499999809938
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q02	{"limit": 20, "strategy": "files"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q02	{"limit": 20, "strategy": "files"}	latency_s	0.000318792000001622
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q02	{"limit": 10, "strategy": "combined"}	ndcg@10	0.6467429303328278
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q02	{"limit": 10, "strategy": "combined"}	latency_s	0.006528333000002107
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q02	{"limit": 20, "strategy": "combined"}	ndcg@10	0.6467429303328278
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q02	{"limit": 20, "strategy": "combined"}	latency_s	0.00581920900000199
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q03	{"limit": 10, "strategy": "symbols"}	ndcg@10	0.47020199776783905
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q03	{"limit": 10, "strategy": "symbols"}	latency_s	0.004356167000000966
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q03	{"limit": 20, "strategy": "symbols"}	ndcg@10	0.47020199776783905
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q03	{"limit": 20, "strategy": "symbols"}	latency_s	0.00680875000000114
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q03	{"limit": 10, "strategy": "files"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q03	{"limit": 10, "strategy": "files"}	latency_s	0.0001673330000002693
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q03	{"limit": 20, "strategy": "files"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q03	{"limit": 20, "strategy": "files"}	latency_s	8.187499999934289e-05
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q03	{"limit": 10, "strategy": "combined"}	ndcg@10	0.47020199776783905
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q03	{"limit": 10, "strategy": "combined"}	latency_s	0.005639791999996646
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q03	{"limit": 20, "strategy": "combined"}	ndcg@10	0.47020199776783905
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q03	{"limit": 20, "strategy": "combined"}	latency_s	0.005896625000001876
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q04	{"limit": 10, "strategy": "symbols"}	ndcg@10	0.5874203951744313
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q04	{"limit": 10, "strategy": "symbols"}	latency_s	0.004142291000000853
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q04	{"limit": 20, "strategy": "symbols"}	ndcg@10	0.5874203951744313
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q04	{"limit": 20, "strategy": "symbols"}	latency_s	0.005588792000001064
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q04	{"limit": 10, "strategy": "files"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q04	{"limit": 10, "strategy": "files"}	latency_s	0.00023924999999991314
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q04	{"limit": 20, "strategy": "files"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q04	{"limit": 20, "strategy": "files"}	latency_s	0.00013970799999896144
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q04	{"limit": 10, "strategy": "combined"}	ndcg@10	0.5874203951744313
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q04	{"limit": 10, "strategy": "combined"}	latency_s	0.004120457999999161
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q04	{"limit": 20, "strategy": "combined"}	ndcg@10	0.5874203951744313
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q04	{"limit": 20, "strategy": "combined"}	latency_s	0.00625995800000112
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q05	{"limit": 10, "strategy": "symbols"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q05	{"limit": 10, "strategy": "symbols"}	latency_s	0.006037917000000448
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q05	{"limit": 20, "strategy": "symbols"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q05	{"limit": 20, "strategy": "symbols"}	latency_s	0.005544708000002174
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q05	{"limit": 10, "strategy": "files"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q05	{"limit": 10, "strategy": "files"}	latency_s	0.0002092080000011265
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q05	{"limit": 20, "strategy": "files"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q05	{"limit": 20, "strategy": "files"}	latency_s	0.0001625419999982114
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q05	{"limit": 10, "strategy": "combined"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q05	{"limit": 10, "strategy": "combined"}	latency_s	0.0042238749999974345
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q05	{"limit": 20, "strategy": "combined"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q05	{"limit": 20, "strategy": "combined"}	latency_s	0.005620207999999849
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q06	{"limit": 10, "strategy": "symbols"}	ndcg@10	0.7452525342261976
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q06	{"limit": 10, "strategy": "symbols"}	latency_s	0.00429170900000031
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q06	{"limit": 20, "strategy": "symbols"}	ndcg@10	0.7452525342261976
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q06	{"limit": 20, "strategy": "symbols"}	latency_s	0.00614320800000101
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q06	{"limit": 10, "strategy": "files"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q06	{"limit": 10, "strategy": "files"}	latency_s	0.00024216699999968228
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q06	{"limit": 20, "strategy": "files"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q06	{"limit": 20, "strategy": "files"}	latency_s	9.604199999913021e-05
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q06	{"limit": 10, "strategy": "combined"}	ndcg@10	0.7452525342261976
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q06	{"limit": 10, "strategy": "combined"}	latency_s	0.004768999999999579
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q06	{"limit": 20, "strategy": "combined"}	ndcg@10	0.7452525342261976
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q06	{"limit": 20, "strategy": "combined"}	latency_s	0.005688875000000593
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q07	{"limit": 10, "strategy": "symbols"}	ndcg@10	0.47020199776783905
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q07	{"limit": 10, "strategy": "symbols"}	latency_s	0.003883791999999886
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q07	{"limit": 20, "strategy": "symbols"}	ndcg@10	0.47020199776783905
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q07	{"limit": 20, "strategy": "symbols"}	latency_s	0.005454415999999185
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q07	{"limit": 10, "strategy": "files"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q07	{"limit": 10, "strategy": "files"}	latency_s	0.0002107910000006541
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q07	{"limit": 20, "strategy": "files"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q07	{"limit": 20, "strategy": "files"}	latency_s	8.770800000235113e-05
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q07	{"limit": 10, "strategy": "combined"}	ndcg@10	0.47020199776783905
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q07	{"limit": 10, "strategy": "combined"}	latency_s	0.004302709000000959
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q07	{"limit": 20, "strategy": "combined"}	ndcg@10	0.47020199776783905
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q07	{"limit": 20, "strategy": "combined"}	latency_s	0.005607250000000619
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q08	{"limit": 10, "strategy": "symbols"}	ndcg@10	0.3122123569151294
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q08	{"limit": 10, "strategy": "symbols"}	latency_s	0.005606082999999984
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q08	{"limit": 20, "strategy": "symbols"}	ndcg@10	0.3122123569151294
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q08	{"limit": 20, "strategy": "symbols"}	latency_s	0.004146375000001257
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q08	{"limit": 10, "strategy": "files"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q08	{"limit": 10, "strategy": "files"}	latency_s	0.00022399999999933584
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q08	{"limit": 20, "strategy": "files"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q08	{"limit": 20, "strategy": "files"}	latency_s	0.00013050000000092155
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q08	{"limit": 10, "strategy": "combined"}	ndcg@10	0.3122123569151294
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q08	{"limit": 10, "strategy": "combined"}	latency_s	0.004371167000002174
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q08	{"limit": 20, "strategy": "combined"}	ndcg@10	0.3122123569151294
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q08	{"limit": 20, "strategy": "combined"}	latency_s	0.004044084000000225
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q09	{"limit": 10, "strategy": "symbols"}	ndcg@10	0.044601765273589916
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q09	{"limit": 10, "strategy": "symbols"}	latency_s	0.004761666000000275
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q09	{"limit": 20, "strategy": "symbols"}	ndcg@10	0.044601765273589916
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q09	{"limit": 20, "strategy": "symbols"}	latency_s	0.004219083999998929
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q09	{"limit": 10, "strategy": "files"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q09	{"limit": 10, "strategy": "files"}	latency_s	0.0011339160000005677
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q09	{"limit": 20, "strategy": "files"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q09	{"limit": 20, "strategy": "files"}	latency_s	0.0001052920000006452
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q09	{"limit": 10, "strategy": "combined"}	ndcg@10	0.044601765273589916
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q09	{"limit": 10, "strategy": "combined"}	latency_s	0.005552584000000138
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q09	{"limit": 20, "strategy": "combined"}	ndcg@10	0.044601765273589916
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q09	{"limit": 20, "strategy": "combined"}	latency_s	0.003934959000002181
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q10	{"limit": 10, "strategy": "symbols"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q10	{"limit": 10, "strategy": "symbols"}	latency_s	0.004357209000001916
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q10	{"limit": 20, "strategy": "symbols"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q10	{"limit": 20, "strategy": "symbols"}	latency_s	0.006179833999997442
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q10	{"limit": 10, "strategy": "files"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q10	{"limit": 10, "strategy": "files"}	latency_s	0.00012475000000122805
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q10	{"limit": 20, "strategy": "files"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q10	{"limit": 20, "strategy": "files"}	latency_s	6.887500000019031e-05
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q10	{"limit": 10, "strategy": "combined"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q10	{"limit": 10, "strategy": "combined"}	latency_s	0.004294708999999841
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q10	{"limit": 20, "strategy": "combined"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q10	{"limit": 20, "strategy": "combined"}	latency_s	0.004623667000000609
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q11	{"limit": 10, "strategy": "symbols"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q11	{"limit": 10, "strategy": "symbols"}	latency_s	0.0044385839999989685
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q11	{"limit": 20, "strategy": "symbols"}	ndcg@10	0.246330763412012
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q11	{"limit": 20, "strategy": "symbols"}	latency_s	0.005890125000000523
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q11	{"limit": 10, "strategy": "files"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q11	{"limit": 10, "strategy": "files"}	latency_s	0.00012062500000098453
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q11	{"limit": 20, "strategy": "files"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q11	{"limit": 20, "strategy": "files"}	latency_s	6.745800000018676e-05
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q11	{"limit": 10, "strategy": "combined"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q11	{"limit": 10, "strategy": "combined"}	latency_s	0.004461083000002475
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q11	{"limit": 20, "strategy": "combined"}	ndcg@10	0.246330763412012
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q11	{"limit": 20, "strategy": "combined"}	latency_s	0.0060722919999989244
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q12	{"limit": 10, "strategy": "symbols"}	ndcg@10	0.7452525342261976
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q12	{"limit": 10, "strategy": "symbols"}	latency_s	0.004072125000000426
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q12	{"limit": 20, "strategy": "symbols"}	ndcg@10	0.7452525342261976
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q12	{"limit": 20, "strategy": "symbols"}	latency_s	0.006618667000001466
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q12	{"limit": 10, "strategy": "files"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q12	{"limit": 10, "strategy": "files"}	latency_s	0.0001579579999990699
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q12	{"limit": 20, "strategy": "files"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q12	{"limit": 20, "strategy": "files"}	latency_s	7.23750000020118e-05
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q12	{"limit": 10, "strategy": "combined"}	ndcg@10	0.7452525342261976
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q12	{"limit": 10, "strategy": "combined"}	latency_s	0.0061424999999992735
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q12	{"limit": 20, "strategy": "combined"}	ndcg@10	0.7452525342261976
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q12	{"limit": 20, "strategy": "combined"}	latency_s	0.005036750000002144
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q13	{"limit": 10, "strategy": "symbols"}	ndcg@10	0.20288695215575275
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q13	{"limit": 10, "strategy": "symbols"}	latency_s	0.004939374999999302
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q13	{"limit": 20, "strategy": "symbols"}	ndcg@10	0.20288695215575275
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q13	{"limit": 20, "strategy": "symbols"}	latency_s	0.0066110420000029535
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q13	{"limit": 10, "strategy": "files"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q13	{"limit": 10, "strategy": "files"}	latency_s	0.00043779199999960383
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q13	{"limit": 20, "strategy": "files"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q13	{"limit": 20, "strategy": "files"}	latency_s	0.00019833300000016152
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q13	{"limit": 10, "strategy": "combined"}	ndcg@10	0.20288695215575275
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q13	{"limit": 10, "strategy": "combined"}	latency_s	0.006401791000001822
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q13	{"limit": 20, "strategy": "combined"}	ndcg@10	0.20288695215575275
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q13	{"limit": 20, "strategy": "combined"}	latency_s	0.005698625000000845
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q14	{"limit": 10, "strategy": "symbols"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q14	{"limit": 10, "strategy": "symbols"}	latency_s	0.004565874999997277
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q14	{"limit": 20, "strategy": "symbols"}	ndcg@10	0.3726262671130988
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q14	{"limit": 20, "strategy": "symbols"}	latency_s	0.004017875000002391
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q14	{"limit": 10, "strategy": "files"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q14	{"limit": 10, "strategy": "files"}	latency_s	0.0001679170000024044
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q14	{"limit": 20, "strategy": "files"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q14	{"limit": 20, "strategy": "files"}	latency_s	0.0001378340000002254
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q14	{"limit": 10, "strategy": "combined"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q14	{"limit": 10, "strategy": "combined"}	latency_s	0.006080709000002571
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q14	{"limit": 20, "strategy": "combined"}	ndcg@10	0.3726262671130988
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q14	{"limit": 20, "strategy": "combined"}	latency_s	0.0040815830000013875
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q15	{"limit": 10, "strategy": "symbols"}	ndcg@10	0.20554434273527256
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q15	{"limit": 10, "strategy": "symbols"}	latency_s	0.004952041999999324
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q15	{"limit": 20, "strategy": "symbols"}	ndcg@10	0.20554434273527256
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q15	{"limit": 20, "strategy": "symbols"}	latency_s	0.004694291999999933
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q15	{"limit": 10, "strategy": "files"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q15	{"limit": 10, "strategy": "files"}	latency_s	0.00010550000000009163
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q15	{"limit": 20, "strategy": "files"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q15	{"limit": 20, "strategy": "files"}	latency_s	8.162499999997408e-05
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q15	{"limit": 10, "strategy": "combined"}	ndcg@10	0.20554434273527256
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q15	{"limit": 10, "strategy": "combined"}	latency_s	0.0054117500000003815
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q15	{"limit": 20, "strategy": "combined"}	ndcg@10	0.20554434273527256
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q15	{"limit": 20, "strategy": "combined"}	latency_s	0.007362749999998641
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q16	{"limit": 10, "strategy": "symbols"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q16	{"limit": 10, "strategy": "symbols"}	latency_s	0.004881457999999839
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q16	{"limit": 20, "strategy": "symbols"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q16	{"limit": 20, "strategy": "symbols"}	latency_s	0.006374083999997282
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q16	{"limit": 10, "strategy": "files"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q16	{"limit": 10, "strategy": "files"}	latency_s	0.000804958999999883
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q16	{"limit": 20, "strategy": "files"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q16	{"limit": 20, "strategy": "files"}	latency_s	0.00017512499999838838
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q16	{"limit": 10, "strategy": "combined"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q16	{"limit": 10, "strategy": "combined"}	latency_s	0.006938500000000403
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q16	{"limit": 20, "strategy": "combined"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q16	{"limit": 20, "strategy": "combined"}	latency_s	0.006148958000000704
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q17	{"limit": 10, "strategy": "symbols"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q17	{"limit": 10, "strategy": "symbols"}	latency_s	0.0045349589999972295
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q17	{"limit": 20, "strategy": "symbols"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q17	{"limit": 20, "strategy": "symbols"}	latency_s	0.004927292000001415
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q17	{"limit": 10, "strategy": "files"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q17	{"limit": 10, "strategy": "files"}	latency_s	0.00033629099999998857
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q17	{"limit": 20, "strategy": "files"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q17	{"limit": 20, "strategy": "files"}	latency_s	0.00026191599999947357
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q17	{"limit": 10, "strategy": "combined"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q17	{"limit": 10, "strategy": "combined"}	latency_s	0.005018208000002744
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q17	{"limit": 20, "strategy": "combined"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q17	{"limit": 20, "strategy": "combined"}	latency_s	0.005393208000000982
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q18	{"limit": 10, "strategy": "symbols"}	ndcg@10	0.47960346638230267
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q18	{"limit": 10, "strategy": "symbols"}	latency_s	0.005289250000000578
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q18	{"limit": 20, "strategy": "symbols"}	ndcg@10	0.47960346638230267
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q18	{"limit": 20, "strategy": "symbols"}	latency_s	0.007718458999999456
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q18	{"limit": 10, "strategy": "files"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q18	{"limit": 10, "strategy": "files"}	latency_s	0.0006763749999976199
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q18	{"limit": 20, "strategy": "files"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q18	{"limit": 20, "strategy": "files"}	latency_s	0.00010279100000332164
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q18	{"limit": 10, "strategy": "combined"}	ndcg@10	0.47960346638230267
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q18	{"limit": 10, "strategy": "combined"}	latency_s	0.005872958000001205
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q18	{"limit": 20, "strategy": "combined"}	ndcg@10	0.47960346638230267
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q18	{"limit": 20, "strategy": "combined"}	latency_s	0.005917000000000172
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q19	{"limit": 10, "strategy": "symbols"}	ndcg@10	0.5244551632082282
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q19	{"limit": 10, "strategy": "symbols"}	latency_s	0.004949958999997506
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q19	{"limit": 20, "strategy": "symbols"}	ndcg@10	0.5244551632082282
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q19	{"limit": 20, "strategy": "symbols"}	latency_s	0.00603262499999957
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q19	{"limit": 10, "strategy": "files"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q19	{"limit": 10, "strategy": "files"}	latency_s	0.0001297499999992624
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q19	{"limit": 20, "strategy": "files"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q19	{"limit": 20, "strategy": "files"}	latency_s	0.0001082080000003316
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q19	{"limit": 10, "strategy": "combined"}	ndcg@10	0.5244551632082282
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q19	{"limit": 10, "strategy": "combined"}	latency_s	0.007016375000002739
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q19	{"limit": 20, "strategy": "combined"}	ndcg@10	0.5244551632082282
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q19	{"limit": 20, "strategy": "combined"}	latency_s	0.005157083000000284
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q20	{"limit": 10, "strategy": "symbols"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q20	{"limit": 10, "strategy": "symbols"}	latency_s	0.005138124999998439
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q20	{"limit": 20, "strategy": "symbols"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q20	{"limit": 20, "strategy": "symbols"}	latency_s	0.005992207999998556
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q20	{"limit": 10, "strategy": "files"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q20	{"limit": 10, "strategy": "files"}	latency_s	0.00020058300000158624
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q20	{"limit": 20, "strategy": "files"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q20	{"limit": 20, "strategy": "files"}	latency_s	0.0003984999999993022
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q20	{"limit": 10, "strategy": "combined"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q20	{"limit": 10, "strategy": "combined"}	latency_s	0.008213666999999703
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q20	{"limit": 20, "strategy": "combined"}	ndcg@10	0.0
+2026-03-29T15:54:53+00:00	routing	turborepo	shire	q20	{"limit": 20, "strategy": "combined"}	latency_s	0.007062167000000841
