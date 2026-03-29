@@ -1,11 +1,11 @@
-//! Embedding-assisted routing: fastembed via Python subprocess, cosine ranking, directory operations.
+//! Embedding-assisted routing: native fastembed inference, cosine ranking, directory operations.
 
-use std::io::Write;
 use std::path::Path;
-use std::process::Command;
+use std::sync::Mutex;
 use std::time::Instant;
 
 use anyhow::{bail, Context, Result};
+use fastembed::{EmbeddingModel, InitOptions, TextEmbedding};
 
 use crate::records::{self, SEM_DIR};
 use crate::vec_store;
@@ -28,70 +28,45 @@ pub struct RouteLevel {
 }
 
 // ---------------------------------------------------------------------------
-// Core embedding via Python subprocess
+// Native embedding via fastembed (ONNX Runtime)
 // ---------------------------------------------------------------------------
 
-/// Embed a batch of texts via fastembed Python subprocess.
+static MODEL: Mutex<Option<TextEmbedding>> = Mutex::new(None);
+
+fn get_model(model_name: &str) -> Result<std::sync::MutexGuard<'static, Option<TextEmbedding>>> {
+    let mut guard = MODEL.lock().map_err(|e| anyhow::anyhow!("model lock poisoned: {e}"))?;
+    if guard.is_none() {
+        let model_enum = match model_name {
+            "BAAI/bge-small-en-v1.5" => EmbeddingModel::BGESmallENV15,
+            other => bail!("Unsupported embedding model: {other}. Only BAAI/bge-small-en-v1.5 is currently supported."),
+        };
+        let options = InitOptions::new(model_enum).with_show_download_progress(true);
+        let model = TextEmbedding::try_new(options).context("loading embedding model")?;
+        *guard = Some(model);
+    }
+    Ok(guard)
+}
+
+/// Embed a batch of document texts. Returns list of float vectors.
 pub fn embed_texts(texts: &[String], model: &str) -> Result<Vec<Vec<f32>>> {
     if texts.is_empty() {
         return Ok(vec![]);
     }
-    embed_via_python(texts, false, model)
+    let guard = get_model(model)?;
+    let m = guard.as_ref().unwrap();
+    let embeddings = m.embed(texts.to_vec(), None)?;
+    Ok(embeddings)
 }
 
-/// Embed a single query string via fastembed Python subprocess.
+/// Embed a single query string. Returns a float vector.
 pub fn embed_query(query: &str, model: &str) -> Result<Vec<f32>> {
-    let results = embed_via_python(&[query.to_string()], true, model)?;
-    results
+    let guard = get_model(model)?;
+    let m = guard.as_ref().unwrap();
+    let embeddings = m.embed(vec![format!("query: {query}")], None)?;
+    embeddings
         .into_iter()
         .next()
         .ok_or_else(|| anyhow::anyhow!("empty embedding result"))
-}
-
-fn embed_via_python(texts: &[String], is_query: bool, model: &str) -> Result<Vec<Vec<f32>>> {
-    // Write texts to a temp file as JSON
-    let mut tmpfile = tempfile::NamedTempFile::new().context("creating temp file for embedder")?;
-    let json_texts = serde_json::to_string(texts)?;
-    tmpfile.write_all(json_texts.as_bytes())?;
-    tmpfile.flush()?;
-    let tmp_path = tmpfile.path().to_string_lossy().to_string();
-
-    let method = if is_query { "query_embed" } else { "passage_embed" };
-
-    let script = format!(
-        r#"
-import json, sys
-from fastembed import TextEmbedding
-texts = json.load(open(sys.argv[1]))
-model = TextEmbedding(model_name=sys.argv[2])
-method = sys.argv[3]
-if method == "query_embed":
-    vecs = [list(v) for v in model.query_embed(texts)]
-else:
-    vecs = [list(v) for v in model.passage_embed(texts)]
-# Output as JSON array of arrays
-json.dump([[float(x) for x in v] for v in vecs], sys.stdout)
-"#
-    );
-
-    let output = Command::new("python3")
-        .arg("-c")
-        .arg(&script)
-        .arg(&tmp_path)
-        .arg(model)
-        .arg(method)
-        .output()
-        .context("failed to run python3 for embedding")?;
-
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        bail!("python embedder failed: {}", stderr);
-    }
-
-    let vectors: Vec<Vec<f32>> = serde_json::from_slice(&output.stdout)
-        .context("parsing embedding output from python")?;
-
-    Ok(vectors)
 }
 
 // ---------------------------------------------------------------------------

@@ -9,13 +9,12 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde_yaml = "0.9"
 sha2 = "0.10"
-ort = { version = "2.0.0-rc.12", features = ["download-binaries"] }
-# tokenizers deferred — using ort's built-in tokenizer or simple prefix approach
+fastembed = "4"
 tokio = { version = "1", features = ["full"] }
 memmap2 = "0.9"
 walkdir = "2"
 glob = "0.3"
 anyhow = "1"
+tempfile = "3"
 
 [dev-dependencies]
-tempfile = "3"
