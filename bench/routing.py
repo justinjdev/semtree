@@ -369,12 +369,12 @@ def run_dilution_ablation(
     repo_name: str = "local",
     results_path: Path | None = None,
 ) -> list[MetricRecord]:
-    """Run dilution ablation: shared descent traces, three penalty conditions.
+    """Run dilution ablation: single shared descent with post-hoc penalty metrics.
 
-    Conditions:
-    - srt/no_penalty: baseline (mu=0)
-    - srt/log_dilution: log(1 + n_l) penalty
-    - srt/ratio_dilution: rho_l penalty
+    For each (query, control) pair, runs one descent trace and records
+    retrieval metrics (NDCG, precision, recall, MRR) alongside both
+    dilution penalty values (log and ratio). Penalties are observational —
+    they do not influence beam selection.
     """
     from bench.harness import append_results
 

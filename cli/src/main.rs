@@ -360,7 +360,7 @@ fn main() -> anyhow::Result<()> {
                 }
             }
 
-            if phase == "depth-profile" || phase == "all" {
+            if phase == "depth-profile" || (phase == "all" && queries.is_some()) {
                 let queries_path = queries.as_ref().ok_or_else(|| {
                     anyhow::anyhow!("--queries is required for the depth-profile phase")
                 })?;
