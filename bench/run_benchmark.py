@@ -44,7 +44,7 @@ SOCKET_PATH = "/tmp/semtree-bench.sock"
 SRT_GRID = [
     {"beam_width": bw, "max_depth": md}
     for bw in [3, 5]
-    for md in [5, 10]
+    for md in [3, 5]
 ]
 
 GREP_GRID = [{"max_files": mf} for mf in [5, 10, 20]]
@@ -119,7 +119,7 @@ def run_srt_cold(repo, queries, repo_name, results_path):
             proc = subprocess.run(
                 [str(SEMTREE), "route", q["question"], str(repo),
                  "--beam-width", str(ctrl["beam_width"]), "--max-depth", str(ctrl["max_depth"])],
-                capture_output=True, text=True, timeout=30)
+                capture_output=True, text=True, timeout=120)
             latency = time.monotonic() - t0
             files = parse_route_output(proc.stdout)
             ndcg = ndcg_at_k(files, rel)

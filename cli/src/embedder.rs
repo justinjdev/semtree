@@ -231,7 +231,11 @@ fn compact_dir_summary(full_summary: &str) -> String {
                             .split_once(". ")
                             .map(|(first, _)| first)
                             .unwrap_or(desc);
-                        let short = if short.len() > 80 { &short[..80] } else { short };
+                        let short = if short.len() > 80 {
+                            let mut end = 80;
+                            while !short.is_char_boundary(end) { end -= 1; }
+                            &short[..end]
+                        } else { short };
                         children_compact.push(format!("{name}: {short}"));
                     }
                 }
@@ -656,8 +660,11 @@ pub fn route_directory_with_policy(
         };
         levels.push(level_info);
 
-        // Queue directory children for descent
+        // Queue directory children for descent (skip self-references)
         for (child_path, _score) in &selected {
+            if child_path == "." || child_path == &dir_rel {
+                continue;
+            }
             if let Some(info) = child_lookup.get(child_path.as_str()) {
                 if info.is_dir {
                     let child_abs = target.join(child_path);
