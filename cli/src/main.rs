@@ -43,6 +43,9 @@ enum Commands {
         /// Embedding model name
         #[arg(long, default_value = "BAAI/bge-small-en-v1.5")]
         embed_model: String,
+        /// Use Anthropic Batch API for file summaries (50% cost savings, async)
+        #[arg(long)]
+        batch: bool,
     },
 
     /// Compute embeddings for existing .sem/ records
@@ -134,7 +137,7 @@ fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Build { path, model, max_tokens, force, exclude, no_embed, embed_model } => {
+        Commands::Build { path, model, max_tokens, force, exclude, no_embed, embed_model, batch } => {
             let config = builder::BuildConfig {
                 target_path: std::fs::canonicalize(&path)?,
                 model,
@@ -144,7 +147,11 @@ fn main() -> anyhow::Result<()> {
                 embed: !no_embed,
                 embed_model,
             };
-            let stats = builder::build(&config)?;
+            let stats = if batch {
+                builder::build_batch(&config)?
+            } else {
+                builder::build(&config)?
+            };
             println!(
                 "Build complete: {} summarized, {} skipped, {} errored",
                 stats.summarized, stats.skipped, stats.errored
