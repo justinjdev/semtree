@@ -13,6 +13,7 @@ mod server;
 mod bench;
 mod depth_profile;
 mod review;
+mod search;
 
 #[derive(Parser)]
 #[command(name = "semtree", about = "Semantic Resolution Tree indexer")]
@@ -174,6 +175,21 @@ enum Commands {
         /// Run dilution ablation (delegates to Python bench)
         #[arg(long)]
         dilution: bool,
+    },
+
+    /// Query-adaptive search: classifies intent and routes to the best backend
+    Search {
+        /// Natural language query
+        query: String,
+        /// Repository root path
+        #[arg(default_value = ".")]
+        path: PathBuf,
+        /// Embedding model name
+        #[arg(long, default_value = "BAAI/bge-small-en-v1.5")]
+        model: String,
+        /// Max results to return
+        #[arg(long, default_value_t = 10)]
+        max_results: usize,
     },
 
     /// Inspect binary .vec files
@@ -433,6 +449,10 @@ fn main() -> anyhow::Result<()> {
             }
 
             eprintln!("Benchmark complete.");
+        }
+        Commands::Search { query, path, model, max_results } => {
+            let target = std::fs::canonicalize(&path)?;
+            search::run(&target, &query, &model, max_results)?;
         }
         Commands::Vec { cmd } => match cmd {
             VecCommands::Inspect { path } => {
