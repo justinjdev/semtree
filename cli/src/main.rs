@@ -58,6 +58,9 @@ enum Commands {
         /// Max fraction of orphaned children before triggering re-summarization (default: 0.2)
         #[arg(long, default_value_t = 0.2)]
         orphan_rate: f32,
+        /// Max re-summarization attempts per directory node (default: 2)
+        #[arg(long, default_value_t = 2)]
+        max_repair_attempts: usize,
     },
 
     /// Compute embeddings for existing .sem/ records
@@ -193,7 +196,7 @@ fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Build { path, model, max_tokens, force, exclude, no_embed, embed_model, batch, verify, fidelity_threshold, orphan_rate } => {
+        Commands::Build { path, model, max_tokens, force, exclude, no_embed, embed_model, batch, verify, fidelity_threshold, orphan_rate, max_repair_attempts } => {
             let config = builder::BuildConfig {
                 target_path: std::fs::canonicalize(&path)?,
                 model,
@@ -205,6 +208,7 @@ fn main() -> anyhow::Result<()> {
                 verify,
                 fidelity_threshold,
                 orphan_rate,
+                max_repair_attempts,
             };
             let stats = if batch {
                 builder::build_batch(&config)?

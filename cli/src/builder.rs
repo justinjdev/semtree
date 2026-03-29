@@ -24,6 +24,7 @@ pub struct BuildConfig {
     pub verify: bool,
     pub fidelity_threshold: f32,
     pub orphan_rate: f32,
+    pub max_repair_attempts: usize,
 }
 
 /// Statistics from a build run.
@@ -173,39 +174,78 @@ pub fn build_with_summarizer(
                 Ok(mut summary) => {
                     // BottleSum-style orphan detection: verify summary covers all children
                     if config.verify && node.children.len() > 1 {
-                        if let Ok(summary_vec) = embedder::embed_query(&summary, &config.embed_model) {
-                            let sem_dir = config.target_path.join(if rel.is_empty() { ".sem".to_string() } else { format!("{}/.sem", rel) });
-                            let mut orphans: Vec<String> = Vec::new();
-                            for child in &node.children {
-                                // Load child embedding from .vec file
+                        let sem_dir = config.target_path.join(if rel.is_empty() { ".sem".to_string() } else { format!("{}/.sem", rel) });
+
+                        // Load child embeddings once
+                        let child_vecs: Vec<(String, Vec<f32>)> = node.children.iter()
+                            .filter_map(|child| {
                                 let child_vec_path = sem_dir.join(format!("{}.vec", child));
-                                if let Ok(Some(vec_data)) = vec_store::read_vec(&child_vec_path) {
-                                    let sim = embedder::cosine_similarity(&summary_vec, &vec_data.vector);
-                                    if sim < config.fidelity_threshold {
+                                vec_store::read_vec(&child_vec_path).ok()?.map(|vd| (child.clone(), vd.vector))
+                            })
+                            .collect();
+
+                        if let Ok(mut summary_vec) = embedder::embed_query(&summary, &config.embed_model) {
+                            let mut best_summary = summary.clone();
+                            let mut best_vec = summary_vec.clone();
+                            let mut best_rho: f32 = child_vecs.iter()
+                                .map(|(_, v)| embedder::cosine_similarity(&summary_vec, v))
+                                .sum::<f32>() / child_vecs.len().max(1) as f32;
+
+                            for attempt in 0..config.max_repair_attempts {
+                                let mut orphans: Vec<String> = Vec::new();
+                                for (child, vec) in &child_vecs {
+                                    if embedder::cosine_similarity(&summary_vec, vec) < config.fidelity_threshold {
                                         orphans.push(child.clone());
                                     }
                                 }
-                            }
 
-                            if !orphans.is_empty() {
+                                if orphans.is_empty() {
+                                    break;
+                                }
+
                                 stats.orphans_detected += orphans.len();
                                 let orphan_frac = orphans.len() as f32 / node.children.len() as f32;
-                                eprintln!("[{idx}/{total}] verify {label}: {}/{} orphans (sim < {:.2})",
-                                    orphans.len(), node.children.len(), config.fidelity_threshold);
+                                eprintln!("[{idx}/{total}] verify {label}: {}/{} orphans (attempt {}/{})",
+                                    orphans.len(), node.children.len(), attempt + 1, config.max_repair_attempts);
 
-                                if orphan_frac > config.orphan_rate {
-                                    // Re-summarize with orphan guidance
-                                    let orphan_refs: Vec<&str> = orphans.iter().map(|s| s.as_str()).collect();
-                                    let revise_prompt = summarizer::build_verify_prompt(
-                                        rel, &summary, &orphan_refs, &child_summary_pairs,
-                                    );
-                                    if let Ok(revised) = summarizer.call(&revise_prompt) {
-                                        summary = revised;
-                                        stats.resummarized += 1;
-                                        eprintln!("[{idx}/{total}] re-summarized {label} (covering {} orphans)", orphans.len());
+                                if orphan_frac <= config.orphan_rate {
+                                    break;
+                                }
+
+                                // Re-summarize with orphan guidance
+                                let orphan_refs: Vec<&str> = orphans.iter().map(|s| s.as_str()).collect();
+                                let revise_prompt = summarizer::build_verify_prompt(
+                                    rel, &summary, &orphan_refs, &child_summary_pairs,
+                                );
+                                match summarizer.call(&revise_prompt) {
+                                    Ok(revised) => {
+                                        if let Ok(revised_vec) = embedder::embed_query(&revised, &config.embed_model) {
+                                            let rho: f32 = child_vecs.iter()
+                                                .map(|(_, v)| embedder::cosine_similarity(&revised_vec, v))
+                                                .sum::<f32>() / child_vecs.len().max(1) as f32;
+
+                                            // Keep the best summary across attempts
+                                            if rho > best_rho {
+                                                best_summary = revised.clone();
+                                                best_vec = revised_vec.clone();
+                                                best_rho = rho;
+                                            }
+
+                                            summary = revised;
+                                            summary_vec = revised_vec;
+                                            stats.resummarized += 1;
+                                            eprintln!("[{idx}/{total}] re-summarized {label} (rho: {:.3}, best: {:.3})", rho, best_rho);
+                                        }
+                                    }
+                                    Err(e) => {
+                                        eprintln!("[{idx}/{total}] re-summarize failed: {e}");
+                                        break;
                                     }
                                 }
                             }
+
+                            // Use the best summary found across all attempts
+                            summary = best_summary;
                         }
                     }
 
@@ -591,6 +631,7 @@ mod tests {
             verify: false,
             fidelity_threshold: 0.3,
             orphan_rate: 0.2,
+            max_repair_attempts: 2,
         }
     }
 
@@ -726,6 +767,7 @@ mod tests {
             verify: false,
             fidelity_threshold: 0.3,
             orphan_rate: 0.2,
+            max_repair_attempts: 2,
         };
         build_with_summarizer(&config, &MockSummarizer).unwrap();
 
