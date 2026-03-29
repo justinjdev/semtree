@@ -139,7 +139,20 @@ pub fn embed_directory(target: &Path, model: &str, force: bool) -> Result<EmbedS
             }
         }
 
-        to_embed.push((vec_path.clone(), record.content_hash.clone(), record.summary.clone()));
+        // For directory siblings, use the full __dir__.md content (with ## Children
+        // routing table) for embedding instead of the abbreviated sibling summary.
+        let embed_text = if record.node_type == "directory" && !md_path.ends_with(records::DIR_RECORD) {
+            let dir_record = target.join(&record.path).join(SEM_DIR).join(records::DIR_RECORD);
+            if let Ok(Some(dir_rec)) = records::read_record(&dir_record) {
+                dir_rec.summary
+            } else {
+                record.summary.clone()
+            }
+        } else {
+            record.summary.clone()
+        };
+
+        to_embed.push((vec_path.clone(), record.content_hash.clone(), embed_text));
     }
 
     if to_embed.is_empty() {
@@ -329,6 +342,7 @@ pub fn route_directory(
             .map(|c| (c.path.as_str(), c.vector.as_slice()))
             .collect();
         let ranked = cosine_rank(&query_vec, &children_refs);
+
         let selected: Vec<_> = ranked.iter().take(beam_width).cloned().collect();
 
         // Build a quick lookup for selected children
@@ -373,6 +387,7 @@ pub fn route_directory(
 
     Ok(levels)
 }
+
 
 // ---------------------------------------------------------------------------
 // Helpers

@@ -29,13 +29,43 @@ def write_vec(
 
 
 def read_vec(vec_path: Path) -> dict[str, Any] | None:
-    """Read a .vec sidecar file, or None if missing/invalid."""
+    """Read a .vec sidecar file (JSON or binary SVEC format), or None if missing/invalid."""
     if not vec_path.exists():
         return None
     try:
-        return json.loads(vec_path.read_text(encoding="utf-8"))
-    except (json.JSONDecodeError, OSError):
+        raw = vec_path.read_bytes()
+        # Detect binary SVEC format (magic bytes "SVEC")
+        if raw[:4] == b"SVEC":
+            return _parse_svec(raw)
+        # Fall back to JSON
+        return json.loads(raw.decode("utf-8"))
+    except (json.JSONDecodeError, OSError, ValueError):
         return None
+
+
+def _parse_svec(raw: bytes) -> dict[str, Any] | None:
+    """Parse binary SVEC .vec format: 16-byte header + hash + model + aligned f32 vector."""
+    import struct
+    if len(raw) < 16:
+        return None
+    magic, version, dims, hash_len = struct.unpack("<4sHHI", raw[:12])
+    if magic != b"SVEC":
+        return None
+    # Skip 4 bytes padding in header (bytes 12-15)
+    offset = 16
+    content_hash = raw[offset:offset + hash_len].decode("ascii")
+    offset += hash_len
+    # Model name: null-terminated string
+    null_pos = raw.index(b"\x00", offset)
+    model = raw[offset:null_pos].decode("utf-8")
+    offset = null_pos + 1
+    # Align to 4 bytes for f32 array
+    if offset % 4 != 0:
+        offset += 4 - (offset % 4)
+    # Read f32 vector
+    vec_bytes = raw[offset:]
+    vector = list(struct.unpack(f"<{dims}f", vec_bytes[:dims * 4]))
+    return {"model": model, "content_hash": content_hash, "vector": vector}
 
 
 def is_vec_fresh(

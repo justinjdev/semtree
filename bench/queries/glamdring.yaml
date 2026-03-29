@@ -1,0 +1,292 @@
+queries:
+  # focused queries (q01-q07)
+
+  - id: q01
+    question: "where is the TaskStatus type defined?"
+    category: focused
+    relevant:
+      - path: pkg/teams/types.go
+        relevance: 3
+      - path: pkg/teams/tasks.go
+        relevance: 2
+      - path: pkg/teams/tool_tasks.go
+        relevance: 1
+
+  - id: q02
+    question: "where is the PhaseRegistry type defined and what does it do?"
+    category: focused
+    relevant:
+      - path: pkg/teams/phaseregistry.go
+        relevance: 3
+      - path: pkg/teams/interfaces.go
+        relevance: 2
+      - path: pkg/teams/types.go
+        relevance: 2
+      - path: pkg/tools/provider.go
+        relevance: 1
+
+  - id: q03
+    question: "where is the ReadTracker type defined?"
+    category: focused
+    relevant:
+      - path: pkg/tools/tracker.go
+        relevance: 3
+      - path: pkg/tools/read.go
+        relevance: 2
+      - path: pkg/tools/write.go
+        relevance: 2
+      - path: pkg/tools/defaults.go
+        relevance: 1
+
+  - id: q04
+    question: "where is the ResolveWorkflow function defined and what workflows does it support?"
+    category: focused
+    relevant:
+      - path: pkg/teams/workflows.go
+        relevance: 3
+      - path: pkg/teams/types.go
+        relevance: 2
+      - path: pkg/config/settings.go
+        relevance: 1
+
+  - id: q05
+    question: "where is the model catalog defined and what models does it contain?"
+    category: focused
+    relevant:
+      - path: pkg/provider/registry.go
+        relevance: 3
+      - path: pkg/provider/factory.go
+        relevance: 2
+      - path: pkg/provider/provider.go
+        relevance: 1
+
+  - id: q06
+    question: "where are the built-in TUI themes defined?"
+    category: focused
+    relevant:
+      - path: internal/tui/styles.go
+        relevance: 3
+      - path: internal/tui/model.go
+        relevance: 1
+      - path: pkg/config/settings.go
+        relevance: 1
+
+  - id: q07
+    question: "where is the AdvancePhaseTool implemented?"
+    category: focused
+    relevant:
+      - path: pkg/teams/tool_phase.go
+        relevance: 3
+      - path: pkg/teams/types.go
+        relevance: 2
+      - path: pkg/teams/phases.go
+        relevance: 2
+      - path: pkg/teams/interfaces.go
+        relevance: 1
+
+  # module queries (q08-q14)
+
+  - id: q08
+    question: "how does the permission system work for tool execution?"
+    category: module
+    relevant:
+      - path: pkg/config/permissions.go
+        relevance: 3
+      - path: pkg/agent/agent.go
+        relevance: 3
+      - path: pkg/agent/session.go
+        relevance: 2
+      - path: pkg/teams/decorators.go
+        relevance: 2
+      - path: pkg/config/settings.go
+        relevance: 1
+
+  - id: q09
+    question: "how does the MCP server lifecycle management work?"
+    category: module
+    relevant:
+      - path: pkg/mcp/manager.go
+        relevance: 3
+      - path: pkg/mcp/client.go
+        relevance: 3
+      - path: pkg/mcp/adapter.go
+        relevance: 2
+      - path: pkg/mcp/protocol.go
+        relevance: 2
+      - path: pkg/config/settings.go
+        relevance: 1
+
+  - id: q10
+    question: "how does the multi-turn conversation session maintain state?"
+    category: module
+    relevant:
+      - path: pkg/agent/session.go
+        relevance: 3
+      - path: pkg/agent/agent.go
+        relevance: 2
+      - path: pkg/agent/message.go
+        relevance: 2
+      - path: pkg/agent/config.go
+        relevance: 1
+      - path: pkg/api/api.go
+        relevance: 1
+
+  - id: q11
+    question: "how does the hook system work for agent lifecycle events?"
+    category: module
+    relevant:
+      - path: pkg/hooks/hooks.go
+        relevance: 3
+      - path: pkg/hooks/events.go
+        relevance: 3
+      - path: pkg/hooks/loader.go
+        relevance: 2
+      - path: pkg/agent/agent.go
+        relevance: 2
+      - path: pkg/agent/config.go
+        relevance: 1
+
+  - id: q12
+    question: "how does credential resolution work for multiple LLM providers?"
+    category: module
+    relevant:
+      - path: pkg/auth/resolve.go
+        relevance: 3
+      - path: pkg/auth/credentials.go
+        relevance: 3
+      - path: pkg/provider/registry.go
+        relevance: 2
+      - path: pkg/provider/factory.go
+        relevance: 2
+      - path: pkg/config/settings.go
+        relevance: 1
+
+  - id: q13
+    question: "how does the system prompt get assembled for agents?"
+    category: module
+    relevant:
+      - path: pkg/config/prompt.go
+        relevance: 3
+      - path: pkg/config/claudemd.go
+        relevance: 2
+      - path: pkg/agent/config.go
+        relevance: 2
+      - path: pkg/agent/session.go
+        relevance: 1
+      - path: main.go
+        relevance: 1
+
+  - id: q14
+    question: "how does the task storage system work for persisting team tasks?"
+    category: module
+    relevant:
+      - path: pkg/teams/tasks.go
+        relevance: 3
+      - path: pkg/teams/interfaces.go
+        relevance: 2
+      - path: pkg/teams/types.go
+        relevance: 2
+      - path: pkg/teams/tool_tasks.go
+        relevance: 2
+      - path: pkg/teams/manager.go
+        relevance: 1
+
+  # cross-cutting queries (q15-q20)
+
+  - id: q15
+    question: "how do tools get registered and filtered by workflow phase?"
+    category: cross-cutting
+    relevant:
+      - path: pkg/teams/phaseregistry.go
+        relevance: 3
+      - path: pkg/tools/registry.go
+        relevance: 3
+      - path: pkg/teams/workflows.go
+        relevance: 2
+      - path: pkg/teams/types.go
+        relevance: 2
+      - path: pkg/tools/tool.go
+        relevance: 2
+      - path: pkg/tools/provider.go
+        relevance: 1
+      - path: pkg/teams/interfaces.go
+        relevance: 1
+
+  - id: q16
+    question: "how does an MCP tool get adapted and exposed to the agent?"
+    category: cross-cutting
+    relevant:
+      - path: pkg/mcp/adapter.go
+        relevance: 3
+      - path: pkg/mcp/manager.go
+        relevance: 2
+      - path: pkg/tools/tool.go
+        relevance: 2
+      - path: pkg/tools/registry.go
+        relevance: 2
+      - path: pkg/mcp/protocol.go
+        relevance: 2
+      - path: pkg/agent/session.go
+        relevance: 1
+
+  - id: q17
+    question: "how does the read-before-write safety check work across Read and Write tools?"
+    category: cross-cutting
+    relevant:
+      - path: pkg/tools/tracker.go
+        relevance: 3
+      - path: pkg/tools/write.go
+        relevance: 3
+      - path: pkg/tools/read.go
+        relevance: 2
+      - path: pkg/tools/defaults.go
+        relevance: 2
+
+  - id: q18
+    question: "how does phase advancement interact with model switching during a team workflow?"
+    category: cross-cutting
+    relevant:
+      - path: pkg/teams/tool_phase.go
+        relevance: 3
+      - path: pkg/agent/session.go
+        relevance: 3
+      - path: pkg/teams/phaseregistry.go
+        relevance: 2
+      - path: pkg/teams/phases.go
+        relevance: 2
+      - path: pkg/teams/types.go
+        relevance: 1
+      - path: pkg/tools/provider.go
+        relevance: 1
+
+  - id: q19
+    question: "how does the TUI handle streaming tool output and permission prompts from the agent?"
+    category: cross-cutting
+    relevant:
+      - path: internal/tui/model.go
+        relevance: 3
+      - path: pkg/agent/message.go
+        relevance: 3
+      - path: pkg/agent/agent.go
+        relevance: 2
+      - path: internal/tui/output.go
+        relevance: 2
+      - path: pkg/agent/session.go
+        relevance: 1
+
+  - id: q20
+    question: "how do tool decorators in teams enforce file path scoping and check-in gating?"
+    category: cross-cutting
+    relevant:
+      - path: pkg/teams/decorators.go
+        relevance: 3
+      - path: pkg/config/permissions.go
+        relevance: 2
+      - path: pkg/teams/interfaces.go
+        relevance: 2
+      - path: pkg/teams/checkin.go
+        relevance: 2
+      - path: pkg/tools/tool.go
+        relevance: 1
+      - path: pkg/teams/types.go
+        relevance: 1
