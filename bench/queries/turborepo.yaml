@@ -1,0 +1,270 @@
+queries:
+  # focused queries (q01-q07)
+
+  - id: q01
+    question: "where is the task hash computed for cache key generation?"
+    category: focused
+    relevant:
+      - path: crates/turborepo-task-hash/src/lib.rs
+        relevance: 3
+      - path: crates/turborepo-task-hash/src/global_hash.rs
+        relevance: 2
+      - path: crates/turborepo-lib/src/task_hash.rs
+        relevance: 2
+      - path: crates/turborepo-hash/src/lib.rs
+        relevance: 1
+
+  - id: q02
+    question: "where is the CacheMultiplexer defined and how does it coordinate local and remote caches?"
+    category: focused
+    relevant:
+      - path: crates/turborepo-cache/src/multiplexer.rs
+        relevance: 3
+      - path: crates/turborepo-cache/src/http.rs
+        relevance: 2
+      - path: crates/turborepo-cache/src/async_cache.rs
+        relevance: 2
+      - path: crates/turborepo-cache/src/lib.rs
+        relevance: 1
+
+  - id: q03
+    question: "where is the EngineBuilder that constructs the task dependency graph?"
+    category: focused
+    relevant:
+      - path: crates/turborepo-engine/src/builder.rs
+        relevance: 3
+      - path: crates/turborepo-engine/src/lib.rs
+        relevance: 2
+      - path: crates/turborepo-lib/src/task_graph/mod.rs
+        relevance: 1
+
+  - id: q04
+    question: "where is the turbo.json configuration file parsed into Rust types?"
+    category: focused
+    relevant:
+      - path: crates/turborepo-turbo-json/src/lib.rs
+        relevance: 3
+      - path: crates/turborepo-config/src/turbo_json.rs
+        relevance: 3
+      - path: crates/turborepo-config/src/lib.rs
+        relevance: 1
+
+  - id: q05
+    question: "where is the PackageManager trait defined and what package managers are supported?"
+    category: focused
+    relevant:
+      - path: crates/turborepo-repository/src/package_manager/mod.rs
+        relevance: 3
+      - path: crates/turborepo-repository/src/discovery.rs
+        relevance: 2
+      - path: crates/turborepo-lib/src/run/package_discovery/mod.rs
+        relevance: 1
+
+  - id: q06
+    question: "where is the GlobWatcher that monitors filesystem changes?"
+    category: focused
+    relevant:
+      - path: crates/turborepo-filewatch/src/globwatcher.rs
+        relevance: 3
+      - path: crates/turborepo-filewatch/src/lib.rs
+        relevance: 2
+      - path: crates/turborepo-filewatch/src/package_watcher.rs
+        relevance: 1
+
+  - id: q07
+    question: "where is the DaemonServer's gRPC service implemented?"
+    category: focused
+    relevant:
+      - path: crates/turborepo-daemon/src/server.rs
+        relevance: 3
+      - path: crates/turborepo-daemon/src/lib.rs
+        relevance: 2
+      - path: crates/turborepo-daemon/build.rs
+        relevance: 1
+
+  # module queries (q08-q14)
+
+  - id: q08
+    question: "how does the remote cache HTTP client handle artifact upload and download?"
+    category: module
+    relevant:
+      - path: crates/turborepo-cache/src/http.rs
+        relevance: 3
+      - path: crates/turborepo-cache/src/signature_authentication.rs
+        relevance: 2
+      - path: crates/turborepo-cache/src/upload_progress.rs
+        relevance: 2
+      - path: crates/turborepo-cache/src/multiplexer.rs
+        relevance: 1
+      - path: crates/turborepo-cache/src/lib.rs
+        relevance: 1
+
+  - id: q09
+    question: "how does the codemod migration system discover and apply transforms?"
+    category: module
+    relevant:
+      - path: packages/turbo-codemod/src/cli.ts
+        relevance: 3
+      - path: packages/turbo-codemod/src/transforms/rename-pipeline.ts
+        relevance: 2
+      - path: packages/turbo-codemod/src/transforms/stabilize-env-mode.ts
+        relevance: 2
+      - path: packages/turbo-codemod/src/transforms/migrate-dot-env.ts
+        relevance: 1
+      - path: packages/turbo-codemod/__tests__/
+        relevance: 1
+
+  - id: q10
+    question: "how does the run command execute tasks with caching and output handling?"
+    category: module
+    relevant:
+      - path: crates/turborepo-lib/src/run/mod.rs
+        relevance: 3
+      - path: crates/turborepo-lib/src/run/builder.rs
+        relevance: 3
+      - path: crates/turborepo-lib/src/commands/run.rs
+        relevance: 2
+      - path: crates/turborepo-lib/src/opts.rs
+        relevance: 2
+      - path: crates/turborepo-lib/src/run/ui.rs
+        relevance: 1
+
+  - id: q11
+    question: "how does the daemon's file watching system track package changes?"
+    category: module
+    relevant:
+      - path: crates/turborepo-filewatch/src/package_watcher.rs
+        relevance: 3
+      - path: crates/turborepo-filewatch/src/hash_watcher.rs
+        relevance: 3
+      - path: crates/turborepo-filewatch/src/lib.rs
+        relevance: 2
+      - path: crates/turborepo-daemon/src/server.rs
+        relevance: 2
+
+  - id: q12
+    question: "how does the graph utilities crate detect cycles in task dependency graphs?"
+    category: module
+    relevant:
+      - path: crates/turborepo-graph-utils/src/lib.rs
+        relevance: 3
+      - path: crates/turborepo-engine/src/builder.rs
+        relevance: 2
+      - path: crates/turborepo-engine/src/lib.rs
+        relevance: 1
+
+  - id: q13
+    question: "how does the configuration system merge settings from turbo.json, environment variables, and CLI flags?"
+    category: module
+    relevant:
+      - path: crates/turborepo-config/src/lib.rs
+        relevance: 3
+      - path: crates/turborepo-config/src/turbo_json.rs
+        relevance: 3
+      - path: crates/turborepo-config/src/env.rs
+        relevance: 2
+      - path: crates/turborepo-types/src/lib.rs
+        relevance: 1
+
+  - id: q14
+    question: "how does the prune command create a sparse monorepo subset?"
+    category: module
+    relevant:
+      - path: crates/turborepo-lib/src/commands/prune.rs
+        relevance: 3
+      - path: crates/turborepo-repository/src/package_manager/mod.rs
+        relevance: 2
+      - path: lockfile-tests/check-lockfiles.ts
+        relevance: 1
+
+  # cross-cutting queries (q15-q20)
+
+  - id: q15
+    question: "how does a task's environment variable configuration flow from turbo.json through to the task hash?"
+    category: cross-cutting
+    relevant:
+      - path: crates/turborepo-env/src/lib.rs
+        relevance: 3
+      - path: crates/turborepo-task-hash/src/lib.rs
+        relevance: 3
+      - path: crates/turborepo-config/src/env.rs
+        relevance: 2
+      - path: crates/turborepo-turbo-json/src/lib.rs
+        relevance: 2
+      - path: crates/turborepo-types/src/lib.rs
+        relevance: 1
+
+  - id: q16
+    question: "how does the daemon accelerate turbo run by providing pre-computed file hashes?"
+    category: cross-cutting
+    relevant:
+      - path: crates/turborepo-daemon/src/server.rs
+        relevance: 3
+      - path: crates/turborepo-filewatch/src/hash_watcher.rs
+        relevance: 3
+      - path: crates/turborepo-task-hash/src/lib.rs
+        relevance: 2
+      - path: crates/turborepo-lib/src/run/mod.rs
+        relevance: 2
+      - path: crates/turborepo-filewatch/src/package_watcher.rs
+        relevance: 1
+
+  - id: q17
+    question: "how does workspace discovery feed into the task graph construction and execution?"
+    category: cross-cutting
+    relevant:
+      - path: crates/turborepo-repository/src/discovery.rs
+        relevance: 3
+      - path: crates/turborepo-engine/src/builder.rs
+        relevance: 3
+      - path: crates/turborepo-lib/src/run/package_discovery/mod.rs
+        relevance: 2
+      - path: crates/turborepo-repository/src/package_manager/mod.rs
+        relevance: 2
+      - path: crates/turborepo-lib/src/run/builder.rs
+        relevance: 1
+
+  - id: q18
+    question: "how does the dry run mode produce task execution summaries without actually running tasks?"
+    category: cross-cutting
+    relevant:
+      - path: crates/turborepo-lib/src/commands/run.rs
+        relevance: 3
+      - path: crates/turborepo-run-summary/src/execution.rs
+        relevance: 3
+      - path: crates/turborepo-lib/src/run/mod.rs
+        relevance: 2
+      - path: crates/turborepo-lib/src/run/ui.rs
+        relevance: 2
+      - path: crates/turborepo-lib/src/opts.rs
+        relevance: 1
+
+  - id: q19
+    question: "how does the cache signature authentication protect artifact integrity across local and remote backends?"
+    category: cross-cutting
+    relevant:
+      - path: crates/turborepo-cache/src/signature_authentication.rs
+        relevance: 3
+      - path: crates/turborepo-cache/src/http.rs
+        relevance: 3
+      - path: crates/turborepo-cache/src/multiplexer.rs
+        relevance: 2
+      - path: crates/turborepo-cache/src/config.rs
+        relevance: 1
+
+  - id: q20
+    question: "how do lockfile changes affect package discovery, task hashing, and cache invalidation?"
+    category: cross-cutting
+    relevant:
+      - path: crates/turborepo-repository/src/package_manager/mod.rs
+        relevance: 3
+      - path: crates/turborepo-task-hash/src/lib.rs
+        relevance: 3
+      - path: crates/turborepo-cache/src/multiplexer.rs
+        relevance: 2
+      - path: crates/turborepo-lib/src/commands/prune.rs
+        relevance: 2
+      - path: crates/turborepo-lib/src/task_change_detector.rs
+        relevance: 2
+      - path: lockfile-tests/check-lockfiles.ts
+        relevance: 1
