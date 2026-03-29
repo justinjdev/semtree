@@ -306,13 +306,23 @@ pub fn embed_directory(target: &Path, model: &str, force: bool) -> Result<EmbedS
         return Ok(stats);
     }
 
-    eprintln!("Embedding {} records...", to_embed.len());
+    let total = to_embed.len();
+    eprintln!("Embedding {total} records...");
 
-    // Batch embed all summaries
-    let texts: Vec<String> = to_embed.iter().map(|(_, _, s)| s.clone()).collect();
-    let vectors = embed_texts(&texts, model)?;
+    // Embed in chunks with progress
+    let chunk_size = 256;
+    let mut all_vectors: Vec<Vec<f32>> = Vec::with_capacity(total);
 
-    for ((vec_path, content_hash, _), vector) in to_embed.iter().zip(vectors.iter()) {
+    for (chunk_idx, chunk) in to_embed.chunks(chunk_size).enumerate() {
+        let texts: Vec<String> = chunk.iter().map(|(_, _, s)| s.clone()).collect();
+        let vectors = embed_texts(&texts, model)?;
+        let done = (chunk_idx + 1) * chunk_size;
+        eprint!("\r  {}/{total} embedded...", done.min(total));
+        all_vectors.extend(vectors);
+    }
+    eprintln!();
+
+    for ((vec_path, content_hash, _), vector) in to_embed.iter().zip(all_vectors.iter()) {
         vec_store::write_vec(vec_path, model, content_hash, vector)?;
         stats.embedded += 1;
     }
@@ -592,6 +602,103 @@ fn find_sem_records(target: &Path) -> Result<Vec<(std::path::PathBuf, std::path:
 
     pairs.sort();
     Ok(pairs)
+}
+
+/// Impact analysis: for each changed file, find the most similar files in the repo.
+///
+/// Returns a list of (changed_file, [(related_file, score, summary_first_line)]).
+pub fn impact_analysis(
+    target: &Path,
+    changed_files: &[String],
+    model: &str,
+    top_k: usize,
+) -> Result<Vec<(String, Vec<(String, f32, String)>)>> {
+    // Load all file vectors + metadata
+    struct FileEntry {
+        path: String,
+        vector: Vec<f32>,
+        first_line: String,
+    }
+    let mut all_files: Vec<FileEntry> = Vec::new();
+
+    for entry in walkdir::WalkDir::new(target)
+        .into_iter()
+        .filter_map(|e| e.ok())
+    {
+        let path = entry.path();
+        if !path.parent().map_or(false, |p| p.file_name().map_or(false, |n| n == SEM_DIR)) {
+            continue;
+        }
+        if !path.extension().map_or(false, |e| e == "vec") {
+            continue;
+        }
+        if path.file_stem().map_or(false, |s| s == "__dir__") {
+            continue;
+        }
+
+        let vec_data = match vec_store::read_vec(path)? {
+            Some(d) => d,
+            None => continue,
+        };
+
+        let md_path = path.with_extension("md");
+        let record = match records::read_record(&md_path)? {
+            Some(r) => r,
+            None => continue,
+        };
+
+        if record.node_type == "directory" {
+            continue; // only compare files
+        }
+
+        let first_line = record.summary.lines().next().unwrap_or("").trim().to_string();
+        all_files.push(FileEntry {
+            path: record.path,
+            vector: vec_data.vector,
+            first_line,
+        });
+    }
+
+    // For each changed file, find most similar other files
+    let changed_set: std::collections::HashSet<&str> = changed_files.iter().map(|s| s.as_str()).collect();
+
+    let mut results = Vec::new();
+    for changed in changed_files {
+        // Find this file's vector
+        let source = match all_files.iter().find(|f| f.path == *changed) {
+            Some(f) => f,
+            None => {
+                eprintln!("  WARN: no .vec for {changed}, skipping");
+                continue;
+            }
+        };
+
+        // Score against all other files
+        let children_refs: Vec<(&str, &[f32])> = all_files
+            .iter()
+            .filter(|f| !changed_set.contains(f.path.as_str()))
+            .map(|f| (f.path.as_str(), f.vector.as_slice()))
+            .collect();
+
+        let ranked = cosine_rank(&source.vector, &children_refs);
+
+        let top: Vec<(String, f32, String)> = ranked
+            .into_iter()
+            .take(top_k)
+            .map(|(path, score)| {
+                let first_line = all_files
+                    .iter()
+                    .find(|f| f.path == path)
+                    .map(|f| f.first_line.clone())
+                    .unwrap_or_default();
+                (path, score, first_line)
+            })
+            .collect();
+
+        results.push((changed.clone(), top));
+    }
+
+    Ok(results)
 }
 
 #[cfg(test)]

@@ -97,6 +97,22 @@ enum Commands {
         max_depth: usize,
     },
 
+    /// Analyze impact of changed files — find related files that may be affected
+    Impact {
+        /// Repository root path
+        #[arg(default_value = ".")]
+        path: PathBuf,
+        /// Changed files (if omitted, reads from git diff)
+        #[arg(long)]
+        files: Vec<String>,
+        /// Embedding model name
+        #[arg(long, default_value = "BAAI/bge-small-en-v1.5")]
+        model: String,
+        /// Number of related files to show per changed file
+        #[arg(long, default_value_t = 5)]
+        top_k: usize,
+    },
+
     /// Start daemon keeping embedding model loaded
     Serve {
         /// Unix socket path
@@ -244,6 +260,55 @@ fn main() -> anyhow::Result<()> {
                     }
                 }
                 eprintln!("\nRoute complete in {}ms", start.elapsed().as_millis());
+            }
+        }
+        Commands::Impact { path, files, model, top_k } => {
+            let target = std::fs::canonicalize(&path)?;
+
+            // If no files specified, get from git diff
+            let changed = if files.is_empty() {
+                let output = std::process::Command::new("git")
+                    .args(["diff", "--name-only", "HEAD"])
+                    .current_dir(&target)
+                    .output()?;
+                let stdout = String::from_utf8_lossy(&output.stdout);
+                let mut files: Vec<String> = stdout.lines()
+                    .filter(|l| !l.trim().is_empty())
+                    .map(|l| l.trim().to_string())
+                    .collect();
+                if files.is_empty() {
+                    // Try staged
+                    let output = std::process::Command::new("git")
+                        .args(["diff", "--name-only", "--cached"])
+                        .current_dir(&target)
+                        .output()?;
+                    let stdout = String::from_utf8_lossy(&output.stdout);
+                    files = stdout.lines()
+                        .filter(|l| !l.trim().is_empty())
+                        .map(|l| l.trim().to_string())
+                        .collect();
+                }
+                if files.is_empty() {
+                    eprintln!("No changed files found. Specify with --files or have uncommitted changes.");
+                    std::process::exit(1);
+                }
+                files
+            } else {
+                files
+            };
+
+            eprintln!("Analyzing impact of {} changed file(s)...", changed.len());
+            let results = embedder::impact_analysis(&target, &changed, &model, top_k)?;
+
+            for (changed_file, related) in &results {
+                println!("\n{changed_file}:");
+                if related.is_empty() {
+                    println!("  (no related files found)");
+                } else {
+                    for (path, score, first_line) in related {
+                        println!("  {score:.3}  {path}  {}", &first_line[..first_line.len().min(70)]);
+                    }
+                }
             }
         }
         Commands::Serve { socket } => {
