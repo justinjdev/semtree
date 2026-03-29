@@ -606,7 +606,6 @@ pub fn route_directory_with_policy(
             } else {
                 format!("{}/{}", dir_rel, child_name)
             };
-            eprintln!("DEBUG: dir_rel={:?} child_name={:?} full_path={:?}", dir_rel, child_name, full_path);
             children.push(ChildInfo {
                 path: full_path,
                 vector: vec_data.vector,

@@ -80,6 +80,9 @@ pub async fn serve(socket_path: &Path) -> Result<()> {
     Ok(())
 }
 
+/// Per-request timeout (seconds).
+const REQUEST_TIMEOUT_SECS: u64 = 30;
+
 async fn handle_connection(stream: tokio::net::UnixStream) -> Result<()> {
     let (reader, mut writer) = stream.into_split();
     let mut lines = BufReader::new(reader).lines();
@@ -87,18 +90,51 @@ async fn handle_connection(stream: tokio::net::UnixStream) -> Result<()> {
     while let Some(line) = lines.next_line().await? {
         let resp = match serde_json::from_str::<Request>(&line) {
             Ok(req) => {
-                // Run embedder calls on a blocking thread to avoid stalling tokio
-                tokio::task::spawn_blocking(move || dispatch(&req))
-                    .await
-                    .unwrap_or_else(|e| Response {
-                        result: None,
-                        error: Some(format!("dispatch panicked: {e}")),
-                    })
+                let method = req.method.clone();
+                eprintln!("[daemon] request: method={} params={}", method, req.params);
+                let start = std::time::Instant::now();
+
+                // Clone data for the blocking task (avoid borrowing across await)
+                let req_owned = req;
+
+                let timeout = tokio::time::Duration::from_secs(REQUEST_TIMEOUT_SECS);
+                let result = tokio::time::timeout(
+                    timeout,
+                    tokio::task::spawn_blocking(move || dispatch(&req_owned)),
+                )
+                .await;
+
+                let elapsed_ms = start.elapsed().as_millis();
+
+                match result {
+                    Ok(Ok(resp)) => {
+                        let status = if resp.error.is_some() { "error" } else { "ok" };
+                        eprintln!("[daemon] response: method={} status={} elapsed={}ms", method, status, elapsed_ms);
+                        resp
+                    }
+                    Ok(Err(e)) => {
+                        eprintln!("[daemon] panic: method={} error={} elapsed={}ms", method, e, elapsed_ms);
+                        Response {
+                            result: None,
+                            error: Some(format!("dispatch panicked: {e}")),
+                        }
+                    }
+                    Err(_) => {
+                        eprintln!("[daemon] timeout: method={} exceeded {}s", method, REQUEST_TIMEOUT_SECS);
+                        Response {
+                            result: None,
+                            error: Some(format!("request timed out after {}s", REQUEST_TIMEOUT_SECS)),
+                        }
+                    }
+                }
             }
-            Err(e) => Response {
-                result: None,
-                error: Some(format!("invalid request: {e}")),
-            },
+            Err(e) => {
+                eprintln!("[daemon] parse error: {}", e);
+                Response {
+                    result: None,
+                    error: Some(format!("invalid request: {e}")),
+                }
+            }
         };
         let json = serde_json::to_string(&resp)?;
         writer.write_all(json.as_bytes()).await?;
