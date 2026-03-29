@@ -38,15 +38,12 @@ pub fn run(
     top_k: usize,
     similarity_threshold: f32,
 ) -> Result<()> {
-    // Task 2: get changed files from git diff
     let changed_files = get_changed_files(target, range)?;
     eprintln!("Changed files: {}", changed_files.len());
 
-    // Task 3: load semantic context per file
     let contexts = load_file_contexts(target, &changed_files);
     eprintln!("Loaded context for {} file(s)", contexts.len());
 
-    // Task 4: compute triage with fan-out and severity
     let triaged = compute_triage(target, &changed_files, top_k, similarity_threshold)?;
 
     let cc_warnings = find_cross_cutting_warnings(target, &changed_files, &contexts);
@@ -75,8 +72,8 @@ fn render_markdown(
     println!("| File | Severity | Fan-out | Summary |");
     println!("|------|----------|---------|---------|");
     for t in triaged {
-        let summary = if t.first_line.len() > 60 {
-            format!("{}...", &t.first_line[..60])
+        let summary: String = if t.first_line.chars().count() > 60 {
+            format!("{}...", t.first_line.chars().take(60).collect::<String>())
         } else {
             t.first_line.clone()
         };
