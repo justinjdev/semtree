@@ -111,12 +111,21 @@ pub fn write_vec(
 }
 
 /// Read an embedding vector from a `.vec` file. Returns `None` if the file does not exist.
+///
+/// Supports both the binary SVEC format and legacy JSON format (used by the Python indexer).
 pub fn read_vec(path: &Path) -> Result<Option<VecData>> {
     if !path.exists() {
         return Ok(None);
     }
 
     let data = fs::read(path).with_context(|| format!("reading vec file: {}", path.display()))?;
+
+    // Detect JSON format: starts with '{' (after optional whitespace)
+    let first_nonws = data.iter().find(|&&b| b != b' ' && b != b'\n' && b != b'\r' && b != b'\t');
+    if first_nonws == Some(&b'{') {
+        return read_vec_json(&data, path);
+    }
+
     if data.len() < HEADER_SIZE {
         bail!("vec file too small: {}", path.display());
     }
@@ -271,6 +280,27 @@ pub fn is_vec_fresh(existing: Option<&VecData>, content_hash: &str, model: &str)
 // ---------------------------------------------------------------------------
 // Internal helpers
 // ---------------------------------------------------------------------------
+
+/// Parse a JSON-format .vec file (legacy Python indexer format).
+///
+/// Expected format: `{"model": "...", "content_hash": "...", "vector": [...]}`
+fn read_vec_json(data: &[u8], path: &Path) -> Result<Option<VecData>> {
+    #[derive(serde::Deserialize)]
+    struct JsonVec {
+        model: String,
+        content_hash: String,
+        vector: Vec<f32>,
+    }
+
+    let parsed: JsonVec = serde_json::from_slice(data)
+        .with_context(|| format!("parsing JSON vec file: {}", path.display()))?;
+
+    Ok(Some(VecData {
+        model: parsed.model,
+        content_hash: parsed.content_hash,
+        vector: parsed.vector,
+    }))
+}
 
 fn parse_vec_bytes(data: &[u8]) -> Result<VecData> {
     if data.len() < HEADER_SIZE {

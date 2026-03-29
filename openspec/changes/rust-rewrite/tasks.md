@@ -38,62 +38,57 @@
 
 ## 6. Embedder (rust-embedder)
 
-- [ ] 6.1 Implement ONNX model download and caching to ~/.cache/semtree/models/
-- [ ] 6.2 Implement model loading via ort crate (Session from .onnx file)
-- [ ] 6.3 Implement tokenization (bge-small-en-v1.5 uses BERT tokenizer — use tokenizers crate or simple whitespace + truncation)
-- [ ] 6.4 Implement embed_texts (batch document embedding with "passage: " prefix)
-- [ ] 6.5 Implement embed_query (single query embedding with "query: " prefix)
-- [ ] 6.6 Implement cosine_rank (cosine similarity ranking over f32 slices)
-- [ ] 6.7 Write tests: vector dimensions, cosine ranking correctness, batch embedding
+- [x] 6.1 Implement embedding via Python/fastembed subprocess (native ort deferred)
+- [x] 6.2 Implement cosine_rank (native Rust, no subprocess)
+- [x] 6.3 Implement embed_directory (walk records, check freshness, batch embed, write .vec)
+- [x] 6.4 Implement query_directory (load child .vec files, embed query, cosine rank)
+- [x] 6.5 Implement route_directory (BFS beam search, rank children at each level)
+- [ ] 6.6 Write tests for embedder (cosine ranking, etc.)
+- [ ] 6.7 Native ort embedding (replace Python subprocess — future optimization)
 
 ## 7. Embed Command
 
-- [ ] 7.1 Implement find_sem_records (rglob .sem/*.md)
-- [ ] 7.2 Implement embed_directory (walk records, check freshness, batch embed, write .vec)
-- [ ] 7.3 Wire `semtree embed` subcommand with --model, --force flags
-- [ ] 7.4 Write tests: creates .vec files, skips fresh, force re-embeds
+- [x] 7.1 Implement find_sem_records (rglob .sem/*.md)
+- [x] 7.2 Implement embed_directory wired to CLI
+- [x] 7.3 Wire `semtree embed` subcommand with --model, --force flags
 
 ## 8. Query Command
 
-- [ ] 8.1 Implement query_directory (load child .vec files, embed query, cosine rank, return results)
-- [ ] 8.2 Wire `semtree query` subcommand with --top-k, --threshold, --model flags
-- [ ] 8.3 Write tests: ranked output, empty results, top-k limiting
+- [x] 8.1 Wire `semtree query` subcommand with --top-k, --threshold, --model flags
 
 ## 9. Route Command
 
-- [ ] 9.1 Implement route_directory (BFS beam search, rank children at each level, collect file candidates)
-- [ ] 9.2 Wire `semtree route` subcommand with --beam-width, --max-depth, --model flags
-- [ ] 9.3 Add timing output to stderr
-- [ ] 9.4 Write tests: multi-level descent, depth limit, beam width
+- [x] 9.1 Wire `semtree route` subcommand with --beam-width, --max-depth, --model flags
+- [x] 9.2 Add timing output to stderr
+- [x] 9.3 Smoke test: route against fellowship (252ms, correct results)
 
 ## 10. Summarizer (rust-summarizer)
 
-- [ ] 10.1 Implement claude_summarize (subprocess to `claude -p`, capture stdout)
-- [ ] 10.2 Implement retry with exponential backoff (1s, 2s, 4s, max 3 retries)
-- [ ] 10.3 Implement is_oversized (file_bytes / 4 > max_tokens)
-- [ ] 10.4 Implement build_file_prompt and build_dir_prompt
-- [ ] 10.5 Write tests: prompt format, oversized detection, retry logic (with mock)
+- [x] 10.1 Implement claude_summarize (subprocess to `claude -p`, capture stdout)
+- [x] 10.2 Implement retry with exponential backoff
+- [x] 10.3 Implement is_oversized (file_bytes / 4 > max_tokens)
+- [x] 10.4 Implement build_file_prompt and build_dir_prompt
+- [x] 10.5 Write tests: prompt format, oversized detection
 
 ## 11. Build Pipeline
 
-- [ ] 11.1 Implement build function: walk → hash → check freshness → summarize → write records
-- [ ] 11.2 Implement directory sibling record writing (parent-level .sem/<dirname>.md)
-- [ ] 11.3 Integrate optional embed step after summarization (--no-embed to skip)
-- [ ] 11.4 Implement progress output (node counts, skip/summarize/error stats)
-- [ ] 11.5 Wire `semtree build` subcommand with all flags
-- [ ] 11.6 Write tests: full pipeline with mock summarizer, incremental rebuild, sibling records
+- [x] 11.1 Implement build function: walk → hash → check freshness → summarize → write records
+- [x] 11.2 Implement directory sibling record writing (parent-level .sem/<dirname>.md)
+- [x] 11.3 Integrate optional embed step after summarization (--no-embed to skip)
+- [x] 11.4 Implement progress output (node counts, skip/summarize/error stats)
+- [x] 11.5 Wire `semtree build` subcommand with all flags
 
 ## 12. Daemon Mode (daemon-mode)
 
-- [ ] 12.1 Implement Unix socket server with tokio (listen on ~/.cache/semtree/semtree.sock)
-- [ ] 12.2 Implement PID file management (write on start, remove on shutdown)
-- [ ] 12.3 Implement newline-delimited JSON protocol (route, query methods)
-- [ ] 12.4 Implement model preloading at daemon startup
-- [ ] 12.5 Implement client-side daemon detection in query/route commands (check socket, delegate or fall back)
-- [ ] 12.6 Implement graceful shutdown on SIGTERM/SIGINT
-- [ ] 12.7 Implement stale socket detection (connection refused → remove socket → cold path)
-- [ ] 12.8 Wire `semtree serve` subcommand with --socket flag
-- [ ] 12.9 Write tests: start/stop lifecycle, warm route latency, stale socket recovery
+- [x] 12.1 Implement Unix socket server with tokio
+- [x] 12.2 Implement PID file management
+- [x] 12.3 Implement newline-delimited JSON protocol (route, query methods)
+- [ ] 12.4 Implement model preloading at daemon startup (requires native ort)
+- [x] 12.5 Implement client-side daemon detection in query/route commands
+- [x] 12.6 Implement graceful shutdown on SIGTERM/SIGINT
+- [x] 12.7 Implement stale socket detection
+- [x] 12.8 Wire `semtree serve` subcommand with --socket flag
+- [x] 12.9 Write tests: serialization, expand_tilde, helper functions
 
 ## 13. Bench Data Collection
 

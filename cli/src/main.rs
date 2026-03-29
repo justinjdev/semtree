@@ -8,6 +8,7 @@ mod vec_store;
 mod embedder;
 mod summarizer;
 mod builder;
+mod server;
 
 #[derive(Parser)]
 #[command(name = "semtree", about = "Semantic Resolution Tree indexer")]
@@ -133,19 +134,59 @@ fn main() -> anyhow::Result<()> {
 
     match cli.command {
         Commands::Build { path, model, max_tokens, force, exclude, no_embed, embed_model } => {
-            todo!("build command")
+            let config = builder::BuildConfig {
+                target_path: std::fs::canonicalize(&path)?,
+                model,
+                max_tokens,
+                force,
+                exclude,
+                embed: !no_embed,
+                embed_model,
+            };
+            let stats = builder::build(&config)?;
+            println!(
+                "Build complete: {} summarized, {} skipped, {} errored",
+                stats.summarized, stats.skipped, stats.errored
+            );
         }
         Commands::Embed { path, model, force } => {
-            todo!("embed command")
+            let target = std::fs::canonicalize(&path)?;
+            let stats = embedder::embed_directory(&target, &model, force)?;
+            eprintln!(
+                "Embed complete: {} embedded, {} skipped, {} errored",
+                stats.embedded, stats.skipped, stats.errored
+            );
         }
         Commands::Query { query, path, model, top_k, threshold } => {
-            todo!("query command")
+            let target = std::fs::canonicalize(&path)?;
+            let results = embedder::query_directory(&target, &query, &model, top_k, threshold)?;
+            if results.is_empty() {
+                eprintln!("No results found.");
+            } else {
+                for (score, rpath, first_line) in &results {
+                    println!("{:.4}\t{}\t{}", score, rpath, first_line);
+                }
+            }
         }
         Commands::Route { query, path, model, beam_width, max_depth } => {
-            todo!("route command")
+            let target = std::fs::canonicalize(&path)?;
+            let start = std::time::Instant::now();
+            let levels = embedder::route_directory(&target, &query, &model, beam_width, max_depth)?;
+            if levels.is_empty() {
+                eprintln!("No .sem/ records found for routing.");
+            } else {
+                for level in &levels {
+                    println!("--- {} ({} children) [{}ms] ---", level.dir, level.all_children, level.elapsed_ms);
+                    for (rpath, score, first_line) in &level.selected {
+                        println!("  {:.4}  {}  {}", score, rpath, first_line);
+                    }
+                }
+                eprintln!("\nRoute complete in {}ms", start.elapsed().as_millis());
+            }
         }
         Commands::Serve { socket } => {
-            todo!("serve command")
+            let rt = tokio::runtime::Runtime::new()?;
+            rt.block_on(server::serve(&socket))?;
         }
         Commands::Bench { phase, repo_path, results } => {
             todo!("bench command")
@@ -156,4 +197,6 @@ fn main() -> anyhow::Result<()> {
             }
         },
     }
+
+    Ok(())
 }
