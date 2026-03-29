@@ -12,6 +12,7 @@ mod builder;
 mod server;
 mod bench;
 mod depth_profile;
+mod review;
 
 #[derive(Parser)]
 #[command(name = "semtree", about = "Semantic Resolution Tree indexer")]
@@ -125,6 +126,25 @@ enum Commands {
         /// Number of related files to show per changed file
         #[arg(long, default_value_t = 5)]
         top_k: usize,
+    },
+
+    /// Generate a review manifest for code changes
+    Review {
+        /// Commit range (e.g., main..HEAD). Defaults to uncommitted changes.
+        #[arg(default_value = "")]
+        range: String,
+        /// Repository root path
+        #[arg(default_value = ".")]
+        path: PathBuf,
+        /// Embedding model name
+        #[arg(long, default_value = "BAAI/bge-small-en-v1.5")]
+        model: String,
+        /// Related files per changed file
+        #[arg(long, default_value_t = 5)]
+        top_k: usize,
+        /// Cosine similarity threshold for cross-cutting warnings
+        #[arg(long, default_value_t = 0.7)]
+        similarity_threshold: f32,
     },
 
     /// Start daemon keeping embedding model loaded
@@ -348,6 +368,10 @@ fn main() -> anyhow::Result<()> {
                     }
                 }
             }
+        }
+        Commands::Review { range, path, model, top_k, similarity_threshold } => {
+            let target = std::fs::canonicalize(&path)?;
+            review::run(&target, &range, &model, top_k, similarity_threshold)?;
         }
         Commands::Serve { socket } => {
             let rt = tokio::runtime::Runtime::new()?;
