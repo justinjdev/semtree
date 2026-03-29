@@ -267,6 +267,36 @@ pub fn query_directory(
 /// 4. If selected child is a directory, queue it for descent at next level
 /// 5. If selected child is a file, add to candidates
 /// 6. Stop when max_depth reached or no more directories to descend
+/// Adaptive beam selection: adjusts how many children to explore based on
+/// child count and score distribution.
+///
+/// - Low fan-out (<=beam_width): take all children — nothing to prune
+/// - Score gap: if there's a >0.05 drop between consecutive scores, cut there
+///   (but always take at least beam_width, and at most 2*beam_width)
+fn adaptive_beam(ranked: &[(String, f32)], beam_width: usize) -> Vec<(String, f32)> {
+    let n = ranked.len();
+
+    // Low fan-out: take everything
+    if n <= beam_width {
+        return ranked.to_vec();
+    }
+
+    // Always take at least beam_width
+    let mut take = beam_width;
+    let max_take = (2 * beam_width).min(n);
+
+    // Extend past beam_width if no clear score gap
+    for i in beam_width..max_take {
+        let gap = ranked[i - 1].1 - ranked[i].1;
+        if gap > 0.05 {
+            break; // clear drop-off, stop here
+        }
+        take = i + 1;
+    }
+
+    ranked[..take].to_vec()
+}
+
 pub fn route_directory(
     target: &Path,
     query: &str,
@@ -343,7 +373,7 @@ pub fn route_directory(
             .collect();
         let ranked = cosine_rank(&query_vec, &children_refs);
 
-        let selected: Vec<_> = ranked.iter().take(beam_width).cloned().collect();
+        let selected = adaptive_beam(&ranked, beam_width);
 
         // Build a quick lookup for selected children
         let child_lookup: std::collections::HashMap<&str, &ChildInfo> = children
