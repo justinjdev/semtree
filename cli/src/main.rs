@@ -418,6 +418,15 @@ fn main() -> anyhow::Result<()> {
                 depth_profile::run_depth_profile(&target, queries_path, &results)?;
             }
 
+            if phase == "diagnostics" || phase == "all" {
+                let queries_canon = queries.as_ref()
+                    .map(|p| std::fs::canonicalize(p))
+                    .transpose()
+                    .with_context(|| "invalid queries path for diagnostics")?;
+                eprintln!("Running diagnostics phase...");
+                bench::run_diagnostics(&target, queries_canon.as_deref(), &results)?;
+            }
+
             if dilution {
                 eprintln!("Dilution ablation requested. Run via Python bench:");
                 eprintln!("  python -m bench.routing --repo <path> --queries <file> --dilution --results {}", results.display());
