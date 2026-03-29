@@ -667,9 +667,22 @@ pub fn route_directory_with_policy(
             }
             if let Some(info) = child_lookup.get(child_path.as_str()) {
                 if info.is_dir {
+                    // Try repo-root-relative path first, then directory-relative
                     let child_abs = target.join(child_path);
+                    let (child_abs, full_rel) = if child_abs.is_dir() {
+                        (child_abs, child_path.clone())
+                    } else {
+                        // Path might be relative to current directory, not repo root
+                        let dir_relative = dir_abs.join(child_path);
+                        let full_rel = if dir_rel.is_empty() {
+                            child_path.clone()
+                        } else {
+                            format!("{}/{}", dir_rel, child_path)
+                        };
+                        (dir_relative, full_rel)
+                    };
                     if child_abs.is_dir() {
-                        queue.push_back((child_abs, child_path.clone(), depth + 1));
+                        queue.push_back((child_abs, full_rel, depth + 1));
                     }
                 }
             }
