@@ -49,27 +49,15 @@ pub fn run(
     // Task 4: compute triage with fan-out and severity
     let triaged = compute_triage(target, &changed_files, top_k, similarity_threshold)?;
 
-    // Task 5: cross-cutting warnings (wired in Task 6)
-    let _cc_warnings = find_cross_cutting_warnings(target, &changed_files, &contexts);
-    let _consider_also = find_consider_also(&triaged, &changed_files, similarity_threshold);
-
-    for t in &triaged {
-        println!(
-            "[{}] {} (fan_out={})",
-            t.severity, t.path, t.fan_out
-        );
-        if !t.first_line.is_empty() {
-            println!("  {}", t.first_line);
-        }
-        for (rpath, score, fl) in &t.related {
-            println!(
-                "  {:.3}  {}  {}",
-                score,
-                rpath,
-                &fl[..fl.len().min(70)]
-            );
-        }
-    }
+    let cc_warnings = find_cross_cutting_warnings(target, &changed_files, &contexts);
+    let consider_also = find_consider_also(&triaged, &changed_files, similarity_threshold);
+    render_markdown(&triaged, &contexts, &cc_warnings, &consider_also);
+    eprintln!(
+        "\nReview manifest: {} files triaged, {} cross-cutting warnings, {} suggestions",
+        triaged.len(),
+        cc_warnings.len(),
+        consider_also.len()
+    );
 
     Ok(())
 }
