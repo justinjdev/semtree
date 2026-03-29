@@ -173,6 +173,8 @@ pub fn build_with_summarizer(
             match summarizer.call(&prompt) {
                 Ok(mut summary) => {
                     // BottleSum-style orphan detection: verify summary covers all children
+                    let mut verify_fidelity: Option<f32> = None;
+                    let mut verify_orphan_count: Option<usize> = None;
                     if config.verify && node.children.len() > 1 {
                         let sem_dir = config.target_path.join(if rel.is_empty() { ".sem".to_string() } else { format!("{}/.sem", rel) });
 
@@ -246,27 +248,37 @@ pub fn build_with_summarizer(
 
                             // Use the best summary found across all attempts
                             summary = best_summary;
+                            // Count final orphans
+                            let final_orphans = child_vecs.iter()
+                                .filter(|(_, v)| embedder::cosine_similarity(&best_vec, v) < config.fidelity_threshold)
+                                .count();
+                            verify_fidelity = Some(best_rho);
+                            verify_orphan_count = Some(final_orphans);
                         }
                     }
 
                     let write_path = if repo_rel.is_empty() { ".".to_string() } else { repo_rel.clone() };
-                    records::write_record(
+                    records::write_record_with_fidelity(
                         &rec_path,
                         &write_path,
                         "directory",
                         &content_hash,
                         &summary,
+                        verify_fidelity,
+                        verify_orphan_count,
                     )?;
                     // Also write sibling record at parent level for embedding/routing
                     let sibling_path =
                         records::record_path_for_dir_sibling(&config.target_path, rel);
                     if sibling_path != rec_path {
-                        records::write_record(
+                        records::write_record_with_fidelity(
                             &sibling_path,
                             &repo_rel,
                             "directory",
                             &content_hash,
                             &summary,
+                            verify_fidelity,
+                            verify_orphan_count,
                         )?;
                     }
                     node_summaries.insert(rel.clone(), summary);

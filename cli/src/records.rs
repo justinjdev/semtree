@@ -14,6 +14,11 @@ pub struct Record {
     pub node_type: String,
     pub content_hash: String,
     pub summary: String,
+    /// Centroid fidelity: mean cosine similarity between directory embedding and child embeddings.
+    /// Only present for directory records built with --verify.
+    pub fidelity: Option<f32>,
+    /// Number of orphaned children (below fidelity threshold) after final repair attempt.
+    pub orphan_count: Option<usize>,
 }
 
 /// Frontmatter-only struct for YAML (de)serialization.
@@ -24,6 +29,10 @@ struct Frontmatter {
     #[serde(rename = "type")]
     node_type: String,
     content_hash: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    fidelity: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    orphan_count: Option<usize>,
 }
 
 /// Return the .sem/ record path for a file node.
@@ -87,6 +96,18 @@ pub fn write_record(
     content_hash: &str,
     summary: &str,
 ) -> Result<()> {
+    write_record_with_fidelity(record_file, path, node_type, content_hash, summary, None, None)
+}
+
+pub fn write_record_with_fidelity(
+    record_file: &Path,
+    path: &str,
+    node_type: &str,
+    content_hash: &str,
+    summary: &str,
+    fidelity: Option<f32>,
+    orphan_count: Option<usize>,
+) -> Result<()> {
     if let Some(parent) = record_file.parent() {
         fs::create_dir_all(parent)?;
     }
@@ -95,9 +116,10 @@ pub fn write_record(
         path: path.to_string(),
         node_type: node_type.to_string(),
         content_hash: content_hash.to_string(),
+        fidelity,
+        orphan_count,
     };
     let fm_str = serde_yaml::to_string(&fm)?;
-    // serde_yaml produces a trailing newline; trim it for consistent formatting
     let fm_str = fm_str.trim_end();
 
     let content = format!("---\n{}\n---\n\n{}\n", fm_str, summary);
@@ -128,6 +150,8 @@ pub fn read_record(record_file: &Path) -> Result<Option<Record>> {
         node_type: fm.node_type,
         content_hash: fm.content_hash,
         summary: parts[2].trim().to_string(),
+        fidelity: fm.fidelity,
+        orphan_count: fm.orphan_count,
     }))
 }
 
