@@ -1,0 +1,361 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage[dvipsnames]{xcolor}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=RoyalBlue,
+  citecolor=RoyalBlue,
+  urlcolor=RoyalBlue
+}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\bvec}{\mathbf{b}}
+
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}
+\newtheorem{remark}{Remark}
+
+\title{SRT Routing Hyperparameter Optimization\\[4pt]
+\large Formulation, Per-Level Allocation, and Research Directions}
+\author{}
+\date{March 2026 --- Working Draft}
+
+\begin{document}
+\maketitle
+
+% ------------------------------------------------------------------
+\section{Problem Overview}
+% ------------------------------------------------------------------
+
+We study the problem of routing a natural-language query through a
+Summary Representation Tree (SRT) to retrieve relevant code artifacts.
+The router descends the tree level by level, selecting a subset of
+children at each node for further expansion.  Three families of
+hyperparameters govern the traversal:
+
+\begin{itemize}[nosep]
+  \item \textbf{Beam width} $b_l$: number of children retained at level~$l$.
+  \item \textbf{Max depth} $d$: deepest level explored.
+  \item \textbf{Token budget} $T$: total LLM tokens available for routing.
+\end{itemize}
+
+\noindent
+The goal is to mathematically formalize the optimization over these
+parameters, derive practical heuristics, and identify conditions under
+which closed-form or near-closed-form solutions exist.
+
+% ------------------------------------------------------------------
+\section{Repository Model}
+% ------------------------------------------------------------------
+
+The repository is modeled as a rooted tree of depth~$H$ with
+level-dependent branching factors $B_1, B_2, \ldots, B_H$.
+Let
+\[
+  f_k \;=\; \Pr[\text{relevant item lies at depth } k],
+  \qquad \sum_{k=1}^{H} f_k = 1.
+\]
+Empirically, $f_k$ is concentrated at moderate-to-large depths (most
+queries target leaf-level source files, not top-level directories).
+Estimating the support and shape of~$f_k$ on real repositories is a
+key empirical prerequisite: if $f_k$ is concentrated on a narrow band
+of depths, the optimal~$d$ is essentially determined, and the
+remaining problem reduces to beam allocation under a budget.
+
+Each relevant item at depth~$k$ carries a value $v_k \geq 0$.
+
+% ------------------------------------------------------------------
+\section{Routing Model}
+% ------------------------------------------------------------------
+
+At level~$l$, the router examines the children of each node in the
+current beam and retains $b_l$ of them.  Define
+\[
+  r_l(b_l) \;=\; \Pr[\text{correct branch is retained at level } l
+    \mid \text{beam width } b_l].
+\]
+The \emph{survival probability}---the chance that the correct path is
+still in the beam after~$k$ levels---is
+\[
+  P_{\mathrm{survive}}(k;\, \bvec)
+  \;=\; \prod_{l=1}^{k} r_l(b_l),
+  \qquad \bvec = (b_1, \ldots, b_d).
+\]
+
+\paragraph{Parameterization.}
+A natural saturating model for level-$l$ retention is
+\begin{equation}\label{eq:retention}
+  r_l(b_l) \;\approx\; 1 - \exp\!\bigl(-b_l / \alpha_l\bigr),
+\end{equation}
+where the \emph{difficulty parameter}
+\[
+  \alpha_l \;\propto\; B_l \cdot m_l
+\]
+scales with the branching factor $B_l$ and a per-level
+ambiguity measure $m_l$ (e.g., average semantic similarity among
+siblings).  This captures diminishing returns: doubling the beam from
+$1 \to 2$ helps far more than $16 \to 32$.
+
+% ------------------------------------------------------------------
+\section{Expected Gain}
+% ------------------------------------------------------------------
+
+The expected gain from a routing policy $(\bvec, d)$ is
+\begin{equation}\label{eq:gain}
+  G(\bvec, d)
+  \;=\; \sum_{k=1}^{d} f_k \, v_k \prod_{l=1}^{k} r_l(b_l).
+\end{equation}
+
+% ------------------------------------------------------------------
+\section{Cost Model}
+% ------------------------------------------------------------------
+
+At level~$l$, the router processes $n_l(\bvec)$ nodes, each costing
+$c_l$ tokens (the cost of reading that node's summary plus the LLM
+prompt overhead).  Total cost:
+\begin{equation}\label{eq:cost}
+  C(\bvec, d) \;=\; \sum_{l=1}^{d} n_l(\bvec) \cdot c_l,
+  \qquad
+  C(\bvec, d) \;\leq\; T.
+\end{equation}
+
+For the LLM-oracle policy, $n_l$ is approximately $b_{l-1} \cdot B_l$
+(every retained node at level $l{-}1$ expands $B_l$ children).
+For the embedding policy, $c_l$ is negligible and the token budget is
+effectively infinite---the binding constraint shifts to latency.
+
+% ------------------------------------------------------------------
+\section{Dilution Model}\label{sec:dilution}
+% ------------------------------------------------------------------
+
+Over-expansion does not merely waste tokens; it actively degrades
+downstream ranking by forcing the LLM to discriminate among a larger
+candidate set.  We model this via a \emph{dilution penalty}
+$D(\bvec, d)$.
+
+\paragraph{Proposed model.}
+Let $\rho_l(\bvec)$ denote the fraction of nodes in the beam at
+level~$l$ that are \emph{irrelevant} (i.e., not on any path to a
+relevant leaf).  A natural penalty is
+\begin{equation}\label{eq:dilution}
+  D(\bvec, d)
+  \;=\; \sum_{l=1}^{d}
+    w_l \,\log\!\bigl(1 + n_l(\bvec)\bigr),
+\end{equation}
+where $w_l$ are level-dependent weights reflecting the cost of
+ranking degradation at depth~$l$.  The logarithmic form captures the
+empirical observation that ranking difficulty scales sublinearly in
+candidate-set size.
+
+An alternative formulation penalizes the irrelevant-to-relevant
+ratio directly:
+\[
+  D'(\bvec, d)
+  \;=\; \sum_{l=1}^{d} w_l \,\rho_l(\bvec).
+\]
+Both models are compatible with the objective below; the choice should
+be guided by ablation experiments.
+
+% ------------------------------------------------------------------
+\section{Objective}
+% ------------------------------------------------------------------
+
+The combined objective is
+\begin{equation}\label{eq:objective}
+  U(\bvec, d)
+  \;=\; G(\bvec, d)
+  \;-\; \mu\, D(\bvec, d)
+  \;-\; \lambda\, C(\bvec, d),
+\end{equation}
+and we seek
+\[
+  (\bvec^*, d^*)
+  \;=\; \operatorname*{argmax}_{\bvec \in \mathbb{Z}_{>0}^d,\; d \leq H}
+    U(\bvec, d)
+  \qquad \text{subject to} \quad
+  C(\bvec, d) \leq T.
+\]
+
+% ------------------------------------------------------------------
+\section{Per-Level Beam Allocation}\label{sec:allocation}
+% ------------------------------------------------------------------
+
+Treating the beam widths as continuous and working in the log-survival
+domain, the expected gain decomposes additively.  Taking logarithms of
+the survival product in~\eqref{eq:gain} and applying the
+parameterization~\eqref{eq:retention}:
+\[
+  \log P_{\mathrm{survive}}(k;\,\bvec)
+  \;=\; \sum_{l=1}^{k}
+    \log\!\bigl(1 - e^{-b_l/\alpha_l}\bigr).
+\]
+
+For fixed~$d$, the Lagrangian for maximizing $U$ subject to the budget
+constraint is
+\[
+  \mathcal{L}(\bvec, \nu)
+  \;=\; G(\bvec, d) - \mu\,D(\bvec,d)
+        - \nu\bigl(C(\bvec,d) - T\bigr),
+\]
+where $\nu \geq 0$ is the multiplier on the token budget.  The KKT
+conditions yield, for each level~$l$:
+\begin{equation}\label{eq:kkt}
+  \frac{\partial G}{\partial b_l}
+  \;=\; \mu \,\frac{\partial D}{\partial b_l}
+  \;+\; \nu \,\frac{\partial C}{\partial b_l}.
+\end{equation}
+
+\begin{proposition}[Water-filling heuristic]\label{prop:waterfill}
+Under the exponential retention model~\eqref{eq:retention} and the
+log-dilution model~\eqref{eq:dilution}, with $c_l$ approximately
+constant across levels, the KKT conditions~\eqref{eq:kkt} prescribe
+beam allocation proportional to the difficulty parameters:
+\[
+  b_l^* \;\propto\; \alpha_l
+  \;=\; O(B_l \cdot m_l),
+\]
+with the constant of proportionality set by the token budget~$T$.
+Harder levels (large branching factor, high ambiguity) receive wider
+beams; easy levels are pruned aggressively.
+\end{proposition}
+
+\begin{proof}[Proof sketch]
+Differentiating $G$ with respect to~$b_l$ and using the chain rule
+through the product gives a marginal-gain term proportional to
+$\frac{1}{\alpha_l} e^{-b_l/\alpha_l}$.  Setting the marginal gains
+equal across levels (the water-filling condition) yields
+$b_l / \alpha_l = \text{const}$, i.e., $b_l \propto \alpha_l$.
+The budget constraint fixes the constant.
+\end{proof}
+
+\begin{remark}
+This is the SRT analogue of water-filling in
+information theory: the ``channel'' at each level has capacity governed
+by $\alpha_l$, and the optimal policy allocates beam width (power) in
+proportion to channel quality.
+\end{remark}
+
+% ------------------------------------------------------------------
+\section{Adaptive Policies (Beyond Fixed Parameters)}
+\label{sec:adaptive}
+% ------------------------------------------------------------------
+
+The fixed-parameter formulation optimizes $(\bvec, d)$ before the
+query is issued.  In practice, the router observes LLM confidence
+scores at each level, which provide real-time signal about whether the
+beam is on the right track.
+
+\paragraph{POMDP framing.}
+At each level~$l$, the router observes a confidence vector
+$\mathbf{s}_l \in [0,1]^{n_l}$ over the current beam.  An adaptive
+policy $\pi$ maps the history
+$(b_1, \mathbf{s}_1, \ldots, b_{l-1}, \mathbf{s}_{l-1})$ to the
+next beam width $b_l$.  The optimal adaptive policy satisfies
+\[
+  \pi^* \;=\; \operatorname*{argmax}_\pi\;
+    \E_{\mathbf{s}}\!\bigl[U(\bvec^{\pi}, d^{\pi})\bigr].
+\]
+
+The fixed-parameter optimum $(\bvec^*, d^*)$ provides a natural
+baseline: any adaptive policy should beat the best fixed policy, and
+the gap measures the value of adaptivity.
+
+\paragraph{Simple adaptive heuristics.}
+Before solving the full POMDP, two lightweight heuristics are worth
+evaluating:
+
+\begin{enumerate}[nosep]
+  \item \textbf{Confidence-gated widening.}
+    Start with the water-filling allocation $b_l^*$.  If the maximum
+    confidence score at level~$l$ falls below a threshold~$\tau$,
+    double the beam width (up to the budget).
+  \item \textbf{Early termination.}
+    If all confidence scores at level~$l$ exceed a high threshold
+    $\tau_{\mathrm{high}}$, reduce $d$ to $l + 1$ (stop exploring
+    deep) and reallocate the saved budget to wider beams at the
+    current level.
+\end{enumerate}
+
+% ------------------------------------------------------------------
+\section{Empirical Hypotheses}
+% ------------------------------------------------------------------
+
+\begin{enumerate}[nosep]
+  \item \textbf{Optimal depth exists.}
+    For any fixed budget~$T$, there is a depth $d^*$ beyond which
+    additional levels reduce $U$ (the cost and dilution penalties
+    outweigh the marginal gain from deeper items).
+  \item \textbf{Beam width has diminishing returns.}
+    $G$ is concave in each $b_l$; the first few beam slots provide
+    most of the survival probability.
+  \item \textbf{Over-exploration harms ranking.}
+    Holding the token budget fixed, increasing beam width beyond
+    $b_l^*$ degrades final retrieval precision (the dilution effect
+    dominates).
+  \item \textbf{Per-level allocation beats uniform allocation.}
+    The water-filling policy $b_l \propto \alpha_l$ outperforms a
+    uniform policy $b_l = b$ at the same total cost, especially when
+    the $\alpha_l$ vary widely across levels.
+  \item \textbf{Adaptive policies beat fixed policies.}
+    Confidence-gated widening improves recall on ambiguous queries
+    without degrading precision on easy queries.
+\end{enumerate}
+
+% ------------------------------------------------------------------
+\section{Research Directions}
+% ------------------------------------------------------------------
+
+\paragraph{Estimation.}
+Measure $f_k$, $\alpha_l$, and $c_l$ on real repositories.  The
+depth distribution $f_k$ is the highest-priority empirical target:
+if its support is narrow, the optimization simplifies dramatically.
+
+\paragraph{Closed forms.}
+The continuous relaxation of Proposition~\ref{prop:waterfill} should
+yield explicit beam-allocation formulas via KKT conditions.  Extend
+to the joint $(d, \bvec)$ problem by treating $d$ as a discrete outer
+loop over a small range.
+
+\paragraph{Dilution ablation.}
+Compare the log-dilution model~\eqref{eq:dilution} against the
+ratio model $D'$ and a pure cost-constraint baseline ($\mu = 0$) on
+retrieval benchmarks.
+
+\paragraph{Adaptive routing.}
+Implement the confidence-gated and early-termination heuristics from
+Section~\ref{sec:adaptive} and measure the gap between adaptive and
+fixed-parameter performance.
+
+\paragraph{Embedding vs.\ LLM oracle.}
+The cost model differs qualitatively between the two routing policies
+(token-limited vs.\ latency-limited).  Formulate a parallel
+optimization for the embedding policy where the objective trades off
+recall against traversal depth, with the token budget replaced by a
+latency budget.
+
+% ------------------------------------------------------------------
+\section{Key Insights}
+% ------------------------------------------------------------------
+
+\begin{enumerate}[nosep]
+  \item Hyperparameter tuning for SRT routing is a structured
+    optimization over a tree with probabilistic routing and cost
+    constraints.
+  \item The optimal policy allocates beam width \emph{per level},
+    not uniformly---yielding a water-filling solution where harder
+    levels receive wider beams.
+  \item The dilution penalty is not just a budget waste; it actively
+    degrades ranking and must be modeled explicitly.
+  \item Fixed-parameter optimization provides the baseline;
+    adaptive policies that condition on observed confidence scores
+    represent the natural next step.
+\end{enumerate}
+
+\end{document}
