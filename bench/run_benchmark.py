@@ -42,9 +42,10 @@ SEMTREE = Path(__file__).parent.parent / "cli" / "target" / "release" / "semtree
 SOCKET_PATH = "/tmp/semtree-bench.sock"
 
 SRT_GRID = [
-    {"beam_width": bw, "max_depth": md}
-    for bw in [3, 5]
-    for md in [3, 5]
+    {"beam_width": bw, "max_depth": md, "beam_policy": bp}
+    for bw in [2, 3, 5, 7, 10]
+    for md in [3, 5, 7, 10]
+    for bp in ["uniform", "waterfill"]
 ]
 
 GREP_GRID = [{"max_files": mf} for mf in [5, 10, 20]]
@@ -116,10 +117,11 @@ def run_srt_cold(repo, queries, repo_name, results_path):
         rel = {r["path"]: r["relevance"] for r in q.get("relevant", [])}
         for ctrl in SRT_GRID:
             t0 = time.monotonic()
-            proc = subprocess.run(
-                [str(SEMTREE), "route", q["question"], str(repo),
-                 "--beam-width", str(ctrl["beam_width"]), "--max-depth", str(ctrl["max_depth"])],
-                capture_output=True, text=True, timeout=120)
+            cmd = [str(SEMTREE), "route", q["question"], str(repo),
+                   "--beam-width", str(ctrl["beam_width"]),
+                   "--max-depth", str(ctrl["max_depth"]),
+                   "--beam-policy", ctrl.get("beam_policy", "uniform")]
+            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
             latency = time.monotonic() - t0
             files = parse_route_output(proc.stdout)
             ndcg = ndcg_at_k(files, rel)
@@ -142,7 +144,8 @@ def run_srt_warm(repo, queries, repo_name, results_path):
                 t0 = time.monotonic()
                 resp = _daemon_call({"method": "route", "params": {
                     "query": q["question"], "path": str(repo),
-                    "beam_width": ctrl["beam_width"], "max_depth": ctrl["max_depth"]}})
+                    "beam_width": ctrl["beam_width"], "max_depth": ctrl["max_depth"],
+                    "beam_policy": ctrl.get("beam_policy", "uniform")}})
                 latency = time.monotonic() - t0
                 files = _parse_daemon_route(resp)
                 ndcg = ndcg_at_k(files, rel)

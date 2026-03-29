@@ -489,39 +489,33 @@ pub fn compute_ambiguity(scores: &[f32]) -> f32 {
     (1.0 - iqr).clamp(0.1, 1.0)
 }
 
-/// Water-filling beam allocation: allocate beam width proportional to difficulty.
+/// Water-filling beam allocation: scale beam width per-directory by ambiguity.
 /// Returns (selected children, beam_used).
 ///
-/// Harder levels (high alpha_l = B_l * m_l) get wider beams relative to a
-/// baseline difficulty of 1.0. The per-level share is:
-///   b_l = (remaining_budget / remaining_levels) * (alpha_l / alpha_ref)
-/// clamped to [1, remaining_budget].
-const ALPHA_REF: f32 = 3.0; // baseline: ~3 children at moderate ambiguity
+/// High ambiguity (clustered scores) → wider beam (up to 2x beam_width).
+/// Low ambiguity (clear winner) → narrower beam (down to beam_width/2).
 
 fn waterfill_beam(
     ranked: &[(String, f32)],
-    branching_factor: usize,
     ambiguity: f32,
-    remaining_budget: usize,
-    remaining_levels: usize,
+    beam_width: usize,
 ) -> (Vec<(String, f32)>, usize) {
     let n = ranked.len();
     if n == 0 {
         return (vec![], 0);
     }
 
-    // alpha_l = B_l * m_l (difficulty of this level)
-    let alpha_l = branching_factor as f32 * ambiguity;
+    // Low fan-out: take all, nothing to prune
+    if n <= beam_width {
+        return (ranked.to_vec(), n);
+    }
 
-    // Base share: uniform split of remaining budget
-    let base_share = remaining_budget as f32 / remaining_levels.max(1) as f32;
-
-    // Scale by difficulty relative to baseline
-    let scale = alpha_l / ALPHA_REF;
-    let b_l = (base_share * scale).round().max(1.0) as usize;
-
-    // Don't exceed remaining children or budget
-    let take = b_l.min(n).min(remaining_budget);
+    // Scale beam by ambiguity: high ambiguity → wider beam (up to 2x)
+    // Low ambiguity (clear winner) → narrower beam (down to ceil(bw/2))
+    let min_beam = (beam_width + 1) / 2; // at least half
+    let max_beam = beam_width * 2;
+    let scaled = (beam_width as f32 * ambiguity * 1.5).round() as usize;
+    let take = scaled.clamp(min_beam, max_beam).min(n);
     (ranked[..take].to_vec(), take)
 }
 
@@ -544,8 +538,6 @@ pub fn route_directory_with_policy(
     policy: BeamPolicy,
 ) -> Result<Vec<RouteLevel>> {
     let query_vec = embed_query(query, model)?;
-    // Total budget for waterfill: beam_width * max_depth
-    let mut remaining_budget = beam_width * max_depth;
 
     let mut levels: Vec<RouteLevel> = Vec::new();
     // Queue: (directory_absolute_path, dir_relative_path, depth)
@@ -624,7 +616,6 @@ pub fn route_directory_with_policy(
             .collect();
         let ranked = cosine_rank(&query_vec, &children_refs);
 
-        let remaining_levels = max_depth.saturating_sub(depth).max(1);
         let (selected, bf, amb, alloc_beam) = match policy {
             BeamPolicy::Uniform => {
                 let sel = adaptive_beam(&ranked, beam_width);
@@ -634,8 +625,7 @@ pub fn route_directory_with_policy(
                 let bf = ranked.len();
                 let scores: Vec<f32> = ranked.iter().map(|(_, s)| *s).collect();
                 let amb = compute_ambiguity(&scores);
-                let (sel, used) = waterfill_beam(&ranked, bf, amb, remaining_budget, remaining_levels);
-                remaining_budget = remaining_budget.saturating_sub(used);
+                let (sel, used) = waterfill_beam(&ranked, amb, beam_width);
                 (sel, Some(bf), Some(amb), Some(used))
             }
         };

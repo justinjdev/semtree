@@ -92,10 +92,10 @@ enum Commands {
         #[arg(long, default_value = "BAAI/bge-small-en-v1.5")]
         model: String,
         /// Number of children to select at each level
-        #[arg(long, default_value_t = 3)]
+        #[arg(long, default_value_t = 7)]
         beam_width: usize,
         /// Maximum descent depth
-        #[arg(long, default_value_t = 10)]
+        #[arg(long, default_value_t = 5)]
         max_depth: usize,
         /// Beam allocation policy
         #[arg(long, value_enum, default_value_t = embedder::BeamPolicy::Uniform)]
