@@ -120,15 +120,20 @@ semtree build /path/to/repo \
   --force \                            # rebuild all (ignore cache)
   --exclude 'vendor/*' \              # glob patterns to skip
   --no-embed \                        # skip embedding step
-  --embed-model BAAI/bge-small-en-v1.5  # embedding model
+  --embed-model BAAI/bge-small-en-v1.5 \  # embedding model
+  --batch \                            # use Batch API (50% cost savings)
+  --verify \                           # BottleSum orphan detection (re-summarize if children are lost)
+  --fidelity-threshold 0.3 \          # cosine sim below which a child is orphaned
+  --orphan-rate 0.2                    # max orphan fraction before re-summarization
 ```
 
 ### Route options
 
 ```bash
 semtree route "your question" /path/to/repo \
-  --beam-width 3 \   # children to explore per level (default: 3)
-  --max-depth 10 \   # max descent depth (default: 10)
+  --beam-width 7 \          # children to explore per level (default: 7)
+  --max-depth 5 \            # max descent depth (default: 5)
+  --beam-policy uniform \    # uniform or waterfill
   --model BAAI/bge-small-en-v1.5
 ```
 
@@ -186,33 +191,38 @@ JWT validation, and permission guards.
 
 ## Benchmarks
 
-Tested against 15 labeled queries on the [Fellowship](https://github.com/justinjdev/fellowship) repository (~160 files).
+### Turborepo (40 queries, 59 Rust crates)
+
+| System | Avg NDCG@10 | Queries hit | P50 Latency |
+|---|---|---|---|
+| **SRT (daemon)** | **0.659** | **38/40** | **13.2ms** |
+| Shire (FTS+RAG) | 0.476 | 33/40 | 6.1ms |
+| ripgrep | 0.397 | 36/40 | 404ms |
+| grep | 0.384 | 38/40 | 1304ms |
+
+SRT leads in every query category (focused 0.824, module 0.625, cross-cutting 0.506). Optimal parameters found via 40-config sweep: beam_width=7, max_depth=5, uniform policy.
+
+### Fellowship (15 queries, ~160 files)
 
 | System | Best NDCG@10 | Queries hit | P50 Latency |
 |---|---|---|---|
 | **SRT Rust daemon** | **0.628** | **15/15** | **6.6ms** |
-| SRT Rust (cold) | 0.628 | 15/15 | 83.8ms |
 | SRT Python | 0.619 | 14/15 | 5.1ms |
 | Shire (FTS+RAG) | 0.410 | 10/15 | 3.9ms |
 | ripgrep | 0.165 | 8/15 | 61.8ms |
 | grep | 0.059 | 2/15 | 206.8ms |
 
-**Hypervolume** (dominated region in latency-quality space):
-
-| System | HV | 95% CI |
-|---|---|---|
-| SRT Rust daemon | 0.599 | [0.457, 0.736] |
-| SRT Python | 0.566 | [0.430, 0.689] |
-| Shire | 0.399 | [0.212, 0.595] |
-
-SRT dominates on module-level and cross-cutting queries. Shire wins on focused symbol-name queries. See `bench/results/` for full reports.
+See `bench/results/` for full reports (markdown + LaTeX with pgfplots).
 
 ### Running benchmarks
 
 ```bash
-# Needs a repo with .sem/ records and .vec embeddings
-PYTHONPATH=. semtree bench quality --repo-path /path/to/repo
-PYTHONPATH=. semtree bench routing --repo-path /path/to/repo
+# Multi-system benchmark with parameter sweep
+python3 bench/run_benchmark.py /path/to/repo bench/queries/repo.yaml \
+  --systems srt-warm,grep,ripgrep,shire
+
+# Analyze sweep results
+python3 bench/analyze_sweep.py bench/results/repo-sweep.tsv
 ```
 
 ## Integration with AI agents
@@ -232,7 +242,7 @@ The `srt-build` skill parallelizes SRT construction across multiple subagents, f
 
 ## Design
 
-Based on the paper: *Semantic Resolution Trees: Multi-Scale Context Management for AI Coding Agents* (see `docs/srt_v7.tex`).
+Based on the paper: *Semantic Resolution Trees: Multi-Scale Context Management for AI Coding Agents* (see `docs/`).
 
 Key design properties (all follow from storing summaries as plain text in git):
 

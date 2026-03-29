@@ -8,6 +8,8 @@ use anyhow::Result;
 use crate::hasher;
 use crate::records;
 use crate::summarizer::{self, SummarizerFn};
+use crate::embedder;
+use crate::vec_store;
 use crate::walker;
 
 /// Configuration for the build pipeline.
@@ -19,6 +21,9 @@ pub struct BuildConfig {
     pub exclude: Vec<String>,
     pub embed: bool,
     pub embed_model: String,
+    pub verify: bool,
+    pub fidelity_threshold: f32,
+    pub orphan_rate: f32,
 }
 
 /// Statistics from a build run.
@@ -27,6 +32,8 @@ pub struct BuildStats {
     pub summarized: usize,
     pub skipped: usize,
     pub errored: usize,
+    pub orphans_detected: usize,
+    pub resummarized: usize,
 }
 
 /// Run the full SRT build pipeline using the auto-detected summarizer.
@@ -163,7 +170,45 @@ pub fn build_with_summarizer(
             let prompt = summarizer::build_dir_prompt(rel, &child_summary_pairs);
 
             match summarizer.call(&prompt) {
-                Ok(summary) => {
+                Ok(mut summary) => {
+                    // BottleSum-style orphan detection: verify summary covers all children
+                    if config.verify && node.children.len() > 1 {
+                        if let Ok(summary_vec) = embedder::embed_query(&summary, &config.embed_model) {
+                            let sem_dir = config.target_path.join(if rel.is_empty() { ".sem".to_string() } else { format!("{}/.sem", rel) });
+                            let mut orphans: Vec<String> = Vec::new();
+                            for child in &node.children {
+                                // Load child embedding from .vec file
+                                let child_vec_path = sem_dir.join(format!("{}.vec", child));
+                                if let Ok(Some(vec_data)) = vec_store::read_vec(&child_vec_path) {
+                                    let sim = embedder::cosine_similarity(&summary_vec, &vec_data.vector);
+                                    if sim < config.fidelity_threshold {
+                                        orphans.push(child.clone());
+                                    }
+                                }
+                            }
+
+                            if !orphans.is_empty() {
+                                stats.orphans_detected += orphans.len();
+                                let orphan_frac = orphans.len() as f32 / node.children.len() as f32;
+                                eprintln!("[{idx}/{total}] verify {label}: {}/{} orphans (sim < {:.2})",
+                                    orphans.len(), node.children.len(), config.fidelity_threshold);
+
+                                if orphan_frac > config.orphan_rate {
+                                    // Re-summarize with orphan guidance
+                                    let orphan_refs: Vec<&str> = orphans.iter().map(|s| s.as_str()).collect();
+                                    let revise_prompt = summarizer::build_verify_prompt(
+                                        rel, &summary, &orphan_refs, &child_summary_pairs,
+                                    );
+                                    if let Ok(revised) = summarizer.call(&revise_prompt) {
+                                        summary = revised;
+                                        stats.resummarized += 1;
+                                        eprintln!("[{idx}/{total}] re-summarized {label} (covering {} orphans)", orphans.len());
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                     let write_path = if repo_rel.is_empty() { ".".to_string() } else { repo_rel.clone() };
                     records::write_record(
                         &rec_path,
@@ -543,6 +588,9 @@ mod tests {
             exclude: vec![],
             embed: false,
             embed_model: String::new(),
+            verify: false,
+            fidelity_threshold: 0.3,
+            orphan_rate: 0.2,
         }
     }
 
@@ -675,6 +723,9 @@ mod tests {
             exclude: vec![],
             embed: false,
             embed_model: String::new(),
+            verify: false,
+            fidelity_threshold: 0.3,
+            orphan_rate: 0.2,
         };
         build_with_summarizer(&config, &MockSummarizer).unwrap();
 

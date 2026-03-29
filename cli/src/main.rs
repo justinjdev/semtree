@@ -48,6 +48,15 @@ enum Commands {
         /// Use Anthropic Batch API for file summaries (50% cost savings, async)
         #[arg(long)]
         batch: bool,
+        /// Verify summaries with BottleSum-style orphan detection (re-summarize if children are lost)
+        #[arg(long)]
+        verify: bool,
+        /// Cosine similarity threshold below which a child is considered an orphan (default: 0.3)
+        #[arg(long, default_value_t = 0.3)]
+        fidelity_threshold: f32,
+        /// Max fraction of orphaned children before triggering re-summarization (default: 0.2)
+        #[arg(long, default_value_t = 0.2)]
+        orphan_rate: f32,
     },
 
     /// Compute embeddings for existing .sem/ records
@@ -164,7 +173,7 @@ fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Build { path, model, max_tokens, force, exclude, no_embed, embed_model, batch } => {
+        Commands::Build { path, model, max_tokens, force, exclude, no_embed, embed_model, batch, verify, fidelity_threshold, orphan_rate } => {
             let config = builder::BuildConfig {
                 target_path: std::fs::canonicalize(&path)?,
                 model,
@@ -173,16 +182,26 @@ fn main() -> anyhow::Result<()> {
                 exclude,
                 embed: !no_embed,
                 embed_model,
+                verify,
+                fidelity_threshold,
+                orphan_rate,
             };
             let stats = if batch {
                 builder::build_batch(&config)?
             } else {
                 builder::build(&config)?
             };
-            println!(
-                "Build complete: {} summarized, {} skipped, {} errored",
-                stats.summarized, stats.skipped, stats.errored
-            );
+            if verify {
+                println!(
+                    "Build complete: {} summarized, {} skipped, {} errored, {} orphans detected, {} re-summarized",
+                    stats.summarized, stats.skipped, stats.errored, stats.orphans_detected, stats.resummarized
+                );
+            } else {
+                println!(
+                    "Build complete: {} summarized, {} skipped, {} errored",
+                    stats.summarized, stats.skipped, stats.errored
+                );
+            }
         }
         Commands::Embed { path, model, force } => {
             let target = std::fs::canonicalize(&path)?;

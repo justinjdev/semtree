@@ -67,6 +67,40 @@ Children:\n\
     )
 }
 
+/// Build a re-summarization prompt that asks the LLM to revise a directory summary
+/// so that orphaned children become discoverable via embedding similarity.
+pub fn build_verify_prompt(path: &str, current_summary: &str, orphan_paths: &[&str], child_summaries: &[(&str, &str)]) -> String {
+    let display_path = if path.is_empty() { "(repository root)" } else { path };
+    let orphan_list: String = orphan_paths
+        .iter()
+        .map(|p| {
+            let summary = child_summaries.iter()
+                .find(|(cp, _)| cp == p)
+                .map(|(_, s)| s.as_ref())
+                .unwrap_or("(no summary)");
+            format!("- **{p}**: {summary}")
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    format!(
+        "Revise this directory summary so that ALL children are discoverable. \
+The following children are currently orphaned — their content is not reflected \
+in the summary, making them invisible to semantic search.\n\
+\n\
+Directory: {display_path}\n\
+\n\
+Current summary:\n\
+{current_summary}\n\
+\n\
+Orphaned children that MUST be covered:\n\
+{orphan_list}\n\
+\n\
+Rewrite the full summary (same format: prose overview, cross-cutting concerns if 5+ children, \
+children list). Ensure the orphaned children's key concepts appear in the prose overview."
+    )
+}
+
 // ---------------------------------------------------------------------------
 // SummarizerFn trait
 // ---------------------------------------------------------------------------

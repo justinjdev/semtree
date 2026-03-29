@@ -144,6 +144,16 @@ pub fn embed_query_with_dims(query: &str, model: &str, target_dims: Option<usize
 // Cosine similarity (native Rust)
 // ---------------------------------------------------------------------------
 
+/// Cosine similarity between two vectors.
+pub fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
+    let a_norm = dot(a, a).sqrt();
+    let b_norm = dot(b, b).sqrt();
+    if a_norm == 0.0 || b_norm == 0.0 {
+        return 0.0;
+    }
+    dot(a, b) / (a_norm * b_norm)
+}
+
 /// Rank children by cosine similarity to query vector. Returns [(path, score)] descending.
 pub fn cosine_rank(query_vec: &[f32], children: &[(&str, &[f32])]) -> Vec<(String, f32)> {
     let q_norm = dot(query_vec, query_vec).sqrt();
@@ -890,47 +900,44 @@ mod tests {
         assert_eq!(compute_ambiguity(&[]), 0.5);
     }
 
-    // --- waterfill_beam tests (task 3.3) ---
+    // --- waterfill_beam tests ---
 
     #[test]
-    fn test_waterfill_hard_level_wider_beam() {
+    fn test_waterfill_high_ambiguity_wider_beam() {
         let ranked: Vec<(String, f32)> = (0..10).map(|i| (format!("c{i}"), 0.9 - i as f32 * 0.05)).collect();
-        // Hard level: high branching * high ambiguity
-        let (sel_hard, _) = waterfill_beam(&ranked, 10, 0.9, 20, 3);
-        // Easy level: low branching * low ambiguity
-        let (sel_easy, _) = waterfill_beam(&ranked, 3, 0.2, 20, 3);
-        assert!(sel_hard.len() >= sel_easy.len(),
-            "hard level should get wider beam: {} vs {}", sel_hard.len(), sel_easy.len());
+        let (sel_high, _) = waterfill_beam(&ranked, 0.9, 5);
+        let (sel_low, _) = waterfill_beam(&ranked, 0.2, 5);
+        assert!(sel_high.len() >= sel_low.len(),
+            "high ambiguity should get wider beam: {} vs {}", sel_high.len(), sel_low.len());
     }
 
     #[test]
     fn test_waterfill_minimum_beam() {
         let ranked = vec![("a".to_string(), 0.9), ("b".to_string(), 0.5)];
-        let (sel, used) = waterfill_beam(&ranked, 2, 0.1, 10, 5);
+        let (sel, used) = waterfill_beam(&ranked, 0.1, 4);
         assert!(sel.len() >= 1, "should always select at least 1");
         assert!(used >= 1);
     }
 
     #[test]
-    fn test_waterfill_budget_not_exceeded() {
+    fn test_waterfill_capped_at_2x_beam() {
         let ranked: Vec<(String, f32)> = (0..20).map(|i| (format!("c{i}"), 0.9 - i as f32 * 0.01)).collect();
-        let budget = 5;
-        let (sel, used) = waterfill_beam(&ranked, 20, 1.0, budget, 1);
-        assert!(used <= budget, "used {used} exceeds budget {budget}");
-        assert!(sel.len() <= budget);
+        let beam_width = 5;
+        let (sel, used) = waterfill_beam(&ranked, 1.0, beam_width);
+        assert!(used <= beam_width * 2, "used {used} exceeds 2x beam_width {}", beam_width * 2);
+        assert!(sel.len() <= beam_width * 2);
     }
 
     #[test]
-    fn test_waterfill_single_level() {
-        let ranked: Vec<(String, f32)> = (0..8).map(|i| (format!("c{i}"), 0.9 - i as f32 * 0.05)).collect();
-        // With 1 remaining level, should use all remaining budget
-        let (sel, _) = waterfill_beam(&ranked, 8, 0.5, 6, 1);
-        assert_eq!(sel.len(), 6, "single level should use full budget (capped by children)");
+    fn test_waterfill_low_fanout_takes_all() {
+        let ranked = vec![("a".to_string(), 0.9), ("b".to_string(), 0.5), ("c".to_string(), 0.3)];
+        let (sel, _) = waterfill_beam(&ranked, 0.5, 5);
+        assert_eq!(sel.len(), 3, "low fan-out should take all children");
     }
 
     #[test]
     fn test_waterfill_empty() {
-        let (sel, used) = waterfill_beam(&[], 0, 0.5, 10, 3);
+        let (sel, used) = waterfill_beam(&[], 0.5, 5);
         assert!(sel.is_empty());
         assert_eq!(used, 0);
     }
