@@ -596,8 +596,19 @@ pub fn route_directory_with_policy(
             };
 
             let first_line = record.summary.lines().next().unwrap_or("").trim().to_string();
+            // Compute repo-root-relative path from directory context + filename
+            // (record.path may be directory-relative for batch-built siblings)
+            let child_name = vec_path.file_stem()
+                .and_then(|s| s.to_str())
+                .unwrap_or(&record.path);
+            let full_path = if dir_rel.is_empty() {
+                child_name.to_string()
+            } else {
+                format!("{}/{}", dir_rel, child_name)
+            };
+            eprintln!("DEBUG: dir_rel={:?} child_name={:?} full_path={:?}", dir_rel, child_name, full_path);
             children.push(ChildInfo {
-                path: record.path,
+                path: full_path,
                 vector: vec_data.vector,
                 first_line,
                 is_dir: record.node_type == "directory",
