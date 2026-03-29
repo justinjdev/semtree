@@ -18,10 +18,8 @@ pub struct EmbedStats {
     pub errored: usize,
 }
 
-/// A single level in the route descent.
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
 /// Policy for beam allocation across descent levels.
-#[derive(Clone, Copy, Default, PartialEq, Eq, clap::ValueEnum)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, clap::ValueEnum)]
 pub enum BeamPolicy {
     /// Fixed beam width at every level (current behavior)
     #[default]
@@ -30,6 +28,8 @@ pub enum BeamPolicy {
     Waterfill,
 }
 
+/// A single level in the route descent.
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct RouteLevel {
     pub dir: String,
     pub selected: Vec<(String, f32, String)>, // (path, score, first_line)
