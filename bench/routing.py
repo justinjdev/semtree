@@ -23,11 +23,21 @@ class Query:
 
 
 @dataclass
+class LevelTelemetry:
+    depth: int
+    n_candidates: int
+    n_selected: int
+    selected_paths: list[str]
+    rho_l: float = 0.0  # irrelevant fraction, computed post-hoc
+
+
+@dataclass
 class DescentResult:
     files_reached: list[str]
     llm_calls: int
     tokens_loaded: int
     elapsed_s: float
+    level_telemetry: list[LevelTelemetry] = field(default_factory=list)
 
 
 def load_queries(query_file: Path) -> list[Query]:
@@ -66,6 +76,73 @@ def ndcg_at_k(retrieved: list[str], relevant: dict[str, int], k: int = 10) -> fl
     return dcg / idcg
 
 
+def precision(retrieved: list[str], relevant_set: set[str]) -> float:
+    """Precision: fraction of retrieved items that are relevant."""
+    if not retrieved:
+        return 0.0
+    return sum(1 for r in retrieved if r in relevant_set) / len(retrieved)
+
+
+def recall(retrieved: list[str], relevant_set: set[str]) -> float:
+    """Recall: fraction of relevant items that were retrieved."""
+    if not relevant_set:
+        return 0.0
+    return sum(1 for r in retrieved if r in relevant_set) / len(relevant_set)
+
+
+def mrr(retrieved: list[str], relevant_set: set[str]) -> float:
+    """Mean Reciprocal Rank: 1/rank of first relevant item."""
+    for i, r in enumerate(retrieved):
+        if r in relevant_set:
+            return 1.0 / (i + 1)
+    return 0.0
+
+
+def compute_rho_l(selected_paths: list[str], relevant_paths: set[str]) -> float:
+    """Compute irrelevant fraction rho_l.
+
+    A selected path is "relevant" if it is an ancestor of any relevant leaf
+    or is a relevant leaf itself.
+    """
+    if not selected_paths:
+        return 0.0
+
+    def is_on_relevant_path(path: str) -> bool:
+        for rp in relevant_paths:
+            if rp == path or rp.startswith(path.rstrip("/") + "/"):
+                return True
+        return False
+
+    irrelevant = sum(1 for p in selected_paths if not is_on_relevant_path(p))
+    return irrelevant / len(selected_paths)
+
+
+def log_dilution_penalty(
+    telemetry: list[LevelTelemetry],
+    weights: list[float] | None = None,
+) -> float:
+    """D(b,d) = sum w_l * log(1 + n_selected_l)"""
+    if not telemetry:
+        return 0.0
+    w = weights or [1.0] * len(telemetry)
+    if len(w) < len(telemetry):
+        raise ValueError(f"weights length {len(w)} < telemetry length {len(telemetry)}")
+    return sum(w[i] * math.log(1 + t.n_selected) for i, t in enumerate(telemetry))
+
+
+def ratio_dilution_penalty(
+    telemetry: list[LevelTelemetry],
+    weights: list[float] | None = None,
+) -> float:
+    """D'(b,d) = sum w_l * rho_l"""
+    if not telemetry:
+        return 0.0
+    w = weights or [1.0] * len(telemetry)
+    if len(w) < len(telemetry):
+        raise ValueError(f"weights length {len(w)} < telemetry length {len(telemetry)}")
+    return sum(w[i] * t.rho_l for i, t in enumerate(telemetry))
+
+
 SelectFn = Callable[[str, list[tuple[str, str]], int], list[tuple[str, float]]]
 
 
@@ -88,6 +165,7 @@ def simulate_descent(
     files_with_score: list[tuple[str, float]] = []
     llm_calls = 0
     tokens_loaded = 0
+    level_telemetry: list[LevelTelemetry] = []
     t0 = time.monotonic()
 
     # Start at root
@@ -120,6 +198,14 @@ def simulate_descent(
         selected = select_fn(question, children, beam_width)
         llm_calls += 1
 
+        selected_paths = [p for p, _ in selected]
+        level_telemetry.append(LevelTelemetry(
+            depth=depth,
+            n_candidates=len(children),
+            n_selected=len(selected),
+            selected_paths=selected_paths,
+        ))
+
         for child_path, score in selected:
             child_full = repo_path / child_path
             if child_full.is_dir():
@@ -143,7 +229,14 @@ def simulate_descent(
         llm_calls=llm_calls,
         tokens_loaded=tokens_loaded,
         elapsed_s=elapsed,
+        level_telemetry=level_telemetry,
     )
+
+
+def enrich_telemetry(telemetry: list[LevelTelemetry], relevant_paths: set[str]) -> None:
+    """Compute rho_l for each level given ground truth relevant paths."""
+    for t in telemetry:
+        t.rho_l = compute_rho_l(t.selected_paths, relevant_paths)
 
 
 def _extract_children(repo_path: Path, dir_rel_path: str) -> list[tuple[str, str]]:
@@ -267,3 +360,111 @@ def run_routing_phase(
                 append_results(results_path, batch)
 
     return records
+
+
+def run_dilution_ablation(
+    repo_path: Path,
+    query_file: Path,
+    select_fn: SelectFn,
+    repo_name: str = "local",
+    results_path: Path | None = None,
+) -> list[MetricRecord]:
+    """Run dilution ablation: single shared descent with post-hoc penalty metrics.
+
+    For each (query, control) pair, runs one descent trace and records
+    retrieval metrics (NDCG, precision, recall, MRR) alongside both
+    dilution penalty values (log and ratio). Penalties are observational —
+    they do not influence beam selection.
+    """
+    from bench.harness import append_results
+
+    queries = load_queries(query_file)
+    records: list[MetricRecord] = []
+
+    for query in queries:
+        relevant_map = {r["path"]: r["relevance"] for r in query.relevant}
+        relevant_set = set(relevant_map.keys())
+
+        for control in SRT_CONTROL_GRID:
+            now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+            control_json = json.dumps(control, sort_keys=True)
+
+            # Single descent trace shared across all conditions
+            result = simulate_descent(
+                repo_path=repo_path,
+                question=query.question,
+                select_fn=select_fn,
+                beam_width=control["beam_width"],
+                max_depth=control["max_depth"],
+                token_budget=control["token_budget"],
+            )
+
+            # Enrich telemetry with ground truth
+            enrich_telemetry(result.level_telemetry, relevant_set)
+
+            # Compute shared metrics
+            ndcg = ndcg_at_k(result.files_reached, relevant_map, k=10)
+            prec = precision(result.files_reached, relevant_set)
+            rec = recall(result.files_reached, relevant_set)
+            mrr_val = mrr(result.files_reached, relevant_set)
+            log_d = log_dilution_penalty(result.level_telemetry)
+            ratio_d = ratio_dilution_penalty(result.level_telemetry)
+
+            # Telemetry aggregates
+            n_cand_mean = (
+                sum(t.n_candidates for t in result.level_telemetry) / len(result.level_telemetry)
+                if result.level_telemetry else 0.0
+            )
+            rho_mean = (
+                sum(t.rho_l for t in result.level_telemetry) / len(result.level_telemetry)
+                if result.level_telemetry else 0.0
+            )
+
+            # Single condition with all metrics — descent trace is shared,
+            # penalty values are observational (post-hoc), not interventional
+            metrics_list = [
+                ("ndcg@10", ndcg), ("precision", prec), ("recall", rec), ("mrr", mrr_val),
+                ("log_dilution_D", log_d), ("ratio_dilution_D", ratio_d),
+                ("n_candidates_mean", n_cand_mean), ("rho_mean", rho_mean),
+            ]
+
+            batch: list[MetricRecord] = []
+            for metric, value in metrics_list:
+                batch.append(MetricRecord(
+                    now, "dilution", repo_name, "srt",
+                    query.id, control_json, metric, value,
+                ))
+            records.extend(batch)
+            if results_path:
+                append_results(results_path, batch)
+
+    return records
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="SRT routing benchmark")
+    parser.add_argument("--repo", type=Path, required=True, help="Path to repo with .sem/ records")
+    parser.add_argument("--queries", type=Path, required=True, help="Query YAML file")
+    parser.add_argument("--results", type=Path, default=Path("results.tsv"), help="Output TSV")
+    parser.add_argument("--repo-name", default="local")
+    parser.add_argument("--dilution", action="store_true", help="Run dilution ablation")
+    parser.add_argument("--model", default="BAAI/bge-small-en-v1.5")
+    args = parser.parse_args()
+
+    select_fn = make_embedding_select_fn(args.repo, model=args.model)
+    if args.dilution:
+        print("Running dilution ablation...")
+        records = run_dilution_ablation(
+            args.repo, args.queries, select_fn,
+            repo_name=args.repo_name, results_path=args.results,
+        )
+        print(f"Done: {len(records)} metric records written to {args.results}")
+    else:
+        print("Running routing phase...")
+        records = run_routing_phase(
+            args.repo, args.queries, select_fn,
+            repo_name=args.repo_name, results_path=args.results,
+        )
+        print(f"Done: {len(records)} metric records written to {args.results}")

@@ -10,6 +10,13 @@ from bench.routing import (
     load_queries,
     simulate_descent,
     ndcg_at_k,
+    precision,
+    recall,
+    mrr,
+    compute_rho_l,
+    log_dilution_penalty,
+    ratio_dilution_penalty,
+    LevelTelemetry,
     Query,
 )
 from semtree.records import write_record
@@ -92,3 +99,78 @@ class TestSimulateDescent:
 
         assert len(result.files_reached) > 0
         assert result.llm_calls >= 1
+        assert len(result.level_telemetry) >= 1
+        assert result.level_telemetry[0].n_candidates > 0
+
+
+class TestRhoL:
+    def test_all_relevant(self) -> None:
+        selected = ["src/auth.py", "src/db.py"]
+        relevant = {"src/auth.py", "src/db.py"}
+        assert compute_rho_l(selected, relevant) == 0.0
+
+    def test_none_relevant(self) -> None:
+        selected = ["src/auth.py", "src/db.py"]
+        relevant = {"docs/readme.md"}
+        assert compute_rho_l(selected, relevant) == 1.0
+
+    def test_mixed(self) -> None:
+        selected = ["src", "docs"]
+        relevant = {"src/auth.py"}
+        # "src" is an ancestor of relevant, "docs" is not
+        assert compute_rho_l(selected, relevant) == pytest.approx(0.5)
+
+    def test_empty_selected(self) -> None:
+        assert compute_rho_l([], {"src/auth.py"}) == 0.0
+
+
+class TestPrecisionRecallMRR:
+    def test_precision_all_relevant(self) -> None:
+        assert precision(["a", "b"], {"a", "b", "c"}) == pytest.approx(1.0)
+
+    def test_precision_none_relevant(self) -> None:
+        assert precision(["x", "y"], {"a", "b"}) == pytest.approx(0.0)
+
+    def test_precision_empty_retrieved(self) -> None:
+        assert precision([], {"a"}) == pytest.approx(0.0)
+
+    def test_recall_all_retrieved(self) -> None:
+        assert recall(["a", "b"], {"a", "b"}) == pytest.approx(1.0)
+
+    def test_recall_partial(self) -> None:
+        assert recall(["a", "x"], {"a", "b"}) == pytest.approx(0.5)
+
+    def test_recall_empty_relevant(self) -> None:
+        assert recall(["a"], set()) == pytest.approx(0.0)
+
+    def test_mrr_first_position(self) -> None:
+        assert mrr(["a", "b", "c"], {"a"}) == pytest.approx(1.0)
+
+    def test_mrr_second_position(self) -> None:
+        assert mrr(["x", "a", "b"], {"a"}) == pytest.approx(0.5)
+
+    def test_mrr_no_overlap(self) -> None:
+        assert mrr(["x", "y"], {"a"}) == pytest.approx(0.0)
+
+
+class TestDilutionPenalties:
+    def test_log_dilution(self) -> None:
+        telemetry = [
+            LevelTelemetry(depth=0, n_candidates=5, n_selected=3, selected_paths=["a", "b", "c"]),
+            LevelTelemetry(depth=1, n_candidates=10, n_selected=5, selected_paths=["d", "e", "f", "g", "h"]),
+        ]
+        import math
+        expected = math.log(1 + 3) + math.log(1 + 5)
+        assert log_dilution_penalty(telemetry) == pytest.approx(expected)
+
+    def test_ratio_dilution(self) -> None:
+        telemetry = [
+            LevelTelemetry(depth=0, n_candidates=5, n_selected=3, selected_paths=["a", "b", "c"], rho_l=0.33),
+            LevelTelemetry(depth=1, n_candidates=10, n_selected=5, selected_paths=[], rho_l=0.8),
+        ]
+        expected = 0.33 + 0.8
+        assert ratio_dilution_penalty(telemetry) == pytest.approx(expected)
+
+    def test_empty_telemetry(self) -> None:
+        assert log_dilution_penalty([]) == 0.0
+        assert ratio_dilution_penalty([]) == 0.0

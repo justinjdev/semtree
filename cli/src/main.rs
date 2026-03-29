@@ -1,3 +1,4 @@
+use anyhow::Context;
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 
@@ -10,6 +11,7 @@ mod summarizer;
 mod builder;
 mod server;
 mod bench;
+mod depth_profile;
 
 #[derive(Parser)]
 #[command(name = "semtree", about = "Semantic Resolution Tree indexer")]
@@ -95,6 +97,9 @@ enum Commands {
         /// Maximum descent depth
         #[arg(long, default_value_t = 10)]
         max_depth: usize,
+        /// Beam allocation policy
+        #[arg(long, value_enum, default_value_t = embedder::BeamPolicy::Uniform)]
+        beam_policy: embedder::BeamPolicy,
     },
 
     /// Analyze impact of changed files — find related files that may be affected
@@ -131,6 +136,12 @@ enum Commands {
         /// Path to results TSV file
         #[arg(long, default_value = "results.tsv")]
         results: PathBuf,
+        /// Path to benchmark query YAML file (required for depth-profile phase)
+        #[arg(long)]
+        queries: Option<PathBuf>,
+        /// Run dilution ablation (delegates to Python bench)
+        #[arg(long)]
+        dilution: bool,
     },
 
     /// Inspect binary .vec files
@@ -212,7 +223,7 @@ fn main() -> anyhow::Result<()> {
                 }
             }
         }
-        Commands::Route { query, path, model, beam_width, max_depth } => {
+        Commands::Route { query, path, model, beam_width, max_depth, beam_policy } => {
             let target = std::fs::canonicalize(&path)?;
             let start = std::time::Instant::now();
 
@@ -244,17 +255,25 @@ fn main() -> anyhow::Result<()> {
                         selected,
                         all_children: l["all_children"].as_u64().unwrap_or(0) as usize,
                         elapsed_ms: l["elapsed_ms"].as_u64().unwrap_or(0),
+                        branching_factor: l["branching_factor"].as_u64().map(|v| v as usize),
+                        ambiguity: l["ambiguity"].as_f64().map(|v| v as f32),
+                        allocated_beam: l["allocated_beam"].as_u64().map(|v| v as usize),
                     }
                 }).collect()
             } else {
-                embedder::route_directory(&target, &query, &model, beam_width, max_depth)?
+                embedder::route_directory_with_policy(&target, &query, &model, beam_width, max_depth, beam_policy)?
             };
 
             if levels.is_empty() {
                 eprintln!("No .sem/ records found for routing.");
             } else {
                 for level in &levels {
-                    println!("--- {} ({} children) [{}ms] ---", level.dir, level.all_children, level.elapsed_ms);
+                    let diag = match (level.branching_factor, level.ambiguity, level.allocated_beam) {
+                        (Some(bf), Some(amb), Some(ab)) =>
+                            format!(" B={bf} m={amb:.2} beam={ab}"),
+                        _ => String::new(),
+                    };
+                    println!("--- {} ({} children) [{}ms]{} ---", level.dir, level.all_children, level.elapsed_ms, diag);
                     for (rpath, score, first_line) in &level.selected {
                         println!("  {:.4}  {}  {}", score, rpath, first_line);
                     }
@@ -315,9 +334,12 @@ fn main() -> anyhow::Result<()> {
             let rt = tokio::runtime::Runtime::new()?;
             rt.block_on(server::serve(&socket))?;
         }
-        Commands::Bench { phase, repo_path, results } => {
-            let target = repo_path.map(|p| p.canonicalize().unwrap_or(p))
-                .unwrap_or_else(|| std::env::current_dir().unwrap());
+        Commands::Bench { phase, repo_path, results, queries, dilution } => {
+            let target = match repo_path {
+                Some(p) => std::fs::canonicalize(&p)
+                    .with_context(|| format!("invalid repo path: {}", p.display()))?,
+                None => std::env::current_dir()?,
+            };
 
             if phase == "quality" || phase == "all" {
                 eprintln!("Running quality phase...");
@@ -337,6 +359,23 @@ fn main() -> anyhow::Result<()> {
                     eprintln!("  {}: {}", metric, value);
                 }
             }
+
+            if phase == "depth-profile" || (phase == "all" && queries.is_some()) {
+                let queries_path = queries.as_ref().ok_or_else(|| {
+                    anyhow::anyhow!("--queries is required for the depth-profile phase")
+                })?;
+                if !queries_path.exists() {
+                    anyhow::bail!("query file not found: {}", queries_path.display());
+                }
+                eprintln!("Running depth-profile phase...");
+                depth_profile::run_depth_profile(&target, queries_path, &results)?;
+            }
+
+            if dilution {
+                eprintln!("Dilution ablation requested. Run via Python bench:");
+                eprintln!("  python -m bench.routing --repo <path> --queries <file> --dilution --results {}", results.display());
+            }
+
             eprintln!("Benchmark complete.");
         }
         Commands::Vec { cmd } => match cmd {
