@@ -420,34 +420,23 @@ def run_dilution_ablation(
                 if result.level_telemetry else 0.0
             )
 
-            # Emit metrics for each condition
-            conditions = {
-                "srt/no_penalty": [
-                    ("ndcg@10", ndcg), ("precision", prec), ("recall", rec), ("mrr", mrr_val),
-                    ("n_candidates_mean", n_cand_mean), ("rho_mean", rho_mean),
-                ],
-                "srt/log_dilution": [
-                    ("ndcg@10", ndcg), ("precision", prec), ("recall", rec), ("mrr", mrr_val),
-                    ("log_dilution_D", log_d),
-                    ("n_candidates_mean", n_cand_mean), ("rho_mean", rho_mean),
-                ],
-                "srt/ratio_dilution": [
-                    ("ndcg@10", ndcg), ("precision", prec), ("recall", rec), ("mrr", mrr_val),
-                    ("ratio_dilution_D", ratio_d),
-                    ("n_candidates_mean", n_cand_mean), ("rho_mean", rho_mean),
-                ],
-            }
+            # Single condition with all metrics — descent trace is shared,
+            # penalty values are observational (post-hoc), not interventional
+            metrics_list = [
+                ("ndcg@10", ndcg), ("precision", prec), ("recall", rec), ("mrr", mrr_val),
+                ("log_dilution_D", log_d), ("ratio_dilution_D", ratio_d),
+                ("n_candidates_mean", n_cand_mean), ("rho_mean", rho_mean),
+            ]
 
-            for system, metrics in conditions.items():
-                batch: list[MetricRecord] = []
-                for metric, value in metrics:
-                    batch.append(MetricRecord(
-                        now, "dilution", repo_name, system,
-                        query.id, control_json, metric, value,
-                    ))
-                records.extend(batch)
-                if results_path:
-                    append_results(results_path, batch)
+            batch: list[MetricRecord] = []
+            for metric, value in metrics_list:
+                batch.append(MetricRecord(
+                    now, "dilution", repo_name, "srt",
+                    query.id, control_json, metric, value,
+                ))
+            records.extend(batch)
+            if results_path:
+                append_results(results_path, batch)
 
     return records
 

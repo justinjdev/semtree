@@ -130,47 +130,12 @@ pub fn per_query_metrics(queries: &[Query]) -> Vec<QueryDepthMetrics> {
 /// Walk the repo tree and compute max depth and mean branching factor per level.
 /// Respects standard ignore rules (dotfiles, dotdirs, common excludes).
 pub fn repo_tree_metrics(repo_path: &Path) -> Result<(usize, BTreeMap<usize, f64>)> {
-    let mut children_per_dir: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
     let mut max_depth: usize = 0;
-
-    for entry in WalkDir::new(repo_path)
-        .into_iter()
-        .filter_entry(|e| {
-            let name = e.file_name().to_string_lossy();
-            // Skip dotfiles/dotdirs (except root)
-            if name.starts_with('.') && e.depth() > 0 {
-                return false;
-            }
-            // Skip common build dirs
-            let skip = ["node_modules", "vendor", "dist", "build", "target",
-                        "__pycache__", ".build", ".gradle"];
-            if e.file_type().is_dir() && skip.contains(&name.as_ref()) {
-                return false;
-            }
-            true
-        })
-        .filter_map(|e| e.ok())
-    {
-        let depth = entry.depth();
-        if entry.file_type().is_file() {
-            if depth > max_depth {
-                max_depth = depth;
-            }
-        }
-        if entry.file_type().is_dir() && entry.depth() > 0 {
-            // Count as a child of the parent level
-            let parent_depth = depth - 1;
-            children_per_dir.entry(parent_depth).or_default().push(1);
-        } else if entry.file_type().is_file() {
-            let parent_depth = depth - 1;
-            children_per_dir.entry(parent_depth).or_default().push(1);
-        }
-    }
-
-    // Compute mean branching factor per level
-    // We need to count children per directory at each level
     let mut dir_children: BTreeMap<usize, BTreeMap<String, usize>> = BTreeMap::new();
 
+    let skip_dirs = ["node_modules", "vendor", "dist", "build", "target",
+                     "__pycache__", ".build", ".gradle"];
+
     for entry in WalkDir::new(repo_path)
         .into_iter()
         .filter_entry(|e| {
@@ -178,9 +143,7 @@ pub fn repo_tree_metrics(repo_path: &Path) -> Result<(usize, BTreeMap<usize, f64
             if name.starts_with('.') && e.depth() > 0 {
                 return false;
             }
-            let skip = ["node_modules", "vendor", "dist", "build", "target",
-                        "__pycache__", ".build", ".gradle"];
-            if e.file_type().is_dir() && skip.contains(&name.as_ref()) {
+            if e.file_type().is_dir() && skip_dirs.contains(&name.as_ref()) {
                 return false;
             }
             true
@@ -189,6 +152,9 @@ pub fn repo_tree_metrics(repo_path: &Path) -> Result<(usize, BTreeMap<usize, f64
     {
         if entry.depth() == 0 {
             continue;
+        }
+        if entry.file_type().is_file() && entry.depth() > max_depth {
+            max_depth = entry.depth();
         }
         let parent = entry.path().parent().unwrap_or(repo_path);
         let parent_key = parent.to_string_lossy().to_string();

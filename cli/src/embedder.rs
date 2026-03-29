@@ -487,6 +487,13 @@ pub fn compute_ambiguity(scores: &[f32]) -> f32 {
 
 /// Water-filling beam allocation: allocate beam width proportional to difficulty.
 /// Returns (selected children, beam_used).
+///
+/// Harder levels (high alpha_l = B_l * m_l) get wider beams relative to a
+/// baseline difficulty of 1.0. The per-level share is:
+///   b_l = (remaining_budget / remaining_levels) * (alpha_l / alpha_ref)
+/// clamped to [1, remaining_budget].
+const ALPHA_REF: f32 = 3.0; // baseline: ~3 children at moderate ambiguity
+
 fn waterfill_beam(
     ranked: &[(String, f32)],
     branching_factor: usize,
@@ -499,19 +506,15 @@ fn waterfill_beam(
         return (vec![], 0);
     }
 
-    // alpha_l = B_l * m_l
+    // alpha_l = B_l * m_l (difficulty of this level)
     let alpha_l = branching_factor as f32 * ambiguity;
 
-    // Estimate average alpha for unseen levels (use current as proxy)
-    let avg_alpha = alpha_l;
-    let total_alpha = alpha_l + avg_alpha * (remaining_levels.saturating_sub(1) as f32);
+    // Base share: uniform split of remaining budget
+    let base_share = remaining_budget as f32 / remaining_levels.max(1) as f32;
 
-    // Allocate proportionally from remaining budget
-    let b_l = if total_alpha > 0.0 {
-        ((remaining_budget as f32 * alpha_l / total_alpha).round() as usize).max(1)
-    } else {
-        1
-    };
+    // Scale by difficulty relative to baseline
+    let scale = alpha_l / ALPHA_REF;
+    let b_l = (base_share * scale).round().max(1.0) as usize;
 
     // Don't exceed remaining children or budget
     let take = b_l.min(n).min(remaining_budget);
