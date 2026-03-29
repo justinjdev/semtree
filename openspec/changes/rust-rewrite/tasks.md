@@ -33,7 +33,7 @@
 - [x] 5.2 Implement write_vec (header + hash + model + f32 array)
 - [x] 5.3 Implement read_vec with mmap (memory-map file, cast f32 slice from pointer)
 - [x] 5.4 Implement is_vec_fresh (compare content_hash and model)
-- [ ] 5.5 Implement `semtree vec inspect` subcommand
+- [x] 5.5 Implement `semtree vec inspect` subcommand
 - [x] 5.6 Write tests: round-trip, freshness check, mmap read, inspect output
 
 ## 6. Embedder (rust-embedder)
@@ -43,8 +43,8 @@
 - [x] 6.3 Implement embed_directory (walk records, check freshness, batch embed, write .vec)
 - [x] 6.4 Implement query_directory (load child .vec files, embed query, cosine rank)
 - [x] 6.5 Implement route_directory (BFS beam search, rank children at each level)
-- [ ] 6.6 Write tests for embedder (cosine ranking, etc.)
-- [ ] 6.7 Native ort embedding (replace Python subprocess — future optimization)
+- [x] 6.6 Write tests for embedder (cosine ranking, etc.)
+- [x] 6.7 Native ort embedding (replace Python subprocess — future optimization)
 
 ## 7. Embed Command
 
@@ -83,7 +83,7 @@
 - [x] 12.1 Implement Unix socket server with tokio
 - [x] 12.2 Implement PID file management
 - [x] 12.3 Implement newline-delimited JSON protocol (route, query methods)
-- [ ] 12.4 Implement model preloading at daemon startup (requires native ort)
+- [x] 12.4 Implement model preloading at daemon startup (requires native ort)
 - [x] 12.5 Implement client-side daemon detection in query/route commands
 - [x] 12.6 Implement graceful shutdown on SIGTERM/SIGINT
 - [x] 12.7 Implement stale socket detection
@@ -92,17 +92,17 @@
 
 ## 13. Bench Data Collection
 
-- [ ] 13.1 Implement TSV append (same format as Python harness)
-- [ ] 13.2 Implement quality phase (structural checks on .sem/ records)
+- [x] 13.1 Implement TSV append (same format as Python harness)
+- [x] 13.2 Implement quality phase (structural checks on .sem/ records)
 - [ ] 13.3 Implement routing phase (control grid sweep using route_directory)
-- [ ] 13.4 Wire `semtree bench` subcommand with --repo-path, --results, --phase flags
-- [ ] 13.5 Write tests: TSV format, quality checks
+- [x] 13.4 Wire `semtree bench` subcommand with --repo-path, --results, --phase flags
+- [x] 13.5 Write tests: TSV format, quality checks
 
 ## 14. Integration and Migration
 
-- [ ] 14.1 Update srt-navigate skill to reference Rust binary
-- [ ] 14.2 Update srt-build skill to reference Rust binary
+- [x] 14.1 Update srt-navigate skill to reference Rust binary
+- [x] 14.2 Update srt-build skill to reference Rust binary
 - [ ] 14.3 Update Python bench/ to shell out to Rust binary instead of importing Python semtree
 - [ ] 14.4 Run full benchmark suite with Rust binary and compare results to Python baseline
 - [ ] 14.5 Add `semtree embed --force` migration note for JSON → binary .vec conversion
-- [ ] 14.6 Update CLAUDE.md with Rust build instructions
+- [x] 14.6 Update CLAUDE.md with Rust build instructions
