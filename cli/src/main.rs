@@ -160,7 +160,27 @@ fn main() -> anyhow::Result<()> {
         }
         Commands::Query { query, path, model, top_k, threshold } => {
             let target = std::fs::canonicalize(&path)?;
-            let results = embedder::query_directory(&target, &query, &model, top_k, threshold)?;
+
+            let socket_path = server::default_socket_path();
+            let results: Vec<(f32, String, String)> = if server::daemon_available(&socket_path) {
+                let params = serde_json::json!({
+                    "path": target.to_string_lossy(),
+                    "query": query,
+                    "model": model,
+                    "top_k": top_k,
+                    "threshold": threshold,
+                });
+                let result = server::daemon_request(&socket_path, "query", params)?;
+                let children = result.get("children").unwrap_or(&result);
+                children.as_array().unwrap_or(&vec![]).iter().map(|c| (
+                    c["score"].as_f64().unwrap_or(0.0) as f32,
+                    c["path"].as_str().unwrap_or("").to_string(),
+                    c["summary"].as_str().unwrap_or("").to_string(),
+                )).collect()
+            } else {
+                embedder::query_directory(&target, &query, &model, top_k, threshold)?
+            };
+
             if results.is_empty() {
                 eprintln!("No results found.");
             } else {
