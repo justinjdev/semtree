@@ -41,7 +41,7 @@ enum Commands {
         #[arg(long)]
         no_embed: bool,
         /// Embedding model name
-        #[arg(long, default_value = "nomic-ai/nomic-embed-text-v1.5")]
+        #[arg(long, default_value = "BAAI/bge-small-en-v1.5")]
         embed_model: String,
     },
 
@@ -51,7 +51,7 @@ enum Commands {
         #[arg(default_value = ".")]
         path: PathBuf,
         /// Embedding model name
-        #[arg(long, default_value = "nomic-ai/nomic-embed-text-v1.5")]
+        #[arg(long, default_value = "BAAI/bge-small-en-v1.5")]
         model: String,
         /// Re-embed all records, ignoring freshness checks
         #[arg(long)]
@@ -66,7 +66,7 @@ enum Commands {
         #[arg(default_value = ".")]
         path: PathBuf,
         /// Embedding model name
-        #[arg(long, default_value = "nomic-ai/nomic-embed-text-v1.5")]
+        #[arg(long, default_value = "BAAI/bge-small-en-v1.5")]
         model: String,
         /// Return only top K results
         #[arg(long)]
@@ -84,7 +84,7 @@ enum Commands {
         #[arg(default_value = ".")]
         path: PathBuf,
         /// Embedding model name
-        #[arg(long, default_value = "nomic-ai/nomic-embed-text-v1.5")]
+        #[arg(long, default_value = "BAAI/bge-small-en-v1.5")]
         model: String,
         /// Number of children to select at each level
         #[arg(long, default_value_t = 3)]
