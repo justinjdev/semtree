@@ -86,7 +86,15 @@ async fn handle_connection(stream: tokio::net::UnixStream) -> Result<()> {
 
     while let Some(line) = lines.next_line().await? {
         let resp = match serde_json::from_str::<Request>(&line) {
-            Ok(req) => dispatch(&req),
+            Ok(req) => {
+                // Run embedder calls on a blocking thread to avoid stalling tokio
+                tokio::task::spawn_blocking(move || dispatch(&req))
+                    .await
+                    .unwrap_or_else(|e| Response {
+                        result: None,
+                        error: Some(format!("dispatch panicked: {e}")),
+                    })
+            }
             Err(e) => Response {
                 result: None,
                 error: Some(format!("invalid request: {e}")),

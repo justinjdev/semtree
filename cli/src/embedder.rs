@@ -100,6 +100,7 @@ pub fn cosine_rank(query_vec: &[f32], children: &[(&str, &[f32])]) -> Vec<(Strin
     results
 }
 
+#[inline(always)]
 fn dot(a: &[f32], b: &[f32]) -> f32 {
     a.iter().zip(b.iter()).map(|(x, y)| x * y).sum()
 }
@@ -175,18 +176,17 @@ pub fn query_directory(
         return Ok(vec![]);
     }
 
-    // Load child vectors and records
-    let mut children_vecs: Vec<(String, Vec<f32>)> = Vec::new();
-    let mut children_summaries: std::collections::HashMap<String, String> =
-        std::collections::HashMap::new();
+    // Load children into a single vec (no HashMap)
+    struct QueryChild {
+        path: String,
+        vector: Vec<f32>,
+        first_line: String,
+    }
+    let mut children: Vec<QueryChild> = Vec::new();
 
     let mut vec_entries: Vec<_> = std::fs::read_dir(&sem_dir)?
         .filter_map(|e| e.ok())
-        .filter(|e| {
-            e.path()
-                .extension()
-                .map_or(false, |ext| ext == "vec")
-        })
+        .filter(|e| e.path().extension().map_or(false, |ext| ext == "vec"))
         .collect();
     vec_entries.sort_by_key(|e| e.path());
 
@@ -203,29 +203,26 @@ pub fn query_directory(
             None => continue,
         };
 
-        let first_line = record
-            .summary
-            .split('\n')
-            .next()
-            .unwrap_or("")
-            .trim()
-            .to_string();
-
-        children_vecs.push((record.path.clone(), vec_data.vector));
-        children_summaries.insert(record.path.clone(), first_line);
+        let first_line = record.summary.lines().next().unwrap_or("").trim().to_string();
+        children.push(QueryChild { path: record.path, vector: vec_data.vector, first_line });
     }
 
-    if children_vecs.is_empty() {
+    if children.is_empty() {
         return Ok(vec![]);
     }
 
     let query_vec = embed_query(query, model)?;
 
-    let children_refs: Vec<(&str, &[f32])> = children_vecs
+    let children_refs: Vec<(&str, &[f32])> = children
         .iter()
-        .map(|(p, v)| (p.as_str(), v.as_slice()))
+        .map(|c| (c.path.as_str(), c.vector.as_slice()))
         .collect();
     let ranked = cosine_rank(&query_vec, &children_refs);
+
+    let child_lookup: std::collections::HashMap<&str, &QueryChild> = children
+        .iter()
+        .map(|c| (c.path.as_str(), c))
+        .collect();
 
     let mut results = Vec::new();
     for (path, score) in ranked {
@@ -234,9 +231,9 @@ pub fn query_directory(
                 continue;
             }
         }
-        let first_line = children_summaries
-            .get(&path)
-            .cloned()
+        let first_line = child_lookup
+            .get(path.as_str())
+            .map(|c| c.first_line.clone())
             .unwrap_or_default();
         results.push((score, path, first_line));
     }
@@ -268,11 +265,10 @@ pub fn route_directory(
 
     let mut levels: Vec<RouteLevel> = Vec::new();
     // Queue: (directory_absolute_path, dir_relative_path, depth)
-    let mut queue: Vec<(std::path::PathBuf, String, usize)> =
-        vec![(target.to_path_buf(), String::new(), 0)];
+    let mut queue: std::collections::VecDeque<(std::path::PathBuf, String, usize)> =
+        std::collections::VecDeque::from([(target.to_path_buf(), String::new(), 0)]);
 
-    while let Some((dir_abs, dir_rel, depth)) = queue.first().cloned() {
-        queue.remove(0);
+    while let Some((dir_abs, dir_rel, depth)) = queue.pop_front() {
         if depth >= max_depth {
             continue;
         }
@@ -283,10 +279,14 @@ pub fn route_directory(
             continue;
         }
 
-        // Load child vectors and metadata
-        let mut children_vecs: Vec<(String, Vec<f32>)> = Vec::new();
-        let mut children_meta: std::collections::HashMap<String, (String, bool)> =
-            std::collections::HashMap::new();
+        // Load child vectors and metadata into a single vec (no HashMap)
+        struct ChildInfo {
+            path: String,
+            vector: Vec<f32>,
+            first_line: String,
+            is_dir: bool,
+        }
+        let mut children: Vec<ChildInfo> = Vec::new();
 
         let mut vec_entries: Vec<_> = std::fs::read_dir(&sem_dir)?
             .filter_map(|e| e.ok())
@@ -311,29 +311,31 @@ pub fn route_directory(
                 None => continue,
             };
 
-            let first_line = record
-                .summary
-                .split('\n')
-                .next()
-                .unwrap_or("")
-                .trim()
-                .to_string();
-            let is_dir = record.node_type == "directory";
-
-            children_vecs.push((record.path.clone(), vec_data.vector));
-            children_meta.insert(record.path.clone(), (first_line, is_dir));
+            let first_line = record.summary.lines().next().unwrap_or("").trim().to_string();
+            children.push(ChildInfo {
+                path: record.path,
+                vector: vec_data.vector,
+                first_line,
+                is_dir: record.node_type == "directory",
+            });
         }
 
-        if children_vecs.is_empty() {
+        if children.is_empty() {
             continue;
         }
 
-        let children_refs: Vec<(&str, &[f32])> = children_vecs
+        let children_refs: Vec<(&str, &[f32])> = children
             .iter()
-            .map(|(p, v)| (p.as_str(), v.as_slice()))
+            .map(|c| (c.path.as_str(), c.vector.as_slice()))
             .collect();
         let ranked = cosine_rank(&query_vec, &children_refs);
         let selected: Vec<_> = ranked.iter().take(beam_width).cloned().collect();
+
+        // Build a quick lookup for selected children
+        let child_lookup: std::collections::HashMap<&str, &ChildInfo> = children
+            .iter()
+            .map(|c| (c.path.as_str(), c))
+            .collect();
 
         let level_info = RouteLevel {
             dir: if dir_rel.is_empty() {
@@ -344,7 +346,10 @@ pub fn route_directory(
             selected: selected
                 .iter()
                 .map(|(path, score)| {
-                    let (first_line, _) = children_meta.get(path).cloned().unwrap_or_default();
+                    let first_line = child_lookup
+                        .get(path.as_str())
+                        .map(|c| c.first_line.clone())
+                        .unwrap_or_default();
                     (path.clone(), *score, first_line)
                 })
                 .collect(),
@@ -355,11 +360,11 @@ pub fn route_directory(
 
         // Queue directory children for descent
         for (child_path, _score) in &selected {
-            if let Some((_, is_dir)) = children_meta.get(child_path) {
-                if *is_dir {
+            if let Some(info) = child_lookup.get(child_path.as_str()) {
+                if info.is_dir {
                     let child_abs = target.join(child_path);
                     if child_abs.is_dir() {
-                        queue.push((child_abs, child_path.clone(), depth + 1));
+                        queue.push_back((child_abs, child_path.clone(), depth + 1));
                     }
                 }
             }
