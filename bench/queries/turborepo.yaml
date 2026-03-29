@@ -268,3 +268,259 @@ queries:
         relevance: 2
       - path: lockfile-tests/check-lockfiles.ts
         relevance: 1
+
+  # focused queries (q21-q27) — uncovered crates
+
+  - id: q21
+    question: "Where is the ImportTraceType enum defined and how does it control which imports turbo-trace collects?"
+    category: focused
+    relevant:
+      - path: crates/turbo-trace/src/tracer.rs
+        relevance: 3
+      - path: crates/turbo-trace/src/import_finder.rs
+        relevance: 3
+      - path: crates/turbo-trace/src/lib.rs
+        relevance: 1
+
+  - id: q22
+    question: "How does the Berry lockfile DescriptorResolver resolve packages when the protocol is unknown?"
+    category: focused
+    relevant:
+      - path: crates/turborepo-lockfiles/src/berry/protocol_resolver.rs
+        relevance: 3
+      - path: crates/turborepo-lockfiles/src/berry/mod.rs
+        relevance: 2
+      - path: crates/turborepo-lockfiles/src/berry/resolution.rs
+        relevance: 2
+      - path: crates/turborepo-lockfiles/src/lib.rs
+        relevance: 1
+
+  - id: q23
+    question: "Where is the RepoGitIndex struct defined and how does it use gix-index to avoid spawning git subprocesses?"
+    category: focused
+    relevant:
+      - path: crates/turborepo-scm/src/repo_index.rs
+        relevance: 3
+      - path: crates/turborepo-scm/src/hash_object.rs
+        relevance: 2
+      - path: crates/turborepo-scm/src/lib.rs
+        relevance: 1
+      - path: crates/turborepo-scm/src/package_deps.rs
+        relevance: 1
+
+  - id: q24
+    question: "Where is the TaskId struct defined and how does it differ from TaskName?"
+    category: focused
+    relevant:
+      - path: crates/turborepo-task-id/src/lib.rs
+        relevance: 3
+      - path: crates/turborepo-task-executor/src/visitor.rs
+        relevance: 1
+      - path: crates/turborepo-query/src/affected_tasks.rs
+        relevance: 1
+
+  - id: q25
+    question: "How does the microfrontends proxy Router use a trie to match incoming request paths to applications?"
+    category: focused
+    relevant:
+      - path: crates/turborepo-microfrontends-proxy/src/http_router.rs
+        relevance: 3
+      - path: crates/turborepo-microfrontends-proxy/src/proxy.rs
+        relevance: 2
+      - path: crates/turborepo-microfrontends/src/configv1.rs
+        relevance: 1
+
+  - id: q26
+    question: "Where is the make_retryable_request function and what retry strategies does the API client support?"
+    category: focused
+    relevant:
+      - path: crates/turborepo-api-client/src/retry.rs
+        relevance: 3
+      - path: crates/turborepo-api-client/src/lib.rs
+        relevance: 2
+      - path: crates/turborepo-api-client/src/error.rs
+        relevance: 1
+
+  - id: q27
+    question: "Where is the PackageTaskEventBuilder and how does it hash sensitive telemetry data?"
+    category: focused
+    relevant:
+      - path: crates/turborepo-telemetry/src/events/task.rs
+        relevance: 3
+      - path: crates/turborepo-telemetry/src/config.rs
+        relevance: 3
+      - path: crates/turborepo-telemetry/src/events/mod.rs
+        relevance: 1
+
+  # module queries (q28-q34) — uncovered crates
+
+  - id: q28
+    question: "How does the turborepo-boundaries crate check that package imports comply with tag-based allow and deny rules?"
+    category: module
+    relevant:
+      - path: crates/turborepo-boundaries/src/tags.rs
+        relevance: 3
+      - path: crates/turborepo-boundaries/src/lib.rs
+        relevance: 3
+      - path: crates/turborepo-boundaries/src/imports.rs
+        relevance: 2
+      - path: crates/turborepo-boundaries/src/config.rs
+        relevance: 2
+
+  - id: q29
+    question: "How does the turborepo-scope crate determine which packages are affected by a --filter flag, including git change detection?"
+    category: module
+    relevant:
+      - path: crates/turborepo-scope/src/filter.rs
+        relevance: 3
+      - path: crates/turborepo-scope/src/change_detector.rs
+        relevance: 3
+      - path: crates/turborepo-scope/src/target_selector.rs
+        relevance: 2
+      - path: crates/turborepo-scope/src/lib.rs
+        relevance: 1
+
+  - id: q30
+    question: "How does the turborepo-process crate manage child process lifecycles, including graceful shutdown with signals and timeouts?"
+    category: module
+    relevant:
+      - path: crates/turborepo-process/src/child.rs
+        relevance: 3
+      - path: crates/turborepo-process/src/lib.rs
+        relevance: 3
+      - path: crates/turborepo-process/src/command.rs
+        relevance: 2
+
+  - id: q31
+    question: "How does the turborepo-auth crate implement SSO login, including the local callback server?"
+    category: module
+    relevant:
+      - path: crates/turborepo-auth/src/auth/sso.rs
+        relevance: 3
+      - path: crates/turborepo-auth/src/login_server.rs
+        relevance: 3
+      - path: crates/turborepo-auth/src/auth/login.rs
+        relevance: 2
+      - path: crates/turborepo-auth/src/auth/mod.rs
+        relevance: 1
+
+  - id: q32
+    question: "How does the Lockfile trait abstract over npm, pnpm, yarn berry, and bun lockfile formats?"
+    category: module
+    relevant:
+      - path: crates/turborepo-lockfiles/src/lib.rs
+        relevance: 3
+      - path: crates/turborepo-lockfiles/src/pnpm/mod.rs
+        relevance: 2
+      - path: crates/turborepo-lockfiles/src/berry/mod.rs
+        relevance: 2
+      - path: crates/turborepo-lockfiles/src/npm.rs
+        relevance: 2
+      - path: crates/turborepo-lockfiles/src/bun/mod.rs
+        relevance: 1
+
+  - id: q33
+    question: "How does the microfrontends proxy handle WebSocket upgrade requests and connection lifecycle management?"
+    category: module
+    relevant:
+      - path: crates/turborepo-microfrontends-proxy/src/websocket.rs
+        relevance: 3
+      - path: crates/turborepo-microfrontends-proxy/src/proxy.rs
+        relevance: 2
+      - path: crates/turborepo-microfrontends-proxy/src/server.rs
+        relevance: 2
+      - path: crates/turborepo-microfrontends-proxy/src/http_router.rs
+        relevance: 1
+
+  - id: q34
+    question: "How does the turborepo-otel crate export run and task metrics via OTLP, and what metric names does it emit?"
+    category: module
+    relevant:
+      - path: crates/turborepo-otel/src/lib.rs
+        relevance: 3
+      - path: crates/turborepo-run-cache/src/lib.rs
+        relevance: 1
+      - path: crates/turborepo-telemetry/src/events/task.rs
+        relevance: 1
+
+  # cross-cutting queries (q35-q40) — uncovered crates
+
+  - id: q35
+    question: "How does a task's output flow from the child process through the vt100 terminal parser to the TUI pane rendering?"
+    category: cross-cutting
+    relevant:
+      - path: crates/turborepo-process/src/child.rs
+        relevance: 3
+      - path: crates/turborepo-vt100/src/perform.rs
+        relevance: 3
+      - path: crates/turborepo-ui/src/tui/term_output.rs
+        relevance: 3
+      - path: crates/turborepo-ui/src/tui/pane.rs
+        relevance: 2
+      - path: crates/turborepo-vt100/src/screen.rs
+        relevance: 2
+
+  - id: q36
+    question: "Trace the path from turbo-trace parsing imports to turborepo-boundaries enforcing cross-package import rules."
+    category: cross-cutting
+    relevant:
+      - path: crates/turbo-trace/src/import_finder.rs
+        relevance: 3
+      - path: crates/turborepo-boundaries/src/imports.rs
+        relevance: 3
+      - path: crates/turborepo-boundaries/src/lib.rs
+        relevance: 2
+      - path: crates/turbo-trace/src/tracer.rs
+        relevance: 2
+      - path: crates/turborepo-query/src/boundaries.rs
+        relevance: 1
+
+  - id: q37
+    question: "How does the shim locate and delegate to a locally installed turbo binary, including version resolution and platform detection?"
+    category: cross-cutting
+    relevant:
+      - path: crates/turborepo-shim/src/local_turbo_state.rs
+        relevance: 3
+      - path: crates/turborepo-shim/src/turbo_state.rs
+        relevance: 3
+      - path: crates/turborepo-shim/src/run.rs
+        relevance: 2
+
+  - id: q38
+    question: "How does the task executor use the run cache to restore outputs, and how does the OutputWatcher prevent infinite rebuild loops in watch mode?"
+    category: cross-cutting
+    relevant:
+      - path: crates/turborepo-run-cache/src/lib.rs
+        relevance: 3
+      - path: crates/turborepo-task-executor/src/exec.rs
+        relevance: 3
+      - path: crates/turborepo-task-executor/src/output.rs
+        relevance: 2
+      - path: crates/turborepo-task-executor/src/command.rs
+        relevance: 1
+
+  - id: q39
+    question: "How do git changed files flow through the SCM layer, scope change detector, and query API to produce the list of affected tasks?"
+    category: cross-cutting
+    relevant:
+      - path: crates/turborepo-scm/src/git.rs
+        relevance: 3
+      - path: crates/turborepo-scope/src/change_detector.rs
+        relevance: 3
+      - path: crates/turborepo-query/src/affected_tasks.rs
+        relevance: 3
+      - path: crates/turborepo-scm/src/lib.rs
+        relevance: 1
+
+  - id: q40
+    question: "How do Unix signals propagate from the OS through turborepo-signals listeners to graceful child process shutdown in turborepo-process?"
+    category: cross-cutting
+    relevant:
+      - path: crates/turborepo-signals/src/listeners.rs
+        relevance: 3
+      - path: crates/turborepo-signals/src/signals.rs
+        relevance: 3
+      - path: crates/turborepo-process/src/child.rs
+        relevance: 3
+      - path: crates/turborepo-process/src/lib.rs
+        relevance: 2
