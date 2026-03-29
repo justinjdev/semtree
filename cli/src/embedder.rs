@@ -39,9 +39,11 @@ static MODEL_NAME: Mutex<Option<String>> = Mutex::new(None);
 fn resolve_model(model_name: &str) -> Result<EmbeddingModel> {
     match model_name {
         "BAAI/bge-small-en-v1.5" => Ok(EmbeddingModel::BGESmallENV15),
+        "BAAI/bge-base-en-v1.5" => Ok(EmbeddingModel::BGEBaseENV15),
+        "BAAI/bge-base-en-v1.5-q" => Ok(EmbeddingModel::BGEBaseENV15Q),
         "nomic-ai/nomic-embed-text-v1.5" => Ok(EmbeddingModel::NomicEmbedTextV15),
         "nomic-ai/nomic-embed-text-v1.5-q" => Ok(EmbeddingModel::NomicEmbedTextV15Q),
-        other => bail!("Unsupported model: {other}. Supported: BAAI/bge-small-en-v1.5, nomic-ai/nomic-embed-text-v1.5"),
+        other => bail!("Unsupported model: {other}. Supported: BAAI/bge-small-en-v1.5, BAAI/bge-base-en-v1.5[-q], nomic-ai/nomic-embed-text-v1.5[-q]"),
     }
 }
 
@@ -49,7 +51,7 @@ fn resolve_model(model_name: &str) -> Result<EmbeddingModel> {
 fn model_native_dims(model_name: &str) -> usize {
     match model_name {
         "BAAI/bge-small-en-v1.5" => 384,
-        _ => 768, // nomic v1.5 variants
+        _ => 768, // bge-base, nomic v1.5 variants
     }
 }
 
@@ -162,6 +164,94 @@ fn dot(a: &[f32], b: &[f32]) -> f32 {
 }
 
 // ---------------------------------------------------------------------------
+// Summary compaction for embedding
+// ---------------------------------------------------------------------------
+
+/// Compact a __dir__.md summary to fit within ~512 tokens for embedding.
+///
+/// Strategy:
+/// 1. Keep the overview paragraph (before any ## heading)
+/// 2. Keep the full ## Cross-Cutting Concerns section
+/// 3. Compress ## Children to just "child-name: first-phrase" per line
+/// 4. If still over budget, truncate children list
+fn compact_dir_summary(full_summary: &str) -> String {
+    let mut overview = String::new();
+    let mut cross_cutting = String::new();
+    let mut children_compact = Vec::new();
+
+    enum Section { Overview, CrossCutting, Children, Other }
+    let mut current = Section::Overview;
+
+    for line in full_summary.lines() {
+        if line.starts_with("## Cross-Cutting") {
+            current = Section::CrossCutting;
+            continue;
+        } else if line.starts_with("## Children") {
+            current = Section::Children;
+            continue;
+        } else if line.starts_with("## ") {
+            current = Section::Other;
+            continue;
+        }
+
+        match current {
+            Section::Overview => {
+                if !line.trim().is_empty() {
+                    if !overview.is_empty() { overview.push(' '); }
+                    overview.push_str(line.trim());
+                }
+            }
+            Section::CrossCutting => {
+                if !line.trim().is_empty() {
+                    cross_cutting.push_str(line);
+                    cross_cutting.push('\n');
+                }
+            }
+            Section::Children => {
+                // "- **child**: Full description..." -> "child: First sentence"
+                if let Some(rest) = line.strip_prefix("- **") {
+                    if let Some(name_end) = rest.find("**") {
+                        let name = &rest[..name_end];
+                        let desc = rest[name_end + 2..].trim_start_matches(':').trim();
+                        // Take first sentence or first 80 chars
+                        let short = desc
+                            .split_once(". ")
+                            .map(|(first, _)| first)
+                            .unwrap_or(desc);
+                        let short = if short.len() > 80 { &short[..80] } else { short };
+                        children_compact.push(format!("{name}: {short}"));
+                    }
+                }
+            }
+            Section::Other => {}
+        }
+    }
+
+    // Build compact text, estimating ~1.3 tokens per word
+    let mut result = overview.clone();
+
+    if !cross_cutting.is_empty() {
+        result.push_str("\n\nCross-cutting: ");
+        result.push_str(cross_cutting.trim());
+    }
+
+    if !children_compact.is_empty() {
+        result.push_str("\n\nContains: ");
+        // Add children until we approach the token budget
+        let budget_chars = 1800; // ~460 tokens at 4 chars/token
+        for child in &children_compact {
+            if result.len() + child.len() + 2 > budget_chars {
+                break;
+            }
+            result.push_str(child);
+            result.push_str(". ");
+        }
+    }
+
+    result
+}
+
+// ---------------------------------------------------------------------------
 // Directory operations
 // ---------------------------------------------------------------------------
 
@@ -195,12 +285,13 @@ pub fn embed_directory(target: &Path, model: &str, force: bool) -> Result<EmbedS
             }
         }
 
-        // For directory siblings, use the full __dir__.md content (with ## Children
-        // routing table) for embedding instead of the abbreviated sibling summary.
+        // For directory siblings, build a compact embedding text from __dir__.md
+        // that fits within the model's context window (~512 tokens).
+        // Prioritizes: overview + cross-cutting concerns + compressed child list.
         let embed_text = if record.node_type == "directory" && !md_path.ends_with(records::DIR_RECORD) {
             let dir_record = target.join(&record.path).join(SEM_DIR).join(records::DIR_RECORD);
             if let Ok(Some(dir_rec)) = records::read_record(&dir_record) {
-                dir_rec.summary
+                compact_dir_summary(&dir_rec.summary)
             } else {
                 record.summary.clone()
             }
