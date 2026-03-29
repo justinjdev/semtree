@@ -11,3 +11,5 @@ class BuildConfig:
     max_tokens: int = 100_000
     force: bool = False
     exclude: tuple[str, ...] = ()
+    embed: bool = True
+    embed_model: str = "BAAI/bge-small-en-v1.5"

@@ -8,6 +8,7 @@ from semtree.hasher import hash_directory, hash_file
 from semtree.records import (
     read_record,
     record_path_for_dir,
+    record_path_for_dir_sibling,
     record_path_for_file,
     write_record,
 )
@@ -52,6 +53,12 @@ def build(config: BuildConfig) -> None:
 
             if not config.force and existing and existing.get("content_hash") == content_hash:
                 node_summaries[rel] = existing.get("summary", "")
+                # Ensure sibling record exists at parent level
+                sibling_path = record_path_for_dir_sibling(config.target_path, rel)
+                if sibling_path != rec_path:
+                    sibling_existing = read_record(sibling_path)
+                    if not sibling_existing or sibling_existing.get("content_hash") != content_hash:
+                        write_record(sibling_path, rel, "directory", content_hash, existing.get("summary", ""))
                 stats["skipped"] += 1
                 print(f"[{i}/{total}] skip {label} (up-to-date)", file=sys.stderr)
                 continue
@@ -72,6 +79,10 @@ def build(config: BuildConfig) -> None:
                 continue
 
             write_record(rec_path, rel or ".", "directory", content_hash, summary)
+            # Also write sibling record at parent level for embedding/routing
+            sibling_path = record_path_for_dir_sibling(config.target_path, rel)
+            if sibling_path != rec_path:  # skip for root (they're the same)
+                write_record(sibling_path, rel, "directory", content_hash, summary)
             node_summaries[rel] = summary
             stats["summarized"] += 1
             print(f"[{i}/{total}] summarized {label}", file=sys.stderr)
@@ -121,3 +132,19 @@ def build(config: BuildConfig) -> None:
         f"{stats['errored']} errored",
         file=sys.stderr,
     )
+
+    if config.embed:
+        from semtree.embedder import embed_directory
+
+        print("\nComputing embeddings...", file=sys.stderr)
+        embed_stats = embed_directory(
+            config.target_path,
+            model=config.embed_model,
+            force=config.force,
+        )
+        print(
+            f"Embeddings: {embed_stats['embedded']} embedded, "
+            f"{embed_stats['skipped']} skipped, "
+            f"{embed_stats['errored']} errored",
+            file=sys.stderr,
+        )

@@ -1,0 +1,229 @@
+use clap::{Parser, Subcommand};
+use std::path::PathBuf;
+
+mod hasher;
+mod records;
+mod walker;
+mod vec_store;
+mod embedder;
+mod summarizer;
+mod builder;
+mod server;
+mod bench;
+
+#[derive(Parser)]
+#[command(name = "semtree", about = "Semantic Resolution Tree indexer")]
+struct Cli {
+    #[command(subcommand)]
+    command: Commands,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    /// Build or update the SRT for a repository
+    Build {
+        /// Repository root path
+        #[arg(default_value = ".")]
+        path: PathBuf,
+        /// LLM model for summarization
+        #[arg(long, default_value = "claude-sonnet-4-20250514")]
+        model: String,
+        /// Max estimated tokens before marking file as oversized
+        #[arg(long, default_value_t = 100_000)]
+        max_tokens: usize,
+        /// Rebuild all records, ignoring hash freshness checks
+        #[arg(long)]
+        force: bool,
+        /// Glob pattern to exclude (can be repeated)
+        #[arg(long)]
+        exclude: Vec<String>,
+        /// Skip embedding computation after build
+        #[arg(long)]
+        no_embed: bool,
+        /// Embedding model name
+        #[arg(long, default_value = "BAAI/bge-small-en-v1.5")]
+        embed_model: String,
+    },
+
+    /// Compute embeddings for existing .sem/ records
+    Embed {
+        /// Repository root path
+        #[arg(default_value = ".")]
+        path: PathBuf,
+        /// Embedding model name
+        #[arg(long, default_value = "BAAI/bge-small-en-v1.5")]
+        model: String,
+        /// Re-embed all records, ignoring freshness checks
+        #[arg(long)]
+        force: bool,
+    },
+
+    /// Rank directory children by similarity to a query
+    Query {
+        /// Natural language query
+        query: String,
+        /// Directory whose children to rank
+        #[arg(default_value = ".")]
+        path: PathBuf,
+        /// Embedding model name
+        #[arg(long, default_value = "BAAI/bge-small-en-v1.5")]
+        model: String,
+        /// Return only top K results
+        #[arg(long)]
+        top_k: Option<usize>,
+        /// Minimum cosine similarity score
+        #[arg(long)]
+        threshold: Option<f32>,
+    },
+
+    /// Full top-down descent ranking children at each level
+    Route {
+        /// Natural language query
+        query: String,
+        /// Root directory to start descent from
+        #[arg(default_value = ".")]
+        path: PathBuf,
+        /// Embedding model name
+        #[arg(long, default_value = "BAAI/bge-small-en-v1.5")]
+        model: String,
+        /// Number of children to select at each level
+        #[arg(long, default_value_t = 3)]
+        beam_width: usize,
+        /// Maximum descent depth
+        #[arg(long, default_value_t = 10)]
+        max_depth: usize,
+    },
+
+    /// Start daemon keeping embedding model loaded
+    Serve {
+        /// Unix socket path
+        #[arg(long, default_value = "~/.cache/semtree/semtree.sock")]
+        socket: PathBuf,
+    },
+
+    /// Run benchmark evaluation phases
+    Bench {
+        /// Phase to run
+        #[arg(default_value = "all")]
+        phase: String,
+        /// Direct path to repo
+        #[arg(long)]
+        repo_path: Option<PathBuf>,
+        /// Path to results TSV file
+        #[arg(long, default_value = "results.tsv")]
+        results: PathBuf,
+    },
+
+    /// Inspect binary .vec files
+    Vec {
+        #[command(subcommand)]
+        cmd: VecCommands,
+    },
+}
+
+#[derive(Subcommand)]
+enum VecCommands {
+    /// Print human-readable metadata from a .vec file
+    Inspect {
+        /// Path to .vec file
+        path: PathBuf,
+    },
+}
+
+fn main() -> anyhow::Result<()> {
+    let cli = Cli::parse();
+
+    match cli.command {
+        Commands::Build { path, model, max_tokens, force, exclude, no_embed, embed_model } => {
+            let config = builder::BuildConfig {
+                target_path: std::fs::canonicalize(&path)?,
+                model,
+                max_tokens,
+                force,
+                exclude,
+                embed: !no_embed,
+                embed_model,
+            };
+            let stats = builder::build(&config)?;
+            println!(
+                "Build complete: {} summarized, {} skipped, {} errored",
+                stats.summarized, stats.skipped, stats.errored
+            );
+        }
+        Commands::Embed { path, model, force } => {
+            let target = std::fs::canonicalize(&path)?;
+            let stats = embedder::embed_directory(&target, &model, force)?;
+            eprintln!(
+                "Embed complete: {} embedded, {} skipped, {} errored",
+                stats.embedded, stats.skipped, stats.errored
+            );
+        }
+        Commands::Query { query, path, model, top_k, threshold } => {
+            let target = std::fs::canonicalize(&path)?;
+            let results = embedder::query_directory(&target, &query, &model, top_k, threshold)?;
+            if results.is_empty() {
+                eprintln!("No results found.");
+            } else {
+                for (score, rpath, first_line) in &results {
+                    println!("{:.4}\t{}\t{}", score, rpath, first_line);
+                }
+            }
+        }
+        Commands::Route { query, path, model, beam_width, max_depth } => {
+            let target = std::fs::canonicalize(&path)?;
+            let start = std::time::Instant::now();
+            let levels = embedder::route_directory(&target, &query, &model, beam_width, max_depth)?;
+            if levels.is_empty() {
+                eprintln!("No .sem/ records found for routing.");
+            } else {
+                for level in &levels {
+                    println!("--- {} ({} children) [{}ms] ---", level.dir, level.all_children, level.elapsed_ms);
+                    for (rpath, score, first_line) in &level.selected {
+                        println!("  {:.4}  {}  {}", score, rpath, first_line);
+                    }
+                }
+                eprintln!("\nRoute complete in {}ms", start.elapsed().as_millis());
+            }
+        }
+        Commands::Serve { socket } => {
+            let rt = tokio::runtime::Runtime::new()?;
+            rt.block_on(server::serve(&socket))?;
+        }
+        Commands::Bench { phase, repo_path, results } => {
+            let target = repo_path.map(|p| p.canonicalize().unwrap_or(p))
+                .unwrap_or_else(|| std::env::current_dir().unwrap());
+
+            if phase == "quality" || phase == "all" {
+                eprintln!("Running quality phase...");
+                let metrics = bench::run_quality(&target, "local")?;
+                let now = {
+                    let d = std::time::SystemTime::now()
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .unwrap_or_default();
+                    format!("{}", d.as_secs())
+                };
+                let rows: Vec<_> = metrics.iter().map(|(metric, value)| {
+                    (now.clone(), "quality".to_string(), "local".to_string(), "srt".to_string(),
+                     String::new(), String::new(), metric.clone(), *value)
+                }).collect();
+                bench::append_tsv(&results, &rows)?;
+                for (metric, value) in &metrics {
+                    eprintln!("  {}: {}", metric, value);
+                }
+            }
+            eprintln!("Benchmark complete.");
+        }
+        Commands::Vec { cmd } => match cmd {
+            VecCommands::Inspect { path } => {
+                let data = vec_store::read_vec(&path)?
+                    .ok_or_else(|| anyhow::anyhow!("file not found: {}", path.display()))?;
+                println!("Model:        {}", data.model);
+                println!("Content hash: {}", data.content_hash);
+                println!("Dimensions:   {}", data.vector.len());
+                println!("First 5:      {:?}", &data.vector[..data.vector.len().min(5)]);
+            }
+        },
+    }
+
+    Ok(())
+}

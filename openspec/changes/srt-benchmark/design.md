@@ -14,7 +14,7 @@ Shire's benchmarking system (`autoresearch.rs`) provides a proven reference: pin
 - Call library functions directly (not subprocess to CLI)
 
 **Non-Goals:**
-- Full paper evaluation framework (QATE, TER, NDCG — those require labeled datasets at scale)
+- ~~Full paper evaluation framework~~ (now implemented: Pareto, hypervolume, frontier diagnostics)
 - Automated optimization loop (shire's autooptimize — future work after benchmarks are stable)
 - Benchmarking against other tools (Claude Context, Shire, MCP Context Manager — requires integrating those tools)
 - Production-grade statistical analysis (confidence intervals, significance tests)
@@ -116,3 +116,68 @@ Semantic quality (are summaries accurate?) is harder to automate and is deferred
 - Should routing evaluation use the same model as the indexer, or a cheaper one for cost reasons?
 - How many routing queries per repo is "enough" for a meaningful signal?
 - Should we track LLM API cost ($) in addition to call count?
+
+## v9 Evaluation Framework Update
+
+The benchmark harness now implements the full v9 evaluation framework from the paper, adding a 5th analysis phase and significant extensions to routing evaluation.
+
+### Analysis Phase (5th phase)
+
+The `bench/analysis.py` module consumes `results.tsv` and computes:
+
+- **Pareto pruning**: Extracts non-dominated points from (cost, latency, quality) triples
+- **Normalization to utility**: Maps raw metrics to [0,1] utility coordinates (cost and latency inverted)
+- **Hypervolume**: Dominated hypervolume in utility space with reference point (0,0,0), using inclusion-exclusion
+- **Budget slices**: Quality-vs-cost curves at fixed latency bands
+- **Latency slices**: Quality-vs-latency curves at fixed cost bands
+- **Frontier geometry diagnostics**: Initial ascent slope, knee location (smallest resource where marginal gain < tau), flattening rate (second-difference decay)
+- **Workload hypervolume**: Mean hypervolume with bootstrap 95% CI across per-query measurements
+- **Category hypervolume**: Mean hypervolume broken down by query category (focused, module, cross-cutting)
+
+### Control Grids
+
+**SRT control grid** sweeps:
+- `beam_width`: [1, 2, 3, 5]
+- `max_depth`: [1, 2, 3, 100 (unlimited)]
+- `token_budget`: [1000, 2000, 5000, 10000, 20000, 50000]
+
+**Baseline control grid** sweeps:
+- `max_files`: [3, 5, 10, 20]
+- `strategy`: ["grep_only", "glob_then_grep"]
+- `token_budget`: [1000, 2000, 5000, 10000, 20000, 50000]
+
+### Updated Results Format
+
+The TSV now includes additional columns for multi-system comparison:
+
+```
+timestamp	phase	repo	system	query_id	control_json	metric	value
+```
+
+- `system`: "srt" or "baseline" — enables side-by-side comparison
+- `query_id`: Links metrics to specific queries (e.g., "q03")
+- `control_json`: JSON-encoded control settings for the run (e.g., `{"beam_width":3,"max_depth":3,"token_budget":5000}`)
+
+### Query Set Format
+
+Query sets now include graded relevance and categories:
+
+```yaml
+queries:
+  - id: q01
+    question: "How does the quest state machine track phase transitions?"
+    category: focused  # focused | module | cross-cutting
+    relevant:
+      - path: cli/internal/state/state.go
+        relevance: 3  # 3=primary, 2=supporting, 1=tangential
+```
+
+Categories enable per-category hypervolume analysis to identify where routing works best/worst.
+
+### Grep/Glob Baseline
+
+`bench/baseline.py` implements a keyword-extraction grep baseline for comparison:
+- Extracts keywords from questions (stopword filtering)
+- Runs `grep -rl` across source files
+- Ranks by match count
+- Reports as `system=baseline` in results TSV with `cost_usd=0.0`

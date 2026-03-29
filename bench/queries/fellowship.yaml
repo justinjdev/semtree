@@ -1,0 +1,156 @@
+queries:
+  # Focused queries (target specific file/function)
+  - id: q01
+    question: "How does the quest state machine track phase transitions?"
+    category: focused
+    relevant:
+      - path: cli/internal/state/state.go
+        relevance: 3
+      - path: cli/internal/hooks/submit.go
+        relevance: 2
+
+  - id: q02
+    question: "How does the gate guard decide whether to block a tool call?"
+    category: focused
+    relevant:
+      - path: cli/internal/hooks/guard.go
+        relevance: 3
+      - path: cli/internal/state/state.go
+        relevance: 2
+
+  - id: q03
+    question: "How does the lembas prerequisite detection work?"
+    category: focused
+    relevant:
+      - path: cli/internal/hooks/prereq.go
+        relevance: 3
+
+  - id: q04
+    question: "What is the SQLite schema for quest state?"
+    category: focused
+    relevant:
+      - path: cli/internal/db/migrate.go
+        relevance: 3
+      - path: cli/internal/state/state.go
+        relevance: 2
+
+  - id: q05
+    question: "How does the file tracking hook record which files were touched?"
+    category: focused
+    relevant:
+      - path: cli/internal/hooks/files.go
+        relevance: 3
+      - path: cli/internal/tome/tome.go
+        relevance: 2
+
+  # Module-level queries (subsystem understanding)
+  - id: q06
+    question: "How does the hook system enforce quest workflow discipline?"
+    category: module
+    relevant:
+      - path: cli/internal/hooks/guard.go
+        relevance: 3
+      - path: cli/internal/hooks/submit.go
+        relevance: 3
+      - path: cli/internal/hooks/prereq.go
+        relevance: 2
+      - path: cli/internal/hooks/files.go
+        relevance: 2
+      - path: cli/internal/hooks/completion.go
+        relevance: 2
+
+  - id: q07
+    question: "How does the dashboard backend serve real-time quest updates?"
+    category: module
+    relevant:
+      - path: cli/internal/dashboard/server.go
+        relevance: 3
+      - path: cli/internal/dashboard/hub.go
+        relevance: 3
+
+  - id: q08
+    question: "How does the health monitoring system classify quest states?"
+    category: module
+    relevant:
+      - path: cli/internal/eagles/eagles.go
+        relevance: 3
+      - path: cli/internal/herald/herald.go
+        relevance: 2
+
+  - id: q09
+    question: "What are all the agent types and their behavioral protocols?"
+    category: module
+    relevant:
+      - path: plugin/agents/quest-runner.md
+        relevance: 3
+      - path: plugin/agents/balrog.md
+        relevance: 3
+      - path: plugin/agents/palantir.md
+        relevance: 3
+      - path: plugin/agents/scout.md
+        relevance: 3
+
+  - id: q10
+    question: "How does the errand system track quest work items?"
+    category: module
+    relevant:
+      - path: cli/internal/errand/errand.go
+        relevance: 3
+
+  # Cross-cutting queries (multi-module evidence)
+  - id: q11
+    question: "What happens end-to-end when a quest submits a gate?"
+    category: cross-cutting
+    relevant:
+      - path: cli/internal/hooks/submit.go
+        relevance: 3
+      - path: cli/internal/state/state.go
+        relevance: 3
+      - path: cli/internal/tome/tome.go
+        relevance: 2
+      - path: cli/internal/herald/herald.go
+        relevance: 2
+      - path: cli/internal/hooks/enrich.go
+        relevance: 2
+
+  - id: q12
+    question: "How do the CLI, dashboard, and plugin coordinate gate approval?"
+    category: cross-cutting
+    relevant:
+      - path: cli/cmd/fellowship/main.go
+        relevance: 3
+      - path: cli/internal/dashboard/server.go
+        relevance: 3
+      - path: plugin/hooks/hooks.json
+        relevance: 2
+      - path: cli/internal/state/state.go
+        relevance: 2
+
+  - id: q13
+    question: "How does quest failure get recorded and surfaced to the user?"
+    category: cross-cutting
+    relevant:
+      - path: cli/internal/autopsy/autopsy.go
+        relevance: 3
+      - path: cli/internal/herald/herald.go
+        relevance: 2
+      - path: cli/internal/eagles/eagles.go
+        relevance: 2
+
+  - id: q14
+    question: "How does the bulletin board enable cross-quest knowledge sharing?"
+    category: cross-cutting
+    relevant:
+      - path: cli/internal/bulletin/bulletin.go
+        relevance: 3
+
+  - id: q15
+    question: "How does fellowship install and configure itself as a Claude Code plugin?"
+    category: cross-cutting
+    relevant:
+      - path: cli/internal/install/install.go
+        relevance: 3
+      - path: plugin/hooks/hooks.json
+        relevance: 2
+      - path: plugin/CLAUDE.md
+        relevance: 2

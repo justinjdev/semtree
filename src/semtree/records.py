@@ -26,6 +26,18 @@ def record_path_for_file(repo_root: Path, repo_relative: str) -> Path:
     return source.parent / SEM_DIR / f"{source.name}.md"
 
 
+def record_path_for_dir_sibling(repo_root: Path, repo_relative: str) -> Path:
+    """Return the .sem/ sibling record path for a directory node at its parent level.
+
+    For example, for dir 'src/auth', returns <repo_root>/src/.sem/auth.md
+    This is analogous to how record_path_for_file works for files.
+    """
+    if repo_relative == "" or repo_relative == ".":
+        return repo_root / SEM_DIR / DIR_RECORD  # root has no parent sibling
+    source = repo_root / repo_relative
+    return source.parent / SEM_DIR / f"{source.name}.md"
+
+
 def record_path_for_dir(repo_root: Path, repo_relative: str) -> Path:
     """Return the .sem/ record path for a directory node."""
     if repo_relative == "":

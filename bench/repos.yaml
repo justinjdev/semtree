@@ -1,0 +1,6 @@
+repos:
+  - name: fellowship
+    url: https://github.com/justinjdev/fellowship.git
+    commit: HEAD
+    tier: small
+    description: "Go CLI + SvelteKit dashboard + Claude Code plugin (~160 files)"
