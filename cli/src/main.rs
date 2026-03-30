@@ -38,6 +38,9 @@ enum Commands {
         /// Rebuild all records, ignoring hash freshness checks
         #[arg(long)]
         force: bool,
+        /// Rebuild only directory records, skip files (use after batch file rebuild)
+        #[arg(long)]
+        force_dirs: bool,
         /// Glob pattern to exclude (can be repeated)
         #[arg(long)]
         exclude: Vec<String>,
@@ -212,12 +215,13 @@ fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Build { path, model, max_tokens, force, exclude, no_embed, embed_model, batch, verify, fidelity_threshold, orphan_rate, max_repair_attempts } => {
+        Commands::Build { path, model, max_tokens, force, force_dirs, exclude, no_embed, embed_model, batch, verify, fidelity_threshold, orphan_rate, max_repair_attempts } => {
             let config = builder::BuildConfig {
                 target_path: std::fs::canonicalize(&path)?,
                 model,
                 max_tokens,
                 force,
+                force_dirs,
                 exclude,
                 embed: !no_embed,
                 embed_model,

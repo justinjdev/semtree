@@ -18,6 +18,7 @@ pub struct BuildConfig {
     pub model: String,
     pub max_tokens: usize,
     pub force: bool,
+    pub force_dirs: bool,
     pub exclude: Vec<String>,
     pub embed: bool,
     pub embed_model: String,
@@ -126,7 +127,7 @@ pub fn build_with_summarizer(
             let rec_path = records::record_path_for_dir(&config.target_path, rel);
             let existing = records::read_record(&rec_path)?;
 
-            if !config.force {
+            if !config.force && !config.force_dirs {
                 if let Some(ref record) = existing {
                     if record.content_hash == content_hash {
                         node_summaries.insert(rel.clone(), record.summary.clone());
@@ -637,6 +638,7 @@ mod tests {
             model: "test-model".to_string(),
             max_tokens: 100_000,
             force: false,
+            force_dirs: false,
             exclude: vec![],
             embed: false,
             embed_model: String::new(),
@@ -773,6 +775,7 @@ mod tests {
             model: String::new(),
             max_tokens: 100_000,
             force: false,
+            force_dirs: false,
             exclude: vec![],
             embed: false,
             embed_model: String::new(),
