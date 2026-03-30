@@ -107,8 +107,11 @@ semtree serve
 | `semtree embed [path]` | Compute embeddings for existing summaries |
 | `semtree query <query> [path]` | Rank directory children by similarity |
 | `semtree route <query> [path]` | Full beam-search descent to candidate files |
+| `semtree search <query> [path]` | Query-adaptive search (classifies intent, routes to best backend) |
+| `semtree review [range] [path]` | Generate review manifest for code changes |
+| `semtree impact [path]` | Find files related to changed files |
 | `semtree serve` | Start daemon for warm routing |
-| `semtree bench <phase>` | Run benchmark evaluation |
+| `semtree bench <phase>` | Run benchmark evaluation (quality, routing, diagnostics) |
 | `semtree vec inspect <file>` | Inspect binary .vec file |
 
 ### Build options
@@ -127,6 +130,25 @@ semtree build /path/to/repo \
   --orphan-rate 0.2                    # max orphan fraction before re-summarization
 ```
 
+### Search (query-adaptive router)
+
+```bash
+# Classifies intent and routes to the best backend automatically
+semtree search "where is EngineBuilder defined?" /path/to/repo
+# → [intent: exact-lookup] — uses ripgrep
+
+semtree search "how does the task graph execution work?" /path/to/repo
+# → [intent: semantic-architectural] — uses SRT descent
+
+semtree search "how does auth flow across services?" /path/to/repo
+# → [intent: cross-cutting] — uses SRT with wider beam
+
+semtree search "how does retry logic work?" /path/to/repo
+# → [intent: mixed] — runs both ripgrep and SRT, merges results
+```
+
+Five intent classes (checked by heuristic in priority order): exact-lookup, lexical, cross-cutting, semantic-architectural, mixed. No LLM call for classification.
+
 ### Route options
 
 ```bash
@@ -136,6 +158,18 @@ semtree route "your question" /path/to/repo \
   --beam-policy uniform \    # uniform or waterfill
   --model BAAI/bge-small-en-v1.5
 ```
+
+### Review (code review manifest)
+
+```bash
+# Generate review manifest for uncommitted changes
+semtree review /path/to/repo
+
+# For a specific range (PR, branch)
+semtree review "main..HEAD" /path/to/repo
+```
+
+Outputs a three-section markdown manifest: severity triage table (from embedding fan-out), per-file semantic context with related files, and cross-cutting warnings for potentially missed changes. No LLM calls — pure embedding math.
 
 ## How it works
 
@@ -164,12 +198,15 @@ cli/src/
 ├── walker.rs        # Git-aware filesystem traversal
 ├── hasher.rs        # SHA-256 content hashing
 ├── records.rs       # .sem/ record I/O (YAML + Markdown)
-├── summarizer.rs    # LLM summarization via claude CLI
+├── summarizer.rs    # LLM summarization (Anthropic API, batch, BottleSum verify)
 ├── builder.rs       # Build pipeline orchestration
-├── embedder.rs      # Embedding inference + cosine ranking
+├── embedder.rs      # Embedding inference + cosine ranking + routing
 ├── vec_store.rs     # Binary .vec format with mmap
 ├── server.rs        # Unix socket daemon (tokio)
-└── bench.rs         # Benchmark data collection
+├── search.rs        # Query-adaptive router (5-class intent classification)
+├── review.rs        # Review manifest generator (triage, context, warnings)
+├── bench.rs         # Benchmark data collection + diagnostics
+└── depth_profile.rs # Tree depth and branching analysis
 ```
 
 ### .sem/ record format
