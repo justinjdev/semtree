@@ -39,6 +39,30 @@ pub struct BuildStats {
 }
 
 /// Run the full SRT build pipeline using the auto-detected summarizer.
+/// Ensure a .vec embedding exists and is at least as recent as the .md record.
+/// If missing or stale, re-embed the summary. No API calls — local model only.
+/// Ensure a .vec embedding exists and is at least as recent as the .md record.
+/// If missing or stale, re-embed the summary. No API calls — local model only.
+fn ensure_fresh_embedding(record_path: &std::path::Path, summary: &str, embed_model: &str) {
+    let vec_path = record_path.with_extension("vec");
+    let needs_embed = if vec_path.exists() {
+        let md_mtime = std::fs::metadata(record_path).and_then(|m| m.modified()).ok();
+        let vec_mtime = std::fs::metadata(&vec_path).and_then(|m| m.modified()).ok();
+        match (md_mtime, vec_mtime) {
+            (Some(md), Some(vec)) => vec < md,
+            _ => true,
+        }
+    } else {
+        true
+    };
+
+    if needs_embed {
+        if let Ok(vector) = embedder::embed_query(summary, embed_model) {
+            let _ = vec_store::write_vec(&vec_path, embed_model, "", &vector);
+        }
+    }
+}
+
 pub fn build(config: &BuildConfig) -> Result<BuildStats> {
     let summarizer = summarizer::create_summarizer(&config.model);
     build_with_summarizer(config, summarizer.as_ref())
@@ -303,6 +327,9 @@ pub fn build_with_summarizer(
             if !config.force {
                 if let Some(ref record) = existing {
                     if record.content_hash == content_hash {
+                        if config.verify {
+                            ensure_fresh_embedding(&rec_path, &record.summary, &config.embed_model);
+                        }
                         node_summaries.insert(rel.clone(), record.summary.clone());
                         stats.skipped += 1;
                         eprintln!("[{idx}/{total}] skip {label} (up-to-date)");
@@ -334,6 +361,9 @@ pub fn build_with_summarizer(
             match summarizer.call(&prompt) {
                 Ok(summary) => {
                     records::write_record(&rec_path, &repo_rel, "file", &content_hash, &summary)?;
+                    if config.verify {
+                        ensure_fresh_embedding(&rec_path, &summary, &config.embed_model);
+                    }
                     node_summaries.insert(rel.clone(), summary);
                     stats.summarized += 1;
                     eprintln!("[{idx}/{total}] summarized {label}");
